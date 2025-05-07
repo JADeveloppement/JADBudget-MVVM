@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/elementLayoutContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="@dimen/paddingM"
+    android:weightSum="10">
+
+    <LinearLayout
+        android:id="@+id/elementLayoutLabelContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="7"
+        android:orientation="horizontal"
+        android:gravity="center_vertical|start">
+
+        <ImageButton
+            android:id="@+id/budgetElementLayoutPaid"
+            android:layout_width="@dimen/iconM"
+            android:layout_height="@dimen/iconM"
+            android:layout_marginEnd="@dimen/paddingL"
+            android:background="@drawable/wait" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/budgetElementLayoutLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/element"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+            <TextView
+                android:id="@+id/budgetElementLayoutAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="@string/amount" />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|end"
+        android:layout_weight="3">
+
+        <ImageButton
+            android:id="@+id/budgetElementLayoutDelete"
+            android:layout_width="@dimen/iconM"
+            android:layout_height="@dimen/iconM"
+            android:layout_marginEnd="@dimen/paddingL"
+            android:background="@drawable/trash" />
+
+        <ImageButton
+            android:id="@+id/budgetElementLayoutEdit"
+            android:layout_width="@dimen/iconM"
+            android:layout_height="@dimen/iconM"
+            android:background="@drawable/edit" />
+
+    </LinearLayout>
+
+</LinearLayout>

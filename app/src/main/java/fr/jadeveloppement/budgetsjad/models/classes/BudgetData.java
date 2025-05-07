@@ -1,0 +1,162 @@
+package fr.jadeveloppement.budgetsjad.models.classes;
+
+import static java.lang.Long.parseLong;
+
+import android.content.Context;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.jadeveloppement.budgetsjad.functions.Functions;
+import fr.jadeveloppement.budgetsjad.functions.Variables;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
+
+public class BudgetData {
+    private final String TAG = "BudgetJAD";
+
+    private List<Transaction> transactions = new ArrayList<>();
+    private Context context;
+    private Functions functions;
+
+    public BudgetData(Context c){
+        this.context = c.getApplicationContext();
+        this.functions = new Functions(context);
+    }
+
+    public void addTransaction(Transaction t){
+        Log.d("jadbudget", "budgetData > addTransaction: " + t.getLabel() + " amount : " + t.getAmount());
+        if (t.getType() == Transaction.TransactionType.INVOICE) addInvoice(t);
+        else if (t.getType() == Transaction.TransactionType.INCOME) addIncome(t);
+        else if (t.getType() == Transaction.TransactionType.EXPENSE) addExpense(t);
+        else if (t.getType() == Transaction.TransactionType.MODELINVOICE) addModelInvoice(t);
+        else if (t.getType() == Transaction.TransactionType.MODELINCOME) addModelIncome(t);
+    }
+
+    private void addModelInvoice(Transaction t) {
+        Log.d("jadbudget", "budgetData > addModelInvoice: " + t.getLabel() + " amount : " + t.getAmount());
+        ModeleInvoices newModelInvoice = new ModeleInvoices();
+        newModelInvoice.label = t.getLabel();
+        newModelInvoice.amount = t.getAmount();
+        newModelInvoice.paid = "0";
+        newModelInvoice.date = "";
+        functions.insertModelInvoice(newModelInvoice);
+    }
+
+    private void addModelIncome(Transaction t) {
+        Log.d("jadbudget", "budgetData > addModelIncome: " + t.getLabel() + " amount : " + t.getAmount());
+        ModeleIncomes newModelIncome = new ModeleIncomes();
+        newModelIncome.label = t.getLabel();
+        newModelIncome.amount = t.getAmount();
+        newModelIncome.paid = "0";
+        newModelIncome.date = "";
+        functions.insertModelIncome(newModelIncome);
+    }
+
+    private void addInvoice(Transaction t){
+        Log.d("jadbudget", "budgetData > addInvoice: " + t.getLabel() + " amount : " + t.getAmount());
+        InvoicesTable newInvoice = new InvoicesTable();
+        newInvoice.label = t.getLabel();
+        newInvoice.amount = t.getAmount();
+        newInvoice.account_id = parseLong(t.getAccount());
+        newInvoice.paid = "0";
+        newInvoice.date = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+        functions.insertInvoice(newInvoice);
+    }
+
+    private void addIncome(Transaction t){
+        Log.d("jadbudget", "budgetData > addIncome: " + t.getLabel() + " amount : " + t.getAmount());
+        IncomesTable newIncome = new IncomesTable();
+        newIncome.label = t.getLabel();
+        newIncome.amount = t.getAmount();
+        newIncome.account_id = parseLong(functions.getSettingByLabel(Variables.settingAccount).value);
+        newIncome.paid = "0";
+        newIncome.date = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+        functions.insertIncome(newIncome);
+    }
+
+    private void addExpense(Transaction t){
+        Log.d("jadbudget", "budgetData > addExpense: " + t.getLabel() + " amount : " + t.getAmount());
+        ExpensesTable newExpense = new ExpensesTable();
+        newExpense.label = t.getLabel();
+        newExpense.amount = t.getAmount();
+        newExpense.account_id = parseLong(functions.getSettingByLabel(Variables.settingAccount).value);
+        newExpense.date = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+        functions.insertExpense(newExpense);
+    }
+
+    public List<Transaction> getInvoicesTransaction(){
+        return functions.getAllInvoicesTransaction();
+    }
+
+    public List<Transaction> getIncomesTransaction(){
+        return functions.getAllIncomesTransaction();
+    }
+
+    public List<Transaction> getExpensesTransaction(){
+        return functions.getAllExpensesTransaction();
+    }
+
+    public List<Transaction> getModelInvoiceTransaction(){
+        return functions.getModelInvoiceTransaction();
+    }
+
+    public List<Transaction> getModelIncomeTransaction(){
+        return functions.getModelIncomeTransaction();
+    }
+
+    public void deleteTransaction(Transaction t) {
+        if (!t.getId().isBlank()){
+            if (t.getType() == Transaction.TransactionType.INCOME){
+                Log.d(TAG, "deleteTransaction: delete income");
+                IncomesTable i = functions.getIncomeById(parseLong(t.getId()));
+                functions.deleteIncome(i);
+            } else if (t.getType() == Transaction.TransactionType.INVOICE){
+                Log.d(TAG, "deleteTransaction: delete invoice");
+                InvoicesTable i = functions.getInvoiceById(parseLong(t.getId()));
+                functions.deleteInvoice(i);
+            } else if (t.getType() == Transaction.TransactionType.EXPENSE){
+                Log.d(TAG, "deleteTransaction: delete expense");
+                ExpensesTable e = functions.getExpenseById(parseLong(t.getId()));
+                functions.deleteExpense(e);
+            } else if (t.getType() == Transaction.TransactionType.MODELINCOME){
+//                TODO
+                Log.d(TAG, "deleteTransaction: delete model income");
+                ModeleIncomes modeleIncomes = functions.getModeleIncomeById(parseLong(t.getId()));
+                functions.deleteModelIncome(modeleIncomes);
+            } else if (t.getType() == Transaction.TransactionType.MODELINVOICE){
+//                TODO
+                Log.d(TAG, "deleteTransaction: delete model invoice");
+                ModeleInvoices modeleInvoices = functions.getModeleInvoiceById(parseLong(t.getId()));
+                functions.deleteModelInvoice(modeleInvoices);
+            }
+        }
+    }
+
+    public void updateTransaction(Transaction transaction) {
+        if (!transaction.getId().isBlank()){
+            if (transaction.getType() == Transaction.TransactionType.INVOICE){
+                InvoicesTable i = functions.getInvoiceById(parseLong(transaction.getId()));
+                i.label = transaction.getLabel();
+                i.amount = transaction.getAmount();
+                i.paid = transaction.getPaid();
+                functions.updateInvoice(i);
+            } else if (transaction.getType() == Transaction.TransactionType.INCOME){
+                IncomesTable i = functions.getIncomeById(parseLong(transaction.getId()));
+                i.label = transaction.getLabel();
+                i.amount = transaction.getAmount();
+                i.paid = transaction.getPaid();
+                functions.updateIncome(i);
+            } else if (transaction.getType() == Transaction.TransactionType.EXPENSE){
+                ExpensesTable e = functions.getExpenseById(parseLong(transaction.getId()));
+                e.label = transaction.getLabel();
+                e.amount = transaction.getAmount();
+                functions.updateExpense(e);
+            }
+        }
+    }
+}

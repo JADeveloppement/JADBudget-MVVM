@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10"
+        android:paddingVertical="@dimen/paddingM"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/paddingXL">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconXL"
+                android:layout_height="@dimen/iconXL"
+                android:background="@drawable/schedule"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/popupContentPeriodsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:text="@string/manage_periods"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/orange1"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/popupContentPeriodsBtnClose"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/close" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/periods_list"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@color/orange1"
+        android:layout_marginBottom="@dimen/paddingM"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/paddingM">
+
+        <ImageView
+            android:layout_width="@dimen/iconS"
+            android:layout_height="@dimen/iconS"
+            android:background="@drawable/alert"
+            android:layout_marginEnd="@dimen/paddingM"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:text="@string/period_disclaimer"
+            android:textStyle="italic"
+            android:textColor="@color/red1"/>
+
+    </LinearLayout>
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_box_border"
+        android:padding="@dimen/paddingM">
+
+        <LinearLayout
+            android:id="@+id/popupContentPeriodsListContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+    </ScrollView>
+
+</LinearLayout>

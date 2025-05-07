@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/paddingM">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10"
+        android:paddingVertical="@dimen/paddingM"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/paddingXL">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconXL"
+                android:layout_height="@dimen/iconXL"
+                android:background="@drawable/add_element"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/popupContentElementTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:text="@string/add_element"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/orange1"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/popupContentElementBtnClose"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/close" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/popupContentElementPeriodLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/paddingM"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/paddingM"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="@dimen/iconM"
+            android:layout_height="@dimen/iconM"
+            android:layout_marginEnd="@dimen/paddingM"
+            android:background="@drawable/schedule"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textColor="@color/orange1"
+                android:text="@string/period"/>
+
+            <TextView
+                android:id="@+id/popupContentElementPeriodTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="01 Janvier 2025"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/popupContentElementLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/label"
+        android:layout_marginBottom="@dimen/paddingM"
+        android:singleLine="true"/>
+
+    <EditText
+        android:id="@+id/popupContentElementAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/amount"
+        android:layout_marginBottom="@dimen/paddingM"
+        android:inputType="numberSigned|numberDecimal"
+        android:singleLine="true"/>
+
+    <CheckBox
+        android:id="@+id/popupContentElementIsPaid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Prélevé ?"/>
+
+    <Button
+        android:id="@+id/popupContentElementBtnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/orange1"
+        android:text="@string/save"/>
+
+    <Button
+        android:id="@+id/popupContentElementBtnDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/red1"
+        android:textColor="@color/white"
+        android:text="@string/delete"/>
+
+</LinearLayout>
