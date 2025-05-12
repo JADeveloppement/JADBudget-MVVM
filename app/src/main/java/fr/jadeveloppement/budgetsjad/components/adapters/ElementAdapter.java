@@ -4,7 +4,6 @@ import static java.lang.Double.parseDouble;
 import static java.util.Objects.isNull;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,11 +31,11 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
 
     private final String TAG = "BudgetJAD";
     private final Context context;
-    private List<Transaction> itemList;
+    private final List<Transaction> itemList;
     private final Functions functions;
     private final BudgetViewModel budgetViewModel;
 
-    public ElementAdapter(@NonNull Context c, @Nullable List<Transaction> listOfElements, @NonNull BudgetViewModel vModel){
+    public ElementAdapter(@NonNull Context c, @Nullable List<Transaction> listOfElements, @Nullable BudgetViewModel vModel){
         this.context = c.getApplicationContext();
         this.itemList = listOfElements;
         this.functions = new Functions(context);
@@ -85,7 +84,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
 
                 popupContainer.addContent(popupElementContent.getLayout());
 
-                popupElementContent.getPopupContentElementPeriodTv().setText(functions.convertStdDateToLocale(currentItem.getDate()));
+                popupElementContent.getPopupContentElementPeriodTv().setText(Functions.convertStdDateToLocale(currentItem.getDate()));
                 String typeStr = "";
                 if (currentItem.getType() == Transaction.TransactionType.INVOICE){
                     typeStr = "un prélèvement";
