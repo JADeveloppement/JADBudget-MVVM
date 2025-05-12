@@ -425,7 +425,7 @@ public class DashboardFragment extends Fragment
     }
 
     private void updateExpenseTileProgressbar() {
-        Double amountForecastFinal = isNull(budgetViewModel.getForecastFinal()) ? 0 : budgetViewModel.getForecastFinal().getValue();
+        Double amountForecastFinal = isNull(budgetViewModel.getForecastFinal().getValue()) ? 0 : budgetViewModel.getForecastFinal().getValue();
         List<Transaction> listOfExpenses = isNull(budgetViewModel.getExpenses().getValue()) ? Collections.emptyList() : budgetViewModel.getExpenses().getValue();
         int progress;
         double amountExpenses = 0;
