@@ -410,31 +410,10 @@ public class DashboardFragment extends Fragment
             }
         });
 
-        budgetViewModel.getExpenses().observe(getViewLifecycleOwner(), (List<Transaction> listOfExpenses) -> {
-            if (isNull(listOfExpenses) || listOfExpenses.isEmpty()) listOfExpenses = Collections.emptyList();
-            double amountExpenses = 0;
-            for(Transaction t : listOfExpenses)
-                amountExpenses += parseDouble(t.getAmount());
-            if (!isNull(expenseTile)) {
-                expenseTile.setTileAmount(Variables.decimalFormat.format(amountExpenses) + " €");
-                double amountForecastFinal = isNull(budgetViewModel.getForecastFinal().getValue()) ? 0 : budgetViewModel.getForecastFinal().getValue();
-                int progress = 0;
-                if (amountExpenses > amountForecastFinal)
-                    progress = 1;
-                else progress = (int) Math.ceil(100 * (amountExpenses / amountForecastFinal));
-                expenseTile.setDashboardTileProgressbarProgress(progress);
-                expenseTile.setProgressBarText(Variables.decimalFormat.format(amountExpenses) + " € / " + Variables.decimalFormat.format(amountForecastFinal) + " €");
-                if (!listOfExpenses.isEmpty()) expenseTile.setLastElementLabel(listOfExpenses.get(listOfExpenses.size()-1).getLabel() + " - " + listOfExpenses.get(listOfExpenses.size()-1).getAmount() + "€");
-                else expenseTile.setLastElementVisible(false);
-
-                if (!isNull(expenseTile.getDashboardTileLoading()) && expenseTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
-                    expenseTile.getDashboardTileLoading().setVisibility(View.GONE);
-            }
-        });
-
         budgetViewModel.getForecastFinal().observe(getViewLifecycleOwner(), (Double forecastFinal) -> {
             if (!isNull(forecastFinalTile)){
                 forecastFinalTile.setTileAmount(Variables.decimalFormat.format(forecastFinal) + " €");
+                updateExpenseTileProgressbar();
                 if (!isNull(forecastFinalTile.getDashboardTileLoading()) && forecastFinalTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
                     forecastFinalTile.getDashboardTileLoading().setVisibility(View.GONE);
             }
@@ -443,11 +422,46 @@ public class DashboardFragment extends Fragment
         budgetViewModel.getForecastEncours().observe(getViewLifecycleOwner(), (Double forecastEncours) ->  {
             if (!isNull(forecastEncoursTile)) {
                 forecastEncoursTile.setTileAmount(Variables.decimalFormat.format(forecastEncours) + " €");
+                updateExpenseTileProgressbar();
                 if (!isNull(forecastEncoursTile.getDashboardTileLoading()) && forecastEncoursTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
                     forecastEncoursTile.getDashboardTileLoading().setVisibility(View.GONE);
             }
         });
 
+        budgetViewModel.getExpenses().observe(getViewLifecycleOwner(), (List<Transaction> listOfExpenses) -> {
+            double amountExpenses = 0;
+
+            if (isNull(listOfExpenses) || listOfExpenses.isEmpty()) listOfExpenses = Collections.emptyList();
+
+            for(Transaction t : listOfExpenses)
+                amountExpenses += parseDouble(t.getAmount());
+
+            if (!isNull(expenseTile)) {
+                expenseTile.setTileAmount(Variables.decimalFormat.format(amountExpenses) + " €");
+                updateExpenseTileProgressbar();
+            }
+        });
+    }
+
+    private void updateExpenseTileProgressbar() {
+        double amountForecastFinal = isNull(budgetViewModel.getForecastFinal().getValue()) ? 0 : budgetViewModel.getForecastFinal().getValue();
+        List<Transaction> listOfExpenses = isNull(budgetViewModel.getExpenses().getValue()) ? Collections.emptyList() : budgetViewModel.getExpenses().getValue();
+        int progress = 0;
+        double amountExpenses = 0;
+
+        for (Transaction t : listOfExpenses)
+            amountExpenses += parseDouble(t.getAmount());
+
+        if (amountExpenses > amountForecastFinal)
+            progress = 1;
+        else progress = (int) Math.ceil(100 * (amountExpenses / amountForecastFinal));
+        expenseTile.setDashboardTileProgressbarProgress(progress);
+        expenseTile.setProgressBarText(Variables.decimalFormat.format(amountExpenses) + " € / " + Variables.decimalFormat.format(amountForecastFinal) + " €");
+        if (!listOfExpenses.isEmpty()) expenseTile.setLastElementLabel(listOfExpenses.get(listOfExpenses.size()-1).getLabel() + " - " + listOfExpenses.get(listOfExpenses.size()-1).getAmount() + "€");
+        else expenseTile.setLastElementVisible(false);
+
+        if (!isNull(expenseTile.getDashboardTileLoading()) && expenseTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
+            expenseTile.getDashboardTileLoading().setVisibility(View.GONE);
     }
 
     @Override

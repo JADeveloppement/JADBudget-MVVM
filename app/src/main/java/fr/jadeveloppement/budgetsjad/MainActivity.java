@@ -3,6 +3,7 @@ package fr.jadeveloppement.budgetsjad;
 import static java.util.Objects.isNull;
 
 import android.icu.util.ValueIterator;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +17,13 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.appbar.AppBarLayout;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.databinding.ActivityMainBinding;
@@ -88,5 +96,6 @@ public class MainActivity extends AppCompatActivity {
     public static View getViewRoot(){
         return binding.getRoot();
     }
+
 
 }

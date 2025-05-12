@@ -4,6 +4,7 @@ import static java.lang.Double.parseDouble;
 import static java.util.Objects.isNull;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,12 +43,10 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         this.budgetViewModel = vModel;
     }
 
-    private View view;
-
     @NonNull
     @Override
     public ElementAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        view = LayoutInflater.from(context).inflate(R.layout.budget_element_layout, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.budget_element_layout, parent, false);
         return new ViewHolder(view);
     }
 
@@ -59,87 +58,85 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         holder.budgetElementLayoutAmount.setText(Variables.decimalFormat.format(parseDouble(currentItem.getAmount())) + " €");
         holder.budgetElementLayoutPaid.setBackgroundResource(currentItem.getPaid().equalsIgnoreCase("1") ? R.drawable.check : R.drawable.wait);
         holder.budgetElementLayoutPaid.setVisibility(currentItem.getType() == Transaction.TransactionType.INVOICE ? View.VISIBLE : View.GONE);
+        holder.label = currentItem.getLabel();
 
-        holder.budgetElementLayoutDelete.setOnClickListener(v -> {
-            int finalPosition = holder.getAdapterPosition();
-            if (finalPosition != RecyclerView.NO_POSITION && finalPosition < itemList.size()) {
-                itemList.remove(finalPosition);
-                notifyItemRemoved(finalPosition);
-                budgetViewModel.deleteTransaction(currentItem);
-            }
-        });
-
-        holder.budgetElementLayoutPaid.setOnClickListener(v -> {
-            int finalPosition = holder.getAdapterPosition();
-            currentItem.setPaid(currentItem.getPaid().equalsIgnoreCase("1") ? "0" : "1");
-            budgetViewModel.updateTransaction(currentItem);
-            holder.isClicked = !holder.isClicked;
-            notifyItemChanged(finalPosition);
-        });
-
-        holder.budgetElementLayoutEdit.setOnClickListener(v -> {
-            int finalPosition = holder.getAdapterPosition();
-            PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
-            PopupElementContent popupElementContent = new PopupElementContent(context, MainActivity.getViewRoot(), currentItem);
-
-            popupContainer.addContent(popupElementContent.getLayout());
-
-            popupElementContent.getPopupContentElementPeriodTv().setText(functions.convertStdDateToLocale(currentItem.getDate()));
-            String typeStr = "";
-            if (currentItem.getType() == Transaction.TransactionType.INVOICE){
-              typeStr = "un prélèvement";  
-            } else if (currentItem.getType() == Transaction.TransactionType.INCOME){
-                typeStr = "un revenu";
-            } else if (currentItem.getType() == Transaction.TransactionType.EXPENSE){
-                typeStr = "une dépense";
-            } else if (currentItem.getType() == Transaction.TransactionType.MODELINCOME ||
-                    currentItem.getType() == Transaction.TransactionType.MODELINVOICE){
-                typeStr = "un modèle";
-            }
-            
-            popupElementContent.getPopupContentElementTitle().setText("Editer " + typeStr);
-            popupElementContent.getPopupContentElementLabel().setText(currentItem.getLabel());
-            popupElementContent.getPopupContentElementAmount().setText(currentItem.getAmount());
-            
-            if (currentItem.getType() == Transaction.TransactionType.INVOICE)
-                popupElementContent.getPopupContentElementIsPaid().setChecked(currentItem.getPaid().equalsIgnoreCase("1"));
-
-            popupElementContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> {
-                popupContainer.closePopup();
-            });
-
-            popupElementContent.getPopupContentElementBtnSave().setOnClickListener(v1 -> {
-                String editedLabel = popupElementContent.getPopupContentElementLabel().getText().toString();
-                String editedAmount = popupElementContent.getPopupContentElementAmount().getText().toString();
-                String editedPaid = popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0";
-                if (editedLabel.isBlank() || editedAmount.isBlank()) Toast.makeText(context, "Veuillez renseigner tous les champs SVP.", Toast.LENGTH_LONG).show();
-                else {
-                    currentItem.setLabel(editedLabel);
-                    currentItem.setAmount(editedAmount);
-                    currentItem.setPaid(editedPaid);
-                    budgetViewModel.updateTransaction(currentItem);
-                    notifyItemChanged(finalPosition);
-                    popupContainer.closePopup();
-                }
-            });
-
-            popupElementContent.getPopupContentElementBtnDelete().setOnClickListener(v2 -> {
+        if (!isNull(budgetViewModel)){
+            holder.budgetElementLayoutDelete.setOnClickListener(v -> {
+                int finalPosition = holder.getAdapterPosition();
                 if (finalPosition != RecyclerView.NO_POSITION && finalPosition < itemList.size()) {
                     itemList.remove(finalPosition);
                     notifyItemRemoved(finalPosition);
                     budgetViewModel.deleteTransaction(currentItem);
-                    popupContainer.closePopup();
                 }
             });
-        });
 
-        holder.elementLayoutLabelContainer.setOnClickListener(v -> {
-            if (!isNull(budgetViewModel)) toggleElementActionsButtons(holder);
-        });
+            holder.budgetElementLayoutPaid.setOnClickListener(v -> {
+                int finalPosition = holder.getAdapterPosition();
+                currentItem.setPaid(currentItem.getPaid().equalsIgnoreCase("1") ? "0" : "1");
+                budgetViewModel.updateTransaction(currentItem);
+                holder.isClicked = !holder.isClicked;
+                notifyItemChanged(finalPosition);
+            });
 
-        if (isNull(budgetViewModel)) {
-            holder.budgetElementLayoutEdit.setVisibility(View.GONE);
-            holder.budgetElementLayoutDelete.setVisibility(View.GONE);
+            holder.budgetElementLayoutEdit.setOnClickListener(v -> {
+                int finalPosition = holder.getAdapterPosition();
+                PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+                PopupElementContent popupElementContent = new PopupElementContent(context, MainActivity.getViewRoot(), currentItem);
+
+                popupContainer.addContent(popupElementContent.getLayout());
+
+                popupElementContent.getPopupContentElementPeriodTv().setText(functions.convertStdDateToLocale(currentItem.getDate()));
+                String typeStr = "";
+                if (currentItem.getType() == Transaction.TransactionType.INVOICE){
+                    typeStr = "un prélèvement";
+                } else if (currentItem.getType() == Transaction.TransactionType.INCOME){
+                    typeStr = "un revenu";
+                } else if (currentItem.getType() == Transaction.TransactionType.EXPENSE){
+                    typeStr = "une dépense";
+                } else if (currentItem.getType() == Transaction.TransactionType.MODELINCOME ||
+                        currentItem.getType() == Transaction.TransactionType.MODELINVOICE){
+                    typeStr = "un modèle";
+                }
+
+                popupElementContent.getPopupContentElementTitle().setText("Editer " + typeStr);
+                popupElementContent.getPopupContentElementLabel().setText(currentItem.getLabel());
+                popupElementContent.getPopupContentElementAmount().setText(currentItem.getAmount());
+
+                if (currentItem.getType() == Transaction.TransactionType.INVOICE)
+                    popupElementContent.getPopupContentElementIsPaid().setChecked(currentItem.getPaid().equalsIgnoreCase("1"));
+
+                popupElementContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> {
+                    popupContainer.closePopup();
+                });
+
+                popupElementContent.getPopupContentElementBtnSave().setOnClickListener(v1 -> {
+                    String editedLabel = popupElementContent.getPopupContentElementLabel().getText().toString();
+                    String editedAmount = popupElementContent.getPopupContentElementAmount().getText().toString();
+                    String editedPaid = popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0";
+                    if (editedLabel.isBlank() || editedAmount.isBlank()) Toast.makeText(context, "Veuillez renseigner tous les champs SVP.", Toast.LENGTH_LONG).show();
+                    else {
+                        currentItem.setLabel(editedLabel);
+                        currentItem.setAmount(editedAmount);
+                        currentItem.setPaid(editedPaid);
+                        budgetViewModel.updateTransaction(currentItem);
+                        notifyItemChanged(finalPosition);
+                        popupContainer.closePopup();
+                    }
+                });
+
+                popupElementContent.getPopupContentElementBtnDelete().setOnClickListener(v2 -> {
+                    if (finalPosition != RecyclerView.NO_POSITION && finalPosition < itemList.size()) {
+                        itemList.remove(finalPosition);
+                        notifyItemRemoved(finalPosition);
+                        budgetViewModel.deleteTransaction(currentItem);
+                        popupContainer.closePopup();
+                    }
+                });
+            });
+
+            holder.elementLayoutLabelContainer.setOnClickListener(v -> {
+                if (!isNull(budgetViewModel)) toggleElementActionsButtons(holder);
+            });
         }
     }
 
@@ -167,6 +164,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         protected ImageButton budgetElementLayoutPaid, budgetElementLayoutDelete, budgetElementLayoutEdit;
         protected boolean isClicked = false;
         protected LinearLayout elementLayoutLabelContainer, elementLayoutContainer;
+        protected String label = "";
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
