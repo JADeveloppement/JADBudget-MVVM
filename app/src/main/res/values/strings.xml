@@ -30,5 +30,8 @@
     <string name="confirm_deleteperiod_txt">Vous vous apprêtez à supprimer une période.\nLes données de prélèvements, de dépense, et de revenus associés à cette période seront définitivement supprimées.\n\nEtes vous sûr de vouloir continuer ?</string>
     <string name="confirm">Confirmer</string>
     <string name="cancel">Annuler</string>
+    <string name="add_invoice">Ajouter un prélèvement</string>
+    <string name="add_income">Ajouter un revenu</string>
+    <string name="add_expense">Ajouter une dépense</string>
 
 </resources>
