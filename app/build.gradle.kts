@@ -3,6 +3,15 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile =
+                file("C:\\Users\\zacha\\AndroidStudioProjects\\JADBudget-MVVM\\keystore.jks")
+            storePassword = "11a8*5jM2a"
+            keyAlias = "jadbudgetkey"
+            keyPassword = "11a8*5jM2a"
+        }
+    }
     namespace = "fr.jadeveloppement.budgetsjad"
     compileSdk = 34
 
@@ -23,6 +32,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
