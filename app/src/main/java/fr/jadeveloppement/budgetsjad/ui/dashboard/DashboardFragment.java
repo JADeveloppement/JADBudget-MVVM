@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.AccountTile;
 import fr.jadeveloppement.budgetsjad.components.AddAccountTile;
@@ -35,7 +36,6 @@ import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
-import fr.jadeveloppement.budgetsjad.models.classes.BudgetData;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
@@ -212,7 +212,7 @@ public class DashboardFragment extends Fragment
 
             popupPeriodContent.getPopupContentPeriodPreviewModelIncome().setOnClickListener(v1 -> {
                 PopupContainer popupContainer1 = new PopupContainer(requireContext(), root);
-                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Transaction.TransactionType.MODELINCOME, (new BudgetData(requireContext())));
+                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Transaction.TransactionType.MODELINCOME, budgetViewModel);
 
                 popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
 
@@ -221,7 +221,7 @@ public class DashboardFragment extends Fragment
 
             popupPeriodContent.getPopupContentPeriodPreviewModelInvoice().setOnClickListener(v1 -> {
                 PopupContainer popupContainer1 = new PopupContainer(requireContext(), root);
-                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Transaction.TransactionType.MODELINVOICE, (new BudgetData(requireContext())));
+                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Transaction.TransactionType.MODELINVOICE, budgetViewModel);
 
                 popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
                 popupContainer1.addContent(popupModelContent.getLayout());
