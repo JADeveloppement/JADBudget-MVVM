@@ -38,7 +38,7 @@ public class PopupContentLogin extends LinearLayout {
     private TextView popupContentLoginTitleTv;
     private Button manageloginConnectBtn;
 
-    private LinearLayout popupContentLoginClose, popupContentLoginContentContainer;
+    private LinearLayout popupContentLoginClose;
 
     public PopupContentLogin(@NonNull Context c){
         super(c);
@@ -51,16 +51,11 @@ public class PopupContentLogin extends LinearLayout {
 
     private void initPopup(){
         popupContentLoginClose = popupLayout.findViewById(R.id.popupContentLoginClose);
-        popupContentLoginContentContainer = popupLayout.findViewById(R.id.popupContentLoginContentContainer);
+        LinearLayout manageloginLoadingScreen = popupLayout.findViewById(R.id.manageloginLoadingScreen);
+        EditText manageloginLogin = popupLayout.findViewById(R.id.manageloginLogin);
+        EditText manageloginPassword = popupLayout.findViewById(R.id.manageloginPassword);
+        manageloginConnectBtn = popupLayout.findViewById(R.id.manageloginConnectBtn);
         popupContentLoginTitleTv = popupLayout.findViewById(R.id.popupContentLoginTitleTv);
-
-        View contentLogin = LayoutInflater.from(context).inflate(R.layout.managelogin_login_layout, popupContentLoginContentContainer, false);
-        popupContentLoginContentContainer.addView(contentLogin);
-
-        LinearLayout manageloginLoadingScreen = contentLogin.findViewById(R.id.manageloginLoadingScreen);
-        EditText manageloginLogin = contentLogin.findViewById(R.id.manageloginLogin);
-        EditText manageloginPassword = contentLogin.findViewById(R.id.manageloginPassword);
-        manageloginConnectBtn = contentLogin.findViewById(R.id.manageloginConnectBtn);
 
         manageloginConnectBtn.setOnClickListener(v -> {
             String login = manageloginLogin.getText().toString();
