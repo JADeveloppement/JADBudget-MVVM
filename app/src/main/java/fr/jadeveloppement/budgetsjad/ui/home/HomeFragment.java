@@ -206,7 +206,7 @@ public class HomeFragment extends Fragment {
 
         menuDownload.getLayout().setOnClickListener(v -> {
             PopupContainer popupContainer = new PopupContainer(requireContext(), MainActivity.getViewRoot());
-            PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext());
+            PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext(), 1);
             popupContentLogin.setPopupTitle("Récupérer les données");
             popupContentLogin.setPopupBtnText("Récupérer");
             popupContainer.addContent(popupContentLogin.getLayout());
@@ -216,7 +216,7 @@ public class HomeFragment extends Fragment {
 
         menuUpload.getLayout().setOnClickListener(v -> {
             PopupContainer popupContainer = new PopupContainer(requireContext(), MainActivity.getViewRoot());
-            PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext());
+            PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext(), 2);
             popupContentLogin.setPopupTitle("Envoyer des données");
             popupContentLogin.setPopupBtnText("Envoyer");
             popupContainer.addContent(popupContentLogin.getLayout());

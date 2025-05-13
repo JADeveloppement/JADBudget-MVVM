@@ -58,4 +58,12 @@ public class SQLiteModeleInvoiceFunctions {
             return null;
         }
     }
+
+    public void updateModeleInvoice(ModeleInvoices modeleInvoices) {
+        try {
+            executorService.submit(() -> modeleInvoicesDAO.updateModeleInvoice(modeleInvoices)).get();
+        } catch(Exception e){
+            Functions.handleExceptions("SQLiteModeleInvoiceFunctions > updateModeleInvoice", e);
+        }
+    }
 }

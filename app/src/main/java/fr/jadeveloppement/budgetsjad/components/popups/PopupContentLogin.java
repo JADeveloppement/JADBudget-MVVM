@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -35,58 +36,111 @@ public class PopupContentLogin extends LinearLayout {
     private final Context context;
     private final View viewParent;
     private final View popupLayout;
+    private final int typeOfAction;
     private TextView popupContentLoginTitleTv;
     private Button manageloginConnectBtn;
+    private Functions functions;
 
-    private LinearLayout popupContentLoginClose;
+    private LinearLayout popupContentLoginClose, popupContentLoginLoadingScreen;
 
     public PopupContentLogin(@NonNull Context c){
         super(c);
         this.context = c.getApplicationContext();
         this.viewParent = MainActivity.getViewRoot();
         this.popupLayout = LayoutInflater.from(context).inflate(R.layout.popup_managelogin_layout, (ViewGroup) viewParent, false);
+        this.functions = new Functions(context);
+        this.typeOfAction = 0;
 
         initPopup();
     }
 
+    public PopupContentLogin(@NonNull Context c, int t){
+        super(c);
+        this.context = c.getApplicationContext();
+        this.viewParent = MainActivity.getViewRoot();
+        this.popupLayout = LayoutInflater.from(context).inflate(R.layout.popup_managelogin_layout, (ViewGroup) viewParent, false);
+        this.functions = new Functions(context);
+        this.typeOfAction = t;
+
+        initPopup();
+    }
+
+    private EditText manageloginLogin, manageloginPassword;
+    private CheckBox popupContentLoginInvoiceCb, popupContentLoginIncomeCb, popupContentLoginExpenseCb, popupContentLoginModelInvoiceCb, popupContentLoginModelIncomeCb;
     private void initPopup(){
         popupContentLoginClose = popupLayout.findViewById(R.id.popupContentLoginClose);
-        LinearLayout manageloginLoadingScreen = popupLayout.findViewById(R.id.manageloginLoadingScreen);
-        EditText manageloginLogin = popupLayout.findViewById(R.id.manageloginLogin);
-        EditText manageloginPassword = popupLayout.findViewById(R.id.manageloginPassword);
+        manageloginLogin = popupLayout.findViewById(R.id.manageloginLogin);
+        manageloginPassword = popupLayout.findViewById(R.id.manageloginPassword);
         manageloginConnectBtn = popupLayout.findViewById(R.id.manageloginConnectBtn);
         popupContentLoginTitleTv = popupLayout.findViewById(R.id.popupContentLoginTitleTv);
+        popupContentLoginLoadingScreen = popupLayout.findViewById(R.id.popupContentLoginLoadingScreen);
+
+        popupContentLoginInvoiceCb = popupLayout.findViewById(R.id.popupContentLoginInvoiceCb);
+        popupContentLoginIncomeCb = popupLayout.findViewById(R.id.popupContentLoginIncomeCb);
+        popupContentLoginExpenseCb = popupLayout.findViewById(R.id.popupContentLoginExpenseCb);
+        popupContentLoginModelInvoiceCb = popupLayout.findViewById(R.id.popupContentLoginModelInvoiceCb);
+        popupContentLoginModelIncomeCb = popupLayout.findViewById(R.id.popupContentLoginModelIncomeCb);
 
         manageloginConnectBtn.setOnClickListener(v -> {
             String login = manageloginLogin.getText().toString();
             String password = manageloginPassword.getText().toString();
 
-            if (login.isBlank() || password.isBlank()) Toast.makeText(context, "Veuillez renseigner tous les champs.", Toast.LENGTH_LONG).show();
+            if (login.isBlank() || password.isBlank()) functions.makeToast("Veuillez renseigner tous les champs.");
+            else if (!popupContentLoginInvoiceCb.isChecked() &&
+                    !popupContentLoginIncomeCb.isChecked() &&
+                    !popupContentLoginExpenseCb.isChecked() &&
+                    !popupContentLoginModelInvoiceCb.isChecked() &&
+                    !popupContentLoginModelIncomeCb.isChecked()) functions.makeToast("Veuillez cocher au moins un élément.");
             else {
-                manageloginLoadingScreen.setVisibility(View.VISIBLE);
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "https://jadeveloppement.fr/login?login="+login+"&password="+password, null,
+                popupContentLoginLoadingScreen.setVisibility(View.VISIBLE);
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "https://jadeveloppement.fr/api/login?login="+login+"&password="+password+"&type="+typeOfAction, null,
                         response -> {
-                            manageloginLoadingScreen.setVisibility(View.GONE);
+                            popupContentLoginLoadingScreen.setVisibility(View.GONE);
                             try {
                                 String logged = response.getString("logged");
                                 if (logged.contains("1")){
-                                    Log.d(TAG, "makeRequest: ok");
                                     String token = response.getString("token");
-                                    (new Functions(context)).makeToast("Connecté");
+                                    String datasBody = "&datas=";
+                                    if (popupContentLoginInvoiceCb.isChecked())
+                                        datasBody += "<n>"+functions.convertListToDatas(functions.getAllInvoicesTransaction());
+                                    if (popupContentLoginIncomeCb.isChecked())
+                                        datasBody += "<n>"+functions.convertListToDatas(functions.getAllIncomesTransaction());
+                                    if (popupContentLoginExpenseCb.isChecked())
+                                        datasBody += "<n>"+functions.convertListToDatas(functions.getAllExpensesTransaction());
+                                    if (popupContentLoginModelIncomeCb.isChecked())
+                                        datasBody += "<n>"+functions.convertListToDatas(functions.getModelIncomeTransaction());
+                                    if (popupContentLoginModelInvoiceCb.isChecked())
+                                        datasBody += "<n>"+functions.convertListToDatas(functions.getModelInvoiceTransaction());
+
+                                    String loginBody = "login="+login+"&password="+password+"&token="+token;
+
+                                    JsonObjectRequest modelRequest = new JsonObjectRequest(Request.Method.GET, "https://jadeveloppement.fr/api/updateModelInvoice?"+loginBody+datasBody, null,
+                                            modelResponse -> {
+                                                popupContentLoginLoadingScreen.setVisibility(View.GONE);
+                                                Log.d(TAG, "makeRequest: " + modelResponse);
+                                            },
+                                            error -> {
+                                                popupContentLoginLoadingScreen.setVisibility(View.GONE);
+                                                functions.makeToast("Une erreur est survenue (-2).");
+                                                Log.d(TAG, "BudgetRequests > makeRequest > onErrorResponse: " + error.toString());
+                                            });
+
+                                    RequestQueue requestQueue = Volley.newRequestQueue(context);
+                                    requestQueue.add(modelRequest);
                                 } else {
-                                    (new Functions(context)).makeToast("Mauvais identifiants");
+                                    functions.makeToast("Mauvais identifiants");
                                     Log.d(TAG, "makeRequest: ok but bad logins");
                                 }
                             } catch (JSONException e) {
-                                (new Functions(context)).makeToast("Une erreur est survenue (-1).");
+                                functions.makeToast("Une erreur est survenue (-1).");
                                 Log.d(TAG, "BudgetRequests > makeRequest > onResponse: " + e);
                             }
                         },
                         new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                manageloginLoadingScreen.setVisibility(View.GONE);
-                                (new Functions(context)).makeToast("Une erreur est survenue (-2).");
+                                popupContentLoginLoadingScreen.setVisibility(View.GONE);
+                                functions.makeToast("Une erreur est survenue (-2).");
                                 Log.d(TAG, "BudgetRequests > makeRequest > onErrorResponse: " + error.toString());
                             }
                         });

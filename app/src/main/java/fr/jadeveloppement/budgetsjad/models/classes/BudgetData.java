@@ -156,6 +156,16 @@ public class BudgetData {
                 e.label = transaction.getLabel();
                 e.amount = transaction.getAmount();
                 functions.updateExpense(e);
+            } else if (transaction.getType() == Transaction.TransactionType.MODELINCOME){
+                ModeleIncomes modeleIncomes = functions.getModeleIncomeById(parseLong(transaction.getId()));
+                modeleIncomes.label = transaction.getLabel();
+                modeleIncomes.amount = transaction.getAmount();
+                functions.updateModeleIncome(modeleIncomes);
+            } else if (transaction.getType() == Transaction.TransactionType.MODELINVOICE){
+                ModeleInvoices modeleInvoices = functions.getModeleInvoiceById(parseLong(transaction.getId()));
+                modeleInvoices.label = transaction.getLabel();
+                modeleInvoices.amount = transaction.getAmount();
+                functions.updateModeleInvoice(modeleInvoices);
             }
         }
     }

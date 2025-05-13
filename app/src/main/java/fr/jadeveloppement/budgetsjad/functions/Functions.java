@@ -1,6 +1,7 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
@@ -290,5 +291,28 @@ public class Functions {
 
     public void makeToast(String message) {
         Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    public String convertListToDatas(List<Transaction> modelInvoiceTransaction) {
+        List<String> result = new ArrayList<>();
+        for (Transaction t : modelInvoiceTransaction) {
+            result.add(t.getId() + "<l>"
+                    + t.getLabel() + "<l>"
+                    + t.getAmount() + "<l>"
+                    + t.getDate() + "<l>"
+                    + t.getAccount() + "<l>"
+                    + t.getPaid() + "<l>"
+                    + t.getType());
+        }
+
+        return TextUtils.join("<n>", result);
+    }
+
+    public void updateModeleIncome(ModeleIncomes modeleIncomes) {
+        sqliteFunctions.updateModeleIncome(modeleIncomes);
+    }
+
+    public void updateModeleInvoice(ModeleInvoices modeleInvoices) {
+        sqliteFunctions.updateModeleInvoice(modeleInvoices);
     }
 }
