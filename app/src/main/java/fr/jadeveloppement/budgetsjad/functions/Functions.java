@@ -6,6 +6,7 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -287,4 +288,7 @@ public class Functions {
         sqliteFunctions.deleteModelInvoice(modeleInvoices);
     }
 
+    public void makeToast(String message) {
+        Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
 }

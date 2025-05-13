@@ -43,7 +43,7 @@ public class HomeFragment extends Fragment {
 
     private FlexboxLayout menuAddElementContainer, menuModelsContainer, menuManageDatasContainer, menuManageImportExportContainer;
     private MenuIcon menuAddInvoice, menuAddIncome, menuAddExpense, menuModelIncome, menuModelInvoice, menuManageAccounts, menuManagePeriods,
-    menuLogin;
+    menuDownload, menuUpload;
     private View viewRoot;
     private BudgetViewModel budgetViewModel;
     private SettingsTable settingsAccount;
@@ -201,16 +201,31 @@ public class HomeFragment extends Fragment {
     }
 
     private void setLoginMenu(){
-        menuLogin = new MenuIcon(requireContext(), menuManageImportExportContainer, "Connexion", R.drawable.database);
-        menuManageImportExportContainer.addView(menuLogin.getLayout());
-        
-        menuLogin.getLayout().setOnClickListener(v -> {
+        menuDownload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Récupérer", R.drawable.download);
+        menuUpload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Envoyer", R.drawable.upload);
+
+        menuDownload.getLayout().setOnClickListener(v -> {
             PopupContainer popupContainer = new PopupContainer(requireContext(), MainActivity.getViewRoot());
             PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext());
+            popupContentLogin.setPopupTitle("Récupérer les données");
+            popupContentLogin.setPopupBtnText("Récupérer");
             popupContainer.addContent(popupContentLogin.getLayout());
 
             popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
         });
+
+        menuUpload.getLayout().setOnClickListener(v -> {
+            PopupContainer popupContainer = new PopupContainer(requireContext(), MainActivity.getViewRoot());
+            PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext());
+            popupContentLogin.setPopupTitle("Envoyer des données");
+            popupContentLogin.setPopupBtnText("Envoyer");
+            popupContainer.addContent(popupContentLogin.getLayout());
+
+            popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
+        });
+
+        menuManageImportExportContainer.addView(menuDownload.getLayout());
+        menuManageImportExportContainer.addView(menuUpload.getLayout());
     }
 
     @Override

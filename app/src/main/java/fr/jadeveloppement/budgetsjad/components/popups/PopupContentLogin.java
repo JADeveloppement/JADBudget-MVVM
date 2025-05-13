@@ -5,7 +5,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.ContentView;
 import androidx.annotation.NonNull;
@@ -22,6 +26,7 @@ import org.json.JSONObject;
 
 import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.functions.Functions;
 
 public class PopupContentLogin extends LinearLayout {
 
@@ -30,6 +35,8 @@ public class PopupContentLogin extends LinearLayout {
     private final Context context;
     private final View viewParent;
     private final View popupLayout;
+    private TextView popupContentLoginTitleTv;
+    private Button manageloginConnectBtn;
 
     private LinearLayout popupContentLoginClose, popupContentLoginContentContainer;
 
@@ -45,36 +52,62 @@ public class PopupContentLogin extends LinearLayout {
     private void initPopup(){
         popupContentLoginClose = popupLayout.findViewById(R.id.popupContentLoginClose);
         popupContentLoginContentContainer = popupLayout.findViewById(R.id.popupContentLoginContentContainer);
+        popupContentLoginTitleTv = popupLayout.findViewById(R.id.popupContentLoginTitleTv);
 
-        JSONObject requestBody = new JSONObject();
-        try {
-            requestBody.put("username", "test");
-            requestBody.put("password", "123456");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        View contentLogin = LayoutInflater.from(context).inflate(R.layout.managelogin_login_layout, popupContentLoginContentContainer, false);
+        popupContentLoginContentContainer.addView(contentLogin);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "https://jadeveloppement.fr/csrf_token", requestBody,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            String token = response.getString("tokens");
-                            Log.d(TAG, "onResponse: " + token + " / ");
-                        } catch (JSONException e) {
-                            Log.d(TAG, "onResponse: " + e);
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d(TAG, "onErrorResponse: erreur " + error.toString());
-                    }
-                });
+        LinearLayout manageloginLoadingScreen = contentLogin.findViewById(R.id.manageloginLoadingScreen);
+        EditText manageloginLogin = contentLogin.findViewById(R.id.manageloginLogin);
+        EditText manageloginPassword = contentLogin.findViewById(R.id.manageloginPassword);
+        manageloginConnectBtn = contentLogin.findViewById(R.id.manageloginConnectBtn);
 
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(jsonObjectRequest);
+        manageloginConnectBtn.setOnClickListener(v -> {
+            String login = manageloginLogin.getText().toString();
+            String password = manageloginPassword.getText().toString();
+
+            if (login.isBlank() || password.isBlank()) Toast.makeText(context, "Veuillez renseigner tous les champs.", Toast.LENGTH_LONG).show();
+            else {
+                manageloginLoadingScreen.setVisibility(View.VISIBLE);
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "https://jadeveloppement.fr/login?login="+login+"&password="+password, null,
+                        response -> {
+                            manageloginLoadingScreen.setVisibility(View.GONE);
+                            try {
+                                String logged = response.getString("logged");
+                                if (logged.contains("1")){
+                                    Log.d(TAG, "makeRequest: ok");
+                                    String token = response.getString("token");
+                                    (new Functions(context)).makeToast("Connecté");
+                                } else {
+                                    (new Functions(context)).makeToast("Mauvais identifiants");
+                                    Log.d(TAG, "makeRequest: ok but bad logins");
+                                }
+                            } catch (JSONException e) {
+                                (new Functions(context)).makeToast("Une erreur est survenue (-1).");
+                                Log.d(TAG, "BudgetRequests > makeRequest > onResponse: " + e);
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                manageloginLoadingScreen.setVisibility(View.GONE);
+                                (new Functions(context)).makeToast("Une erreur est survenue (-2).");
+                                Log.d(TAG, "BudgetRequests > makeRequest > onErrorResponse: " + error.toString());
+                            }
+                        });
+
+                RequestQueue requestQueue = Volley.newRequestQueue(context);
+                requestQueue.add(jsonObjectRequest);
+            }
+        });
+    }
+
+    public void setPopupTitle(String title){
+        popupContentLoginTitleTv.setText(title);
+    }
+
+    public void setPopupBtnText(String text){
+        manageloginConnectBtn.setText(text);
     }
 
     public LinearLayout getBtnClose(){

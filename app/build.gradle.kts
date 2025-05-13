@@ -6,7 +6,7 @@ android {
     signingConfigs {
         getByName("debug") {
             storeFile =
-                file("C:\\Users\\zacha\\AndroidStudioProjects\\JADBudget-MVVM\\keystore.jks")
+                file("C:\\Users\\jaissaoui\\AndroidStudioProjects\\BudgetJAD\\keystore.jks")
             storePassword = "11a8*5jM2a"
             keyAlias = "jadbudgetkey"
             keyPassword = "11a8*5jM2a"
