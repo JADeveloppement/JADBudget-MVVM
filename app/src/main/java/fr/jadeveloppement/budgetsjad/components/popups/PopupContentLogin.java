@@ -59,7 +59,7 @@ public class PopupContentLogin extends LinearLayout {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String token = response.getString("token");
+                            String token = response.getString("tokens");
                             Log.d(TAG, "onResponse: " + token + " / ");
                         } catch (JSONException e) {
                             Log.d(TAG, "onResponse: " + e);
