@@ -18,10 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.MenuIcon;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountsContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupContentLogin;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
@@ -39,8 +41,9 @@ public class HomeFragment extends Fragment {
 
     private final String TAG = "JadBudget";
 
-    private FlexboxLayout menuAddElementContainer, menuModelsContainer, menuManageDatasContainer;
-    private MenuIcon menuAddInvoice, menuAddIncome, menuAddExpense, menuModelIncome, menuModelInvoice, menuManageAccounts, menuManagePeriods;
+    private FlexboxLayout menuAddElementContainer, menuModelsContainer, menuManageDatasContainer, menuManageImportExportContainer;
+    private MenuIcon menuAddInvoice, menuAddIncome, menuAddExpense, menuModelIncome, menuModelInvoice, menuManageAccounts, menuManagePeriods,
+    menuLogin;
     private View viewRoot;
     private BudgetViewModel budgetViewModel;
     private SettingsTable settingsAccount;
@@ -59,6 +62,7 @@ public class HomeFragment extends Fragment {
         menuAddElementContainer = binding.menuAddElementContainer;
         menuModelsContainer = binding.menuModelsContainer;
         menuManageDatasContainer = binding.menuManageDatasContainer;
+        menuManageImportExportContainer = binding.menuManageImportExportContainer;
 
         budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
 
@@ -67,6 +71,7 @@ public class HomeFragment extends Fragment {
         setAddElementMenu();
         setModelsMenu();
         setModelManage();
+        setLoginMenu();
 
         setMenuAddElementEvents();
         setMenuModelsEvents();
@@ -193,6 +198,19 @@ public class HomeFragment extends Fragment {
         menuAddElementContainer.addView(menuAddInvoice.getLayout());
         menuAddElementContainer.addView(menuAddIncome.getLayout());
         menuAddElementContainer.addView(menuAddExpense.getLayout());
+    }
+
+    private void setLoginMenu(){
+        menuLogin = new MenuIcon(requireContext(), menuManageImportExportContainer, "Connexion", R.drawable.database);
+        menuManageImportExportContainer.addView(menuLogin.getLayout());
+        
+        menuLogin.getLayout().setOnClickListener(v -> {
+            PopupContainer popupContainer = new PopupContainer(requireContext(), MainActivity.getViewRoot());
+            PopupContentLogin popupContentLogin = new PopupContentLogin(requireContext());
+            popupContainer.addContent(popupContentLogin.getLayout());
+
+            popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
+        });
     }
 
     @Override

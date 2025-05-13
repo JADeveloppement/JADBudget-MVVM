@@ -64,5 +64,22 @@
                 android:background="@drawable/rounded_box"
                 app:flexWrap="wrap"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:text="@string/import_export_data"
+                android:textColor="@color/orange1"
+                android:textStyle="bold"/>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/menuManageImportExportContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/paddingM"
+                android:padding="@dimen/paddingM"
+                android:background="@drawable/rounded_box"
+                app:flexWrap="wrap"/>
+
         </LinearLayout>
 </ScrollView>

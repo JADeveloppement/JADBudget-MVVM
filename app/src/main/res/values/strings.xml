@@ -33,5 +33,7 @@
     <string name="add_invoice">Ajouter un prélèvement</string>
     <string name="add_income">Ajouter un revenu</string>
     <string name="add_expense">Ajouter une dépense</string>
+    <string name="import_export_data">Importer/Exporter des données</string>
+    <string name="connection">Connexion</string>
 
 </resources>
