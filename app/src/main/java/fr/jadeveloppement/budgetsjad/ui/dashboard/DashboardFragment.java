@@ -32,6 +32,7 @@ import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentDashboardBinding;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
@@ -212,7 +213,7 @@ public class DashboardFragment extends Fragment
 
             popupPeriodContent.getPopupContentPeriodPreviewModelIncome().setOnClickListener(v1 -> {
                 PopupContainer popupContainer1 = new PopupContainer(requireContext(), root);
-                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Transaction.TransactionType.MODELINCOME, budgetViewModel);
+                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Enums.TransactionType.MODELINCOME, budgetViewModel);
 
                 popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
 
@@ -221,7 +222,7 @@ public class DashboardFragment extends Fragment
 
             popupPeriodContent.getPopupContentPeriodPreviewModelInvoice().setOnClickListener(v1 -> {
                 PopupContainer popupContainer1 = new PopupContainer(requireContext(), root);
-                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Transaction.TransactionType.MODELINVOICE, budgetViewModel);
+                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Enums.TransactionType.MODELINVOICE, budgetViewModel);
 
                 popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
                 popupContainer1.addContent(popupModelContent.getLayout());
@@ -481,7 +482,7 @@ public class DashboardFragment extends Fragment
                             periodSelected.label,
                             functions.getSettingByLabel(Variables.settingAccount).value,
                             popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0",
-                            type.equalsIgnoreCase(Variables.strTypeInvoice) ? Transaction.TransactionType.INVOICE : (type.equalsIgnoreCase(Variables.strTypeIncome) ? Transaction.TransactionType.INCOME : (type.equalsIgnoreCase(Variables.strTypeExpense) ? Transaction.TransactionType.EXPENSE : Transaction.TransactionType.UNDEFINED ))
+                            type.equalsIgnoreCase(Variables.strTypeInvoice) ? Enums.TransactionType.INVOICE : (type.equalsIgnoreCase(Variables.strTypeIncome) ? Enums.TransactionType.INCOME : (type.equalsIgnoreCase(Variables.strTypeExpense) ? Enums.TransactionType.EXPENSE : Enums.TransactionType.UNDEFINED ))
                     );
                     budgetViewModel.addTransaction(newTransaction);
                     Toast.makeText(getContext(), "Elément rajouté avec sucès", Toast.LENGTH_LONG).show();

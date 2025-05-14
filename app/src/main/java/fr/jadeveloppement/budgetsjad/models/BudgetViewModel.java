@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel;
 import java.util.Collections;
 import java.util.List;
 
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.classes.BudgetData;
@@ -245,7 +246,7 @@ public class BudgetViewModel extends ViewModel {
         String account = isNull(settingsAccount.getValue()) ? String.valueOf(functions.getAccountById(parseLong(functions.getSettingByLabel(Variables.settingAccount).value)).account_id) : settingsAccount.getValue().value;
 
         for (Transaction t : listOfModelInvoice){
-            t.setType(Transaction.TransactionType.INVOICE);
+            t.setType(Enums.TransactionType.INVOICE);
             t.setDate(date);
             t.setAccount(account);
             addTransaction(t);
@@ -258,7 +259,7 @@ public class BudgetViewModel extends ViewModel {
         String account = isNull(settingsAccount.getValue()) ? String.valueOf(functions.getAccountById(parseLong(functions.getSettingByLabel(Variables.settingAccount).value)).account_id) : settingsAccount.getValue().value;
 
         for (Transaction t : listOfModelIncome){
-            t.setType(Transaction.TransactionType.INCOME);
+            t.setType(Enums.TransactionType.INCOME);
             t.setDate(date);
             t.setAccount(account);
             addTransaction(t);

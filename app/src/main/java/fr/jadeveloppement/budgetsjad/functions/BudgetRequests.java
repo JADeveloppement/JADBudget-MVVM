@@ -16,6 +16,8 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 
+import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
+
 public class BudgetRequests {
 
     private final String TAG = "JADBudget";
@@ -27,10 +29,23 @@ public class BudgetRequests {
     private RequestQueue requestQueue;
     private String token;
 
+    /**
+     * Do not use this constructor
+     * The best way is to use BudgetRequests(Context, Login, Password, Interface callback)
+     * @param c : context
+     */
     public BudgetRequests(@NonNull Context c){
         this.context = c.getApplicationContext();
     }
 
+    /**
+     * To start the call to the JADeveloppement API
+     *
+     * @param c : context
+     * @param l : login
+     * @param p : password
+     * @param call : interface when requests are done that will be called
+     */
     public BudgetRequests(@NonNull Context c, @NonNull String l, @NonNull String p, @NonNull BudgetRequestsInterface call){
         this.context = c.getApplicationContext();
         this.login = l;
@@ -39,6 +54,10 @@ public class BudgetRequests {
         this.callback = call;
     }
 
+    /**
+     * Test if login credentials are correct.
+     * To call just after the declaration of BudgetRequests(Context, Login, Password, Callback)
+     */
     public void handleLogin(){
         if (login.isBlank() || password.isBlank()) {
             functions.makeToast("Veuillez renseigner tous les champs.");
@@ -72,6 +91,11 @@ public class BudgetRequests {
         requestQueue.add(jsonObjectRequest);
     }
 
+    /**
+     * Save data into database, linked to user credentials
+     * @param t : token sent by the handleLogin
+     * @param d : datas to send to be parsed by API
+     */
     public void makeSaveDatas(@NonNull String t, @NonNull String d){
         if (t.isBlank() || d.isBlank()){
             functions.makeToast("Les données n'ont pas permis de vous identifier.");
@@ -91,6 +115,10 @@ public class BudgetRequests {
 
     }
 
+    /**
+     * Import datas from database, linked to the user credentials
+     * @param t : token sent by the handleLogin
+     */
     public void makeImportDatas(@NonNull String t){
         if (t.isBlank()){
             functions.makeToast("Les données n'ont pas permis de vous identifier.");

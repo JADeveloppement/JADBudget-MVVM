@@ -26,6 +26,7 @@ import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentModeleincomesBinding;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
@@ -93,7 +94,7 @@ public class ModeleIncomesFragment extends Fragment {
                             "",
                             "",
                             "",
-                            Transaction.TransactionType.MODELINCOME
+                            Enums.TransactionType.MODELINCOME
                     );
 
                     if (!isNull(modelIncomeAdapter)){

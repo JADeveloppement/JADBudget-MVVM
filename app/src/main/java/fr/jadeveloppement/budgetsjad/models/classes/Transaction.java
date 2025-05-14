@@ -1,5 +1,6 @@
 package fr.jadeveloppement.budgetsjad.models.classes;
 
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
@@ -11,11 +12,7 @@ public class Transaction {
     private String date;
     private String account;
     private String paid;
-    private TransactionType type;
-
-    public enum TransactionType {
-        INVOICE, INCOME, EXPENSE, MODELINCOME, MODELINVOICE, UNDEFINED
-    }
+    private Enums.TransactionType type;
 
     /**
      *
@@ -26,7 +23,7 @@ public class Transaction {
      * @param pd : paid
      * @param t : type
      */
-    public Transaction(String l, String a, String d, String ac, String pd, TransactionType t, String... id){
+    public Transaction(String l, String a, String d, String ac, String pd, Enums.TransactionType t, String... id){
         this.transaction_id = id.length > 0 ? id[0] : "";
         this.label = l;
         this.amount = a;
@@ -60,7 +57,7 @@ public class Transaction {
         return paid.trim();
     }
 
-    public TransactionType getType(){
+    public Enums.TransactionType getType(){
         return type;
     }
 
@@ -80,7 +77,7 @@ public class Transaction {
         paid = p.trim();
     }
 
-    public void setType(TransactionType t){
+    public void setType(Enums.TransactionType t){
         type = t;
     }
 

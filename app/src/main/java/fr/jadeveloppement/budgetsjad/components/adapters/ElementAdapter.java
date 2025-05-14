@@ -22,6 +22,7 @@ import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
@@ -56,7 +57,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         holder.budgetElementLayoutLabel.setText(currentItem.getLabel());
         holder.budgetElementLayoutAmount.setText(Variables.decimalFormat.format(parseDouble(currentItem.getAmount())) + " €");
         holder.budgetElementLayoutPaid.setBackgroundResource(currentItem.getPaid().equalsIgnoreCase("1") ? R.drawable.check : R.drawable.wait);
-        holder.budgetElementLayoutPaid.setVisibility(currentItem.getType() == Transaction.TransactionType.INVOICE ? View.VISIBLE : View.GONE);
+        holder.budgetElementLayoutPaid.setVisibility(currentItem.getType() == Enums.TransactionType.INVOICE ? View.VISIBLE : View.GONE);
         holder.label = currentItem.getLabel();
 
         if (!isNull(budgetViewModel)){
@@ -86,14 +87,14 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
 
                 popupElementContent.getPopupContentElementPeriodTv().setText(Functions.convertStdDateToLocale(currentItem.getDate()));
                 String typeStr = "";
-                if (currentItem.getType() == Transaction.TransactionType.INVOICE){
+                if (currentItem.getType() == Enums.TransactionType.INVOICE){
                     typeStr = "un prélèvement";
-                } else if (currentItem.getType() == Transaction.TransactionType.INCOME){
+                } else if (currentItem.getType() == Enums.TransactionType.INCOME){
                     typeStr = "un revenu";
-                } else if (currentItem.getType() == Transaction.TransactionType.EXPENSE){
+                } else if (currentItem.getType() == Enums.TransactionType.EXPENSE){
                     typeStr = "une dépense";
-                } else if (currentItem.getType() == Transaction.TransactionType.MODELINCOME ||
-                        currentItem.getType() == Transaction.TransactionType.MODELINVOICE){
+                } else if (currentItem.getType() == Enums.TransactionType.MODELINCOME ||
+                        currentItem.getType() == Enums.TransactionType.MODELINVOICE){
                     typeStr = "un modèle";
                 }
 
@@ -101,7 +102,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
                 popupElementContent.getPopupContentElementLabel().setText(currentItem.getLabel());
                 popupElementContent.getPopupContentElementAmount().setText(currentItem.getAmount());
 
-                if (currentItem.getType() == Transaction.TransactionType.INVOICE)
+                if (currentItem.getType() == Enums.TransactionType.INVOICE)
                     popupElementContent.getPopupContentElementIsPaid().setChecked(currentItem.getPaid().equalsIgnoreCase("1"));
 
                 popupElementContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> {

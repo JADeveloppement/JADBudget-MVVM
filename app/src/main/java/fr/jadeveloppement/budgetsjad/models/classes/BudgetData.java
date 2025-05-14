@@ -8,6 +8,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
@@ -30,11 +31,11 @@ public class BudgetData {
 
     public void addTransaction(Transaction t){
         Log.d("jadbudget", "budgetData > addTransaction: " + t.getLabel() + " amount : " + t.getAmount());
-        if (t.getType() == Transaction.TransactionType.INVOICE) addInvoice(t);
-        else if (t.getType() == Transaction.TransactionType.INCOME) addIncome(t);
-        else if (t.getType() == Transaction.TransactionType.EXPENSE) addExpense(t);
-        else if (t.getType() == Transaction.TransactionType.MODELINVOICE) addModelInvoice(t);
-        else if (t.getType() == Transaction.TransactionType.MODELINCOME) addModelIncome(t);
+        if (t.getType() == Enums.TransactionType.INVOICE) addInvoice(t);
+        else if (t.getType() == Enums.TransactionType.INCOME) addIncome(t);
+        else if (t.getType() == Enums.TransactionType.EXPENSE) addExpense(t);
+        else if (t.getType() == Enums.TransactionType.MODELINVOICE) addModelInvoice(t);
+        else if (t.getType() == Enums.TransactionType.MODELINCOME) addModelIncome(t);
     }
 
     private void addModelInvoice(Transaction t) {
@@ -111,24 +112,24 @@ public class BudgetData {
 
     public void deleteTransaction(Transaction t) {
         if (!t.getId().isBlank()){
-            if (t.getType() == Transaction.TransactionType.INCOME){
+            if (t.getType() == Enums.TransactionType.INCOME){
                 Log.d(TAG, "deleteTransaction: delete income");
                 IncomesTable i = functions.getIncomeById(parseLong(t.getId()));
                 functions.deleteIncome(i);
-            } else if (t.getType() == Transaction.TransactionType.INVOICE){
+            } else if (t.getType() == Enums.TransactionType.INVOICE){
                 Log.d(TAG, "deleteTransaction: delete invoice");
                 InvoicesTable i = functions.getInvoiceById(parseLong(t.getId()));
                 functions.deleteInvoice(i);
-            } else if (t.getType() == Transaction.TransactionType.EXPENSE){
+            } else if (t.getType() == Enums.TransactionType.EXPENSE){
                 Log.d(TAG, "deleteTransaction: delete expense");
                 ExpensesTable e = functions.getExpenseById(parseLong(t.getId()));
                 functions.deleteExpense(e);
-            } else if (t.getType() == Transaction.TransactionType.MODELINCOME){
+            } else if (t.getType() == Enums.TransactionType.MODELINCOME){
 //                TODO
                 Log.d(TAG, "deleteTransaction: delete model income");
                 ModeleIncomes modeleIncomes = functions.getModeleIncomeById(parseLong(t.getId()));
                 functions.deleteModelIncome(modeleIncomes);
-            } else if (t.getType() == Transaction.TransactionType.MODELINVOICE){
+            } else if (t.getType() == Enums.TransactionType.MODELINVOICE){
 //                TODO
                 Log.d(TAG, "deleteTransaction: delete model invoice");
                 ModeleInvoices modeleInvoices = functions.getModeleInvoiceById(parseLong(t.getId()));
@@ -139,29 +140,29 @@ public class BudgetData {
 
     public void updateTransaction(Transaction transaction) {
         if (!transaction.getId().isBlank()){
-            if (transaction.getType() == Transaction.TransactionType.INVOICE){
+            if (transaction.getType() == Enums.TransactionType.INVOICE){
                 InvoicesTable i = functions.getInvoiceById(parseLong(transaction.getId()));
                 i.label = transaction.getLabel();
                 i.amount = transaction.getAmount();
                 i.paid = transaction.getPaid();
                 functions.updateInvoice(i);
-            } else if (transaction.getType() == Transaction.TransactionType.INCOME){
+            } else if (transaction.getType() == Enums.TransactionType.INCOME){
                 IncomesTable i = functions.getIncomeById(parseLong(transaction.getId()));
                 i.label = transaction.getLabel();
                 i.amount = transaction.getAmount();
                 i.paid = transaction.getPaid();
                 functions.updateIncome(i);
-            } else if (transaction.getType() == Transaction.TransactionType.EXPENSE){
+            } else if (transaction.getType() == Enums.TransactionType.EXPENSE){
                 ExpensesTable e = functions.getExpenseById(parseLong(transaction.getId()));
                 e.label = transaction.getLabel();
                 e.amount = transaction.getAmount();
                 functions.updateExpense(e);
-            } else if (transaction.getType() == Transaction.TransactionType.MODELINCOME){
+            } else if (transaction.getType() == Enums.TransactionType.MODELINCOME){
                 ModeleIncomes modeleIncomes = functions.getModeleIncomeById(parseLong(transaction.getId()));
                 modeleIncomes.label = transaction.getLabel();
                 modeleIncomes.amount = transaction.getAmount();
                 functions.updateModeleIncome(modeleIncomes);
-            } else if (transaction.getType() == Transaction.TransactionType.MODELINVOICE){
+            } else if (transaction.getType() == Enums.TransactionType.MODELINVOICE){
                 ModeleInvoices modeleInvoices = functions.getModeleInvoiceById(parseLong(transaction.getId()));
                 modeleInvoices.label = transaction.getLabel();
                 modeleInvoices.amount = transaction.getAmount();

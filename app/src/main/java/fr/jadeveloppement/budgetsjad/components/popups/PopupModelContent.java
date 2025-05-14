@@ -19,6 +19,7 @@ import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 
@@ -34,13 +35,13 @@ public class PopupModelContent extends LinearLayout {
         this.context = c.getApplicationContext();
     }
 
-    public PopupModelContent(@NonNull Context c, @NonNull View viewP, @NonNull Transaction.TransactionType type, @NonNull BudgetViewModel bModel){
+    public PopupModelContent(@NonNull Context c, @NonNull View viewP, @NonNull Enums.TransactionType type, @NonNull BudgetViewModel bModel){
         super(c.getApplicationContext());
         this.context = c.getApplicationContext();
         this.popupLayout = LayoutInflater.from(context).inflate(R.layout.popup_content_model, (ViewGroup) viewP, false);
-        if (type == Transaction.TransactionType.MODELINCOME){
+        if (type == Enums.TransactionType.MODELINCOME){
             this.listOfElements = isNull(bModel.getModelIncome().getValue()) ? Collections.emptyList() : bModel.getModelIncome().getValue();
-        } else if (type == Transaction.TransactionType.MODELINVOICE){
+        } else if (type == Enums.TransactionType.MODELINVOICE){
             this.listOfElements = isNull(bModel.getModelInvoice().getValue()) ? Collections.emptyList() : bModel.getModelInvoice().getValue();
         } else this.listOfElements = Collections.emptyList();
 
