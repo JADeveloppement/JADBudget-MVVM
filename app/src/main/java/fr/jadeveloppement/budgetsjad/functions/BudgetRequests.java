@@ -1,91 +1,117 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
-import static java.util.Objects.isNull;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_EXPORTDATA;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_LOGIN;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_RETRIEVEDATA;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 public class BudgetRequests {
 
     private final String TAG = "JADBudget";
 
     private final Context context;
+    private BudgetRequestsInterface callback;
+    private Functions functions;
     private String login, password;
+    private RequestQueue requestQueue;
+    private String token;
 
     public BudgetRequests(@NonNull Context c){
         this.context = c.getApplicationContext();
     }
 
-    public BudgetRequests(@NonNull Context c, String l, String p){
-        this.context = c;
+    public BudgetRequests(@NonNull Context c, @NonNull String l, @NonNull String p, @NonNull BudgetRequestsInterface call){
+        this.context = c.getApplicationContext();
         this.login = l;
         this.password = p;
+        this.functions = new Functions(context);
+        this.callback = call;
     }
 
-    public String makeRequest(){
-        AtomicReference<String> result = new AtomicReference<>("");
-        if (login.isBlank() || password.isBlank()) makeToast("Veuillez remplir tous les champs svp");
-        else {
-//            JSONObject requestBody = new JSONObject();
-//            try {
-//                requestBody.put("login", "test");
-//                requestBody.put("password", "123456");
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, "https://jadeveloppement.fr/login?login="+login+"&password="+password, null,
-                    response -> {
-                        try {
-                            String logged = response.getString("logged");
-                            if (logged.contains("1")){
-                                Log.d(TAG, "makeRequest: ok");
-                                String token = response.getString("token");
-                                result.set("1");
-                            } else {
-                                Log.d(TAG, "makeRequest: ok but bad logins");
-                                result.set("0");
-                            }
-                        } catch (JSONException e) {
-                            result.set("-1");
-                            makeToast("Une erreur est survenue (-1).");
-                            Log.d(TAG, "BudgetRequests > makeRequest > onResponse: " + e);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            result.set("-2");
-                            makeToast("Une erreur est survenue (-2).");
-                            Log.d(TAG, "BudgetRequests > makeRequest > onErrorResponse: " + error.toString());
-                        }
-                    });
-
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-            requestQueue.add(jsonObjectRequest);
+    public void handleLogin(){
+        if (login.isBlank() || password.isBlank()) {
+            functions.makeToast("Veuillez renseigner tous les champs.");
+            return;
         }
 
-        return result.get();
+        String URL = URL_LOGIN + "login=" + login + "&password=" + password;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
+                response -> {
+                    try {
+                        if (response.getString("logged").equals("1")){
+                            this.token = response.getString("token");
+                            callback.loginOk(token);
+                        }
+                        else functions.makeToast("Mauvais identifiant.");
+                    } catch(JSONException e){
+                        functions.makeToast("Une erreur serveur est survenue.");
+                        Functions.handleExceptions("BudgetRequests > try/catch > handleLogin : ", e);
+                    }
+                },
+                error -> Functions.handleExceptions("BudgetRequests > handleLogin : ", error)
+        );
+
+        putToQueue(jsonObjectRequest);
+
     }
 
-    private void makeToast(String message){
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+    private void putToQueue(JsonObjectRequest jsonObjectRequest) {
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        requestQueue.add(jsonObjectRequest);
     }
 
+    public void makeSaveDatas(@NonNull String t, @NonNull String d){
+        if (t.isBlank() || d.isBlank()){
+            functions.makeToast("Les données n'ont pas permis de vous identifier.");
+            return;
+        }
+
+        String URL = URL_EXPORTDATA + "login=" + login + "&password=" + password + "&token=" + t + "&datas=" + d;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
+                response -> {
+                    callback.datasSaved();
+                },
+                error -> Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error)
+        );
+
+        putToQueue(jsonObjectRequest);
+
+    }
+
+    public void makeImportDatas(@NonNull String t){
+        if (t.isBlank()){
+            functions.makeToast("Les données n'ont pas permis de vous identifier.");
+            return;
+        }
+
+        String URL = URL_RETRIEVEDATA + "login=" + login + "&password=" + password + "&token=" + t;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
+                response -> {
+                    try {
+                        Log.d(TAG, "makeImportDatas: response : " + response);
+                        callback.datasImported(response.toString());
+                    } catch(Exception e){
+                        Functions.handleExceptions("BudgetRequests > makeImportDatas : ", e);
+                    }
+                },
+                error -> Functions.handleExceptions("BudgetRequests > makeImportDatas : ", error)
+        );
+
+        putToQueue(jsonObjectRequest);
+
+    }
 }

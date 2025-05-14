@@ -1,5 +1,7 @@
 package fr.jadeveloppement.budgetsjad.ui.home;
 
+import static java.util.Objects.isNull;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,7 +14,15 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.flexbox.FlexboxLayout;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +38,8 @@ import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentHomeBinding;
+import fr.jadeveloppement.budgetsjad.functions.BudgetRequests;
+import fr.jadeveloppement.budgetsjad.functions.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
@@ -35,7 +47,7 @@ import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
     private FragmentHomeBinding binding;
 
@@ -49,15 +61,30 @@ public class HomeFragment extends Fragment {
     private SettingsTable settingsAccount;
     private PeriodsTable periodSelected;
 
+    private Functions functions;
+
     private List<Transaction> listModelInvoices, listModelIncomes;
 
     private PopupModelContent popupModelContent;
+
+    private static final String REQUEST_TAG = "LoginRequest"; //tagging the request
+    private RequestQueue requestQueue; // Declare RequestQueue as a field of the class.
+
+    private enum TagRequest {
+        EXPORT_DATA, IMPORT_DATA
+    }
+
+    private enum DataToRequest{
+        INVOICE, INCOME, EXPENSE, MODELINVOICE, MODELINCOME
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         viewRoot = binding.getRoot();
+
+        functions = new Functions(requireActivity());
 
         menuAddElementContainer = binding.menuAddElementContainer;
         menuModelsContainer = binding.menuModelsContainer;
@@ -200,6 +227,10 @@ public class HomeFragment extends Fragment {
         menuAddElementContainer.addView(menuAddExpense.getLayout());
     }
 
+    private TagRequest TAG_REQUEST = null;
+    private List<DataToRequest> dataToRequests = new ArrayList<>();
+    private String login = "", password = "";
+
     private void setLoginMenu(){
         menuDownload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Récupérer", R.drawable.download);
         menuUpload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Envoyer", R.drawable.upload);
@@ -211,6 +242,16 @@ public class HomeFragment extends Fragment {
             popupContentLogin.setPopupBtnText("Récupérer");
             popupContainer.addContent(popupContentLogin.getLayout());
 
+            popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
+                TAG_REQUEST = TagRequest.IMPORT_DATA;
+
+                login = popupContentLogin.getLogin();
+                password = popupContentLogin.getPassword();
+
+                BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+                budgetRequests.handleLogin();
+            });
+
             popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
         });
 
@@ -221,12 +262,172 @@ public class HomeFragment extends Fragment {
             popupContentLogin.setPopupBtnText("Envoyer");
             popupContainer.addContent(popupContentLogin.getLayout());
 
+            popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
+                TAG_REQUEST = TagRequest.EXPORT_DATA;
+                dataToRequests = new ArrayList<>();
+
+                if (popupContentLogin.getPopupContentLoginInvoiceCb().isChecked())
+                    dataToRequests.add(DataToRequest.INVOICE);
+                if (popupContentLogin.getPopupContentLoginIncomeCb().isChecked())
+                    dataToRequests.add(DataToRequest.INCOME);
+                if (popupContentLogin.getPopupContentLoginExpenseCb().isChecked())
+                    dataToRequests.add(DataToRequest.EXPENSE);
+                if (popupContentLogin.getPopupContentLoginModelInvoiceCb().isChecked())
+                    dataToRequests.add(DataToRequest.MODELINVOICE);
+                if (popupContentLogin.getPopupContentLoginModelIncomeCb().isChecked())
+                    dataToRequests.add(DataToRequest.MODELINCOME);
+
+                login = popupContentLogin.getLogin();
+                password = popupContentLogin.getPassword();
+
+                BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+                budgetRequests.handleLogin();
+            });
+
             popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
         });
 
         menuManageImportExportContainer.addView(menuDownload.getLayout());
         menuManageImportExportContainer.addView(menuUpload.getLayout());
     }
+
+    @Override
+    public void loginOk(String t){
+        if (isNull(TAG_REQUEST))
+            return;
+
+        if (TAG_REQUEST == TagRequest.EXPORT_DATA){
+            if (dataToRequests.isEmpty()) {
+                functions.makeToast("Veuillez cocher au moins une case SVP.");
+                return;
+            }
+
+            StringBuilder datas = new StringBuilder("&datas=");
+
+            if (dataToRequests.contains(DataToRequest.INVOICE)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllInvoicesTransaction()));
+            if (dataToRequests.contains(DataToRequest.INCOME)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllIncomesTransaction()));
+            if (dataToRequests.contains(DataToRequest.EXPENSE)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllExpensesTransaction()));
+            if (dataToRequests.contains(DataToRequest.MODELINCOME)) datas.append("<n>").append(functions.convertListToDatas(functions.getModelIncomeTransaction()));
+            if (dataToRequests.contains(DataToRequest.MODELINVOICE)) datas.append("<n>").append(functions.convertListToDatas(functions.getModelInvoiceTransaction()));
+
+            BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+            budgetRequests.makeSaveDatas(t, datas.toString());
+
+            resetTagAndLogins();
+        } else if (TAG_REQUEST == TagRequest.IMPORT_DATA){
+            BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+            budgetRequests.makeImportDatas(t);
+
+            resetTagAndLogins();
+        }
+    }
+
+    private void resetTagAndLogins() {
+        login = "";
+        password = "";
+        TAG_REQUEST = null;
+    }
+
+    @Override
+    public void datasSaved(){
+        functions.makeToast("Données sauvées avec succès.");
+    }
+
+    @Override
+    public void datasImported(String r){
+        functions.makeToast("Données importées avec succès.");
+        Log.d(TAG, "datasImported: " + r);
+    }
+
+    //
+    /*private void handleLogin(PopupContentLogin popup) {
+        final String login = popup.getLogin().getText().toString().trim();
+        final String password = popup.getPassword().getText().toString().trim();
+
+        if (login.isEmpty() || password.isEmpty()) {
+            functions.makeToast("Veuillez renseigner tous les champs.");
+            return;
+        }
+
+        if (!popup.getPopupContentLoginInvoiceCb().isChecked() &&
+                !popup.getPopupContentLoginIncomeCb().isChecked() &&
+                !popup.getPopupContentLoginExpenseCb().isChecked() &&
+                !popup.getPopupContentLoginModelInvoiceCb().isChecked() &&
+                !popup.getPopupContentLoginModelIncomeCb().isChecked()) {
+            functions.makeToast("Veuillez cocher au moins un élément.");
+            return;
+        }
+
+        popup.getPopupContentLoginLoadingScreen().setVisibility(View.VISIBLE);
+        final String url = "https://jadeveloppement.fr/api/login?login=" + login + "&password=" + password;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                response -> {
+                    popup.getPopupContentLoginLoadingScreen().setVisibility(View.GONE);
+                    processLoginResponse(response, login, password);
+                },
+                error -> Functions.handleExceptions("PopupContentLogin > handleLogin : ", error)
+        );
+
+        jsonObjectRequest.setTag(REQUEST_TAG);
+        requestQueue = Volley.newRequestQueue(getActivity());
+        requestQueue.add(jsonObjectRequest);
+    }
+
+    private void processLoginResponse(JSONObject response, String login, String password) {
+        try {
+            if ("1".equals(response.getString("logged"))) {
+                final String token = response.getString("token");
+                final String datasBody = constructDataBody(login,password, token);
+
+                JsonObjectRequest modelRequest = new JsonObjectRequest(Request.Method.GET, datasBody, null,
+                        this::handleModelResponse,
+                        this::handleModelError);
+                modelRequest.setTag(REQUEST_TAG);
+                Volley.newRequestQueue(requireContext()).add(modelRequest);
+
+            } else {
+                functions.makeToast("Mauvais identifiants");
+                Log.d(TAG, "makeRequest: bad logins");
+            }
+        } catch (JSONException e) {
+            functions.makeToast("Une erreur est survenue (-1).");
+            Log.e(TAG, "processLoginResponse: JSONException: " + e.getMessage());
+        }
+    }
+
+    private String constructDataBody(String login, String password, String token) throws JSONException{
+        StringBuilder datasBody = new StringBuilder("&datas=");
+        if (popup.getPopupContentLoginInvoiceCb().isChecked()) {
+            datasBody.append(functions.convertListToDatas(functions.getAllInvoicesTransaction()));
+        }
+        if (popupContentLoginIncomeCb.isChecked()) {
+            datasBody.append("<n>").append(functions.convertListToDatas(functions.getAllIncomesTransaction()));
+        }
+        if (popupContentLoginExpenseCb.isChecked()) {
+            datasBody.append("<n>").append(functions.convertListToDatas(functions.getAllExpensesTransaction()));
+        }
+        if (popupContentLoginModelIncomeCb.isChecked()) {
+            datasBody.append("<n>").append(functions.convertListToDatas(functions.getModelIncomeTransaction()));
+        }
+        if (popupContentLoginModelInvoiceCb.isChecked()) {
+            datasBody.append("<n>").append(functions.convertListToDatas(functions.getModelInvoiceTransaction()));
+        }
+        final String loginBody = "login=" + login + "&password=" + password + "&token=" + token;
+        return  "https://jadeveloppement.fr/api/updateModelInvoice?" + loginBody + datasBody.toString();
+    }
+
+    private void handleModelResponse(JSONObject modelResponse) {
+        popupContentLoginLoadingScreen.setVisibility(View.GONE);
+        Log.d(TAG, "makeRequest: " + modelResponse);
+    }
+
+    private void handleModelError(VolleyError error) {
+        popupContentLoginLoadingScreen.setVisibility(View.GONE);
+        functions.makeToast("Une erreur est survenue (-2).");
+        Log.e(TAG, "BudgetRequests > makeRequest > onErrorResponse: " + error.toString()); // Use Log.e for errors.
+    } */
+    //
 
     @Override
     public void onDestroyView() {
