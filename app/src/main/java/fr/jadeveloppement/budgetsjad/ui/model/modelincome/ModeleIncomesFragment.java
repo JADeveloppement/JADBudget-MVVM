@@ -61,7 +61,7 @@ public class ModeleIncomesFragment extends Fragment {
         binding = FragmentModeleincomesBinding.inflate(inflater, container, false);
         viewRoot = binding.getRoot();
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
 
         fragmentModelIncomeAddElement = binding.fragmentModelIncomeAddElement;
         fragmentModelIncomeLoading = binding.fragmentModelIncomeLoading;

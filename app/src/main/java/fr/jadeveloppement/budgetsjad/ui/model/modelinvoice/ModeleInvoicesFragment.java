@@ -59,7 +59,7 @@ public class ModeleInvoicesFragment extends Fragment {
         binding = FragmentModeleinvoicesBinding.inflate(inflater, container, false);
         viewRoot = binding.getRoot();
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
 
         fragmentModelInvoiceAddElement = binding.fragmentModelInvoiceAddElement;
         fragmentModelInvoiceLoading = binding.fragmentModelInvoiceLoading;

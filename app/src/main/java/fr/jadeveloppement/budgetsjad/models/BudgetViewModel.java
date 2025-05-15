@@ -134,7 +134,6 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void deleteTransaction(Transaction t){
-        Log.d(TAG, "deleteTransaction: delete transaction : " + t.getType());
         budgetData.deleteTransaction(t);
 
         updateLiveData();
@@ -185,6 +184,7 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void updateTransaction(Transaction transaction) {
+        Log.d(TAG, "updateTransaction: label : " + transaction.getLabel() + "amount : " + transaction.getAmount() + " type : " + transaction.getType());
         budgetData.updateTransaction(transaction);
         updateLiveData();
     }

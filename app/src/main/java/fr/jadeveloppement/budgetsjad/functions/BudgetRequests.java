@@ -119,19 +119,18 @@ public class BudgetRequests {
      * Import datas from database, linked to the user credentials
      * @param t : token sent by the handleLogin
      */
-    public void makeImportDatas(@NonNull String t){
+    public void makeImportDatas(@NonNull String t, @NonNull Enums.DataToRequest d){
         if (t.isBlank()){
             functions.makeToast("Les données n'ont pas permis de vous identifier.");
             return;
         }
 
-        String URL = URL_RETRIEVEDATA + "login=" + login + "&password=" + password + "&token=" + t;
+        String URL = URL_RETRIEVEDATA + "login=" + login + "&password=" + password + "&token=" + t + "&type="+ d;
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
                     try {
-                        Log.d(TAG, "makeImportDatas: response : " + response);
-                        callback.datasImported(response.toString());
+                        callback.datasImported(response);
                     } catch(Exception e){
                         Functions.handleExceptions("BudgetRequests > makeImportDatas : ", e);
                     }

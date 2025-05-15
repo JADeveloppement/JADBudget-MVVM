@@ -74,7 +74,7 @@ public class DashboardFragment extends Fragment
         dashboardTilesContainer = binding.dashboardTilesContainer;
         dashboardPeriodContainer = binding.dashboardPeriodContainer;
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
         listOfAccounts = functions.getAllAccounts();
         periodSelected = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value));
 

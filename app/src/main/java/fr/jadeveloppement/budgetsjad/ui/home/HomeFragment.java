@@ -1,5 +1,6 @@
 package fr.jadeveloppement.budgetsjad.ui.home;
 
+import static java.lang.Long.parseLong;
 import static java.util.Objects.isNull;
 
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,6 +17,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.google.android.flexbox.FlexboxLayout;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +39,11 @@ import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
@@ -64,6 +73,11 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
     private Functions functions;
 
+    private Enums.TagRequest TAG_REQUEST = null;
+    private List<Enums.DataToRequest> datasToSend, datasToImport = new ArrayList<>();
+    private String login = "", password = "";
+    private LinearLayout popupLoadingScreen;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -77,7 +91,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         menuManageDatasContainer = binding.menuManageDatasContainer;
         menuManageImportExportContainer = binding.menuManageImportExportContainer;
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
 
         setObservers();
 
@@ -100,6 +114,12 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
         budgetViewModel.getPeriodSelected().observe(getViewLifecycleOwner(), (PeriodsTable p) -> {
             periodSelected = p;
+        });
+        
+        budgetViewModel.getInvoices().observe(getViewLifecycleOwner(), (List<Transaction> listOfI) -> {
+            Log.d(TAG, "setObservers: data changed");
+            for(Transaction t : listOfI)
+                Log.d(TAG, "setObservers: " + t.getLabel() + " / " + t.getAmount() + " / id : " + t.getId());
         });
     }
 
@@ -167,7 +187,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         });
     }
 
-    // DONE
     private void setMenuManageEvents() {
         menuManageAccounts.getLayout().setOnClickListener(v -> {
             PopupContainer popupContainer = new PopupContainer(requireContext(), viewRoot);
@@ -213,10 +232,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         menuAddElementContainer.addView(menuAddExpense.getLayout());
     }
 
-    private Enums.TagRequest TAG_REQUEST = null;
-    private List<Enums.DataToRequest> dataToRequests = new ArrayList<>();
-    private String login = "", password = "";
-
     private void setLoginMenu(){
         menuDownload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Récupérer", R.drawable.download);
         menuUpload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Envoyer", R.drawable.upload);
@@ -228,14 +243,29 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             popupContentLogin.setPopupBtnText("Récupérer");
             popupContainer.addContent(popupContentLogin.getLayout());
 
+            popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
+
             popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
                 TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
+                datasToImport = new ArrayList<>();
+
+                if (popupContentLogin.getPopupContentLoginInvoiceCb().isChecked())
+                    datasToImport.add(Enums.DataToRequest.INVOICE);
+                if (popupContentLogin.getPopupContentLoginIncomeCb().isChecked())
+                    datasToImport.add(Enums.DataToRequest.INCOME);
+                if (popupContentLogin.getPopupContentLoginExpenseCb().isChecked())
+                    datasToImport.add(Enums.DataToRequest.EXPENSE);
+                if (popupContentLogin.getPopupContentLoginModelInvoiceCb().isChecked())
+                    datasToImport.add(Enums.DataToRequest.MODELINVOICE);
+                if (popupContentLogin.getPopupContentLoginModelIncomeCb().isChecked())
+                    datasToImport.add(Enums.DataToRequest.MODELINCOME);
 
                 login = popupContentLogin.getLogin();
                 password = popupContentLogin.getPassword();
 
                 BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
                 budgetRequests.handleLogin();
+                popupLoadingScreen.setVisibility(View.VISIBLE);
             });
 
             popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
@@ -247,27 +277,29 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             popupContentLogin.setPopupTitle("Envoyer des données");
             popupContentLogin.setPopupBtnText("Envoyer");
             popupContainer.addContent(popupContentLogin.getLayout());
+            popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
 
             popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
                 TAG_REQUEST = Enums.TagRequest.EXPORT_DATA;
-                dataToRequests = new ArrayList<>();
+                datasToSend = new ArrayList<>();
 
                 if (popupContentLogin.getPopupContentLoginInvoiceCb().isChecked())
-                    dataToRequests.add(Enums.DataToRequest.INVOICE);
+                    datasToSend.add(Enums.DataToRequest.INVOICE);
                 if (popupContentLogin.getPopupContentLoginIncomeCb().isChecked())
-                    dataToRequests.add(Enums.DataToRequest.INCOME);
+                    datasToSend.add(Enums.DataToRequest.INCOME);
                 if (popupContentLogin.getPopupContentLoginExpenseCb().isChecked())
-                    dataToRequests.add(Enums.DataToRequest.EXPENSE);
+                    datasToSend.add(Enums.DataToRequest.EXPENSE);
                 if (popupContentLogin.getPopupContentLoginModelInvoiceCb().isChecked())
-                    dataToRequests.add(Enums.DataToRequest.MODELINVOICE);
+                    datasToSend.add(Enums.DataToRequest.MODELINVOICE);
                 if (popupContentLogin.getPopupContentLoginModelIncomeCb().isChecked())
-                    dataToRequests.add(Enums.DataToRequest.MODELINCOME);
+                    datasToSend.add(Enums.DataToRequest.MODELINCOME);
 
                 login = popupContentLogin.getLogin();
                 password = popupContentLogin.getPassword();
 
                 BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
                 budgetRequests.handleLogin();
+                popupLoadingScreen.setVisibility(View.VISIBLE);
             });
 
             popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
@@ -283,18 +315,18 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             return;
 
         if (TAG_REQUEST == Enums.TagRequest.EXPORT_DATA){
-            if (dataToRequests.isEmpty()) {
+            if (datasToSend.isEmpty()) {
                 functions.makeToast("Veuillez cocher au moins une case SVP.");
                 return;
             }
 
             StringBuilder datas = new StringBuilder("&datas=");
 
-            if (dataToRequests.contains(Enums.DataToRequest.INVOICE)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllInvoicesTransaction()));
-            if (dataToRequests.contains(Enums.DataToRequest.INCOME)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllIncomesTransaction()));
-            if (dataToRequests.contains(Enums.DataToRequest.EXPENSE)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllExpensesTransaction()));
-            if (dataToRequests.contains(Enums.DataToRequest.MODELINCOME)) datas.append("<n>").append(functions.convertListToDatas(functions.getModelIncomeTransaction()));
-            if (dataToRequests.contains(Enums.DataToRequest.MODELINVOICE)) datas.append("<n>").append(functions.convertListToDatas(functions.getModelInvoiceTransaction()));
+            if (datasToSend.contains(Enums.DataToRequest.INVOICE)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllInvoicesTransaction()));
+            if (datasToSend.contains(Enums.DataToRequest.INCOME)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllIncomesTransaction()));
+            if (datasToSend.contains(Enums.DataToRequest.EXPENSE)) datas.append("<n>").append(functions.convertListToDatas(functions.getAllExpensesTransaction()));
+            if (datasToSend.contains(Enums.DataToRequest.MODELINCOME)) datas.append("<n>").append(functions.convertListToDatas(functions.getModelIncomeTransaction()));
+            if (datasToSend.contains(Enums.DataToRequest.MODELINVOICE)) datas.append("<n>").append(functions.convertListToDatas(functions.getModelInvoiceTransaction()));
 
             BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
             budgetRequests.makeSaveDatas(t, datas.toString());
@@ -302,16 +334,28 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             resetTagAndLogins();
         } else if (TAG_REQUEST == Enums.TagRequest.IMPORT_DATA){
             BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
-            budgetRequests.makeImportDatas(t);
+            if (datasToImport.isEmpty()) {
+                functions.makeToast("Veuillez cocher au moins une case SVP.");
+                return;
+            }
 
+            for (Enums.DataToRequest d : datasToImport){
+                budgetRequests.makeImportDatas(t, d);
+            }
+            functions.makeToast("Données récupérées avec succès.");
             resetTagAndLogins();
         }
     }
 
     private void resetTagAndLogins() {
+        if (!isNull(popupLoadingScreen)) popupLoadingScreen.setVisibility(View.GONE);
         login = "";
         password = "";
         TAG_REQUEST = null;
+        datasToImport = new ArrayList<>();
+        datasToSend = new ArrayList<>();
+        datasToImport = new ArrayList<>();
+        popupLoadingScreen = null;
     }
 
     @Override
@@ -320,9 +364,115 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
-    public void datasImported(String r){
-        functions.makeToast("Données importées avec succès.");
-        Log.d(TAG, "datasImported: " + r);
+    public void datasImported(JSONObject r){
+        try {
+            String datas = r.getString("datas").trim();
+            if (datas.contains("<n>")){
+                String[] rows = datas.split("<n>");
+                for(String line : rows){
+                    if (line.contains("<l>")){
+                        String[] cols = line.split("<l>");
+                        String transaction_ID = cols[0];
+                        String label = cols[1];
+                        String amount = cols[2];
+                        String period = cols[3];
+                        String account_id = cols[4];
+                        String paid = cols[5];
+                        String type = cols[6];
+
+                        if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.INVOICE))){
+                            InvoicesTable invoicesTable = functions.getInvoiceById(parseLong(transaction_ID));
+                            boolean create = false;
+
+                            if (isNull(invoicesTable)){
+                                invoicesTable = new InvoicesTable();
+                                create = true;
+                            }
+                            invoicesTable.label = label;
+                            invoicesTable.amount = amount;
+                            invoicesTable.account_id = parseLong(account_id);
+                            invoicesTable.date = period;
+                            invoicesTable.paid = paid;
+
+                            if (create) {
+                                budgetViewModel.addTransaction(functions.convertObjectToTransaction(invoicesTable));
+                            }
+                            else {
+                                budgetViewModel.updateTransaction(functions.convertObjectToTransaction(invoicesTable));
+                            }
+
+                        } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.INCOME))){
+
+                            IncomesTable incomesTable = functions.getIncomeById(parseLong(transaction_ID));
+                            boolean create = false;
+
+                            if (isNull(incomesTable)){
+                                incomesTable = new IncomesTable();
+                                create = true;
+                            }
+                            incomesTable.label = label;
+                            incomesTable.amount = amount;
+                            incomesTable.account_id = parseLong(account_id);
+                            incomesTable.date = period;
+                            incomesTable.paid = paid;
+
+                            if (create) budgetViewModel.addTransaction(functions.convertObjectToTransaction(incomesTable));
+                            else budgetViewModel.updateTransaction(functions.convertObjectToTransaction(incomesTable));
+
+                        } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.EXPENSE))){
+
+                            ExpensesTable expensesTable = functions.getExpenseById(parseLong(transaction_ID));
+                            boolean create = false;
+
+                            if (isNull(expensesTable)){
+                                expensesTable = new ExpensesTable();
+                                create = true;
+                            }
+                            expensesTable.label = label;
+                            expensesTable.amount = amount;
+                            expensesTable.account_id = parseLong(account_id);
+                            expensesTable.date = period;
+
+                            if (create) budgetViewModel.addTransaction(functions.convertObjectToTransaction(expensesTable));
+                            else budgetViewModel.updateTransaction(functions.convertObjectToTransaction(expensesTable));
+
+                        } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.MODELINVOICE))){
+
+                            ModeleInvoices modeleInvoices = functions.getModeleInvoiceById(parseLong(transaction_ID));
+                            boolean create = false;
+
+                            if (isNull(modeleInvoices)){
+                                modeleInvoices = new ModeleInvoices();
+                                create = true;
+                            }
+                            modeleInvoices.label = label;
+                            modeleInvoices.amount = amount;
+                            modeleInvoices.date = period;
+
+                            if (create) budgetViewModel.addTransaction(functions.convertObjectToTransaction(modeleInvoices));
+                            else budgetViewModel.updateTransaction(functions.convertObjectToTransaction(modeleInvoices));
+
+                        } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.MODELINCOME))){
+                            ModeleIncomes modeleIncomes = functions.getModeleIncomeById(parseLong(transaction_ID));
+                            boolean create = false;
+
+                            if (isNull(modeleIncomes)){
+                                modeleIncomes = new ModeleIncomes();
+                                create = true;
+                            }
+                            modeleIncomes.label = label;
+                            modeleIncomes.amount = amount;
+                            modeleIncomes.date = period;
+
+                            if (create) budgetViewModel.addTransaction(functions.convertObjectToTransaction(modeleIncomes));
+                            else budgetViewModel.updateTransaction(functions.convertObjectToTransaction(modeleIncomes));
+                        }
+                    }
+                }
+            }
+        } catch(Exception e){
+            Log.d(TAG, "HomeFragment > datasImported: ", e);
+        }
     }
 
     @Override

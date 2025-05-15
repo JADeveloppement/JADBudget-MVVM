@@ -1,5 +1,7 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
+import static java.util.Objects.isNull;
+
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
@@ -142,6 +144,70 @@ public class Functions {
         }
 
         return TextUtils.join("<n>", result);
+    }
+
+    public Transaction convertObjectToTransaction(Object o) throws Exception {
+        Transaction convertedObject = null;
+        if (o instanceof InvoicesTable){
+            InvoicesTable i = (InvoicesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    i.paid,
+                    Enums.TransactionType.INVOICE,
+                    String.valueOf(i.invoice_id)
+            );
+        } else if (o instanceof IncomesTable){
+            IncomesTable i = (IncomesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    i.paid,
+                    Enums.TransactionType.INCOME,
+                    String.valueOf(i.income_id)
+            );
+        } else if (o instanceof ExpensesTable){
+            ExpensesTable i = (ExpensesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    "0",
+                    Enums.TransactionType.EXPENSE,
+                    String.valueOf(i.expense_id)
+            );
+        } else if (o instanceof ModeleInvoices){
+            ModeleInvoices i = (ModeleInvoices) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    "",
+                    "0",
+                    Enums.TransactionType.MODELINVOICE,
+                    String.valueOf(i.modeleinvoice_id)
+            );
+        } else if (o instanceof ModeleIncomes){
+            ModeleIncomes i = (ModeleIncomes) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    "",
+                    "0",
+                    Enums.TransactionType.MODELINCOME,
+                    String.valueOf(i.modeleincome_id)
+            );
+        }
+
+        if (isNull(convertedObject)) throw new Exception("No type match object");
+
+        return convertedObject;
     }
 
     /**
@@ -328,8 +394,6 @@ public class Functions {
         for (ModeleInvoices i : listOfModelInvoice){
             listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", Enums.TransactionType.MODELINVOICE, String.valueOf(i.modeleinvoice_id)));
         }
-        Log.d(TAG, "getModelInvoiceTransaction: list of Transaction : " + listOfTransactions.size());
-        Log.d(TAG, "getModelInvoiceTransaction: list of ModelInvoice : " + listOfModelInvoice.size());
         return listOfTransactions;
     }
 
