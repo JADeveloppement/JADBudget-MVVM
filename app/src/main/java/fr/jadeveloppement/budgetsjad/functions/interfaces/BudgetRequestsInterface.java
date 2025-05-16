@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 public interface BudgetRequestsInterface {
     void loginOk(String token);
+    void loginNonOk();
     void datasSaved();
     void datasImported(JSONObject response);
 }

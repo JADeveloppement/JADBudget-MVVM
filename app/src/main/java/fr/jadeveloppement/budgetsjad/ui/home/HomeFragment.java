@@ -115,12 +115,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         budgetViewModel.getPeriodSelected().observe(getViewLifecycleOwner(), (PeriodsTable p) -> {
             periodSelected = p;
         });
-        
-        budgetViewModel.getInvoices().observe(getViewLifecycleOwner(), (List<Transaction> listOfI) -> {
-            Log.d(TAG, "setObservers: data changed");
-            for(Transaction t : listOfI)
-                Log.d(TAG, "setObservers: " + t.getLabel() + " / " + t.getAmount() + " / id : " + t.getId());
-        });
     }
 
     private void makePopupAddElement(Enums.TransactionType type){
@@ -243,11 +237,12 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             popupContentLogin.setPopupBtnText("Récupérer");
             popupContainer.addContent(popupContentLogin.getLayout());
 
-            popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
-
             popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
                 TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
                 datasToImport = new ArrayList<>();
+
+                popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
+                popupLoadingScreen.setVisibility(View.VISIBLE);
 
                 if (popupContentLogin.getPopupContentLoginInvoiceCb().isChecked())
                     datasToImport.add(Enums.DataToRequest.INVOICE);
@@ -265,7 +260,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
                 BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
                 budgetRequests.handleLogin();
-                popupLoadingScreen.setVisibility(View.VISIBLE);
             });
 
             popupContentLogin.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
@@ -277,11 +271,13 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             popupContentLogin.setPopupTitle("Envoyer des données");
             popupContentLogin.setPopupBtnText("Envoyer");
             popupContainer.addContent(popupContentLogin.getLayout());
-            popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
 
             popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
                 TAG_REQUEST = Enums.TagRequest.EXPORT_DATA;
                 datasToSend = new ArrayList<>();
+
+                popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
+                popupLoadingScreen.setVisibility(View.VISIBLE);
 
                 if (popupContentLogin.getPopupContentLoginInvoiceCb().isChecked())
                     datasToSend.add(Enums.DataToRequest.INVOICE);
@@ -310,13 +306,21 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
+    public void loginNonOk(){
+        resetTagAndLogins();
+    }
+
+    @Override
     public void loginOk(String t){
-        if (isNull(TAG_REQUEST))
+        if (isNull(TAG_REQUEST)) {
+            resetTagAndLogins();
             return;
+        }
 
         if (TAG_REQUEST == Enums.TagRequest.EXPORT_DATA){
             if (datasToSend.isEmpty()) {
                 functions.makeToast("Veuillez cocher au moins une case SVP.");
+                resetTagAndLogins();
                 return;
             }
 
@@ -336,12 +340,14 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
             if (datasToImport.isEmpty()) {
                 functions.makeToast("Veuillez cocher au moins une case SVP.");
+                resetTagAndLogins();
                 return;
             }
 
             for (Enums.DataToRequest d : datasToImport){
                 budgetRequests.makeImportDatas(t, d);
             }
+
             functions.makeToast("Données récupérées avec succès.");
             resetTagAndLogins();
         }

@@ -1,5 +1,6 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
+import static java.util.Objects.isNull;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_EXPORTDATA;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_LOGIN;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_RETRIEVEDATA;
@@ -9,12 +10,15 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
+
+import java.util.Arrays;
 
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 
@@ -61,6 +65,7 @@ public class BudgetRequests {
     public void handleLogin(){
         if (login.isBlank() || password.isBlank()) {
             functions.makeToast("Veuillez renseigner tous les champs.");
+            callback.loginNonOk();
             return;
         }
 
@@ -76,10 +81,30 @@ public class BudgetRequests {
                         else functions.makeToast("Mauvais identifiant.");
                     } catch(JSONException e){
                         functions.makeToast("Une erreur serveur est survenue.");
+                        callback.loginNonOk();
                         Functions.handleExceptions("BudgetRequests > try/catch > handleLogin : ", e);
                     }
                 },
-                error -> Functions.handleExceptions("BudgetRequests > handleLogin : ", error)
+                error -> {
+                    Functions.handleExceptions("BudgetRequests > handleLogin : ", error);
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (!isNull(networkResponse)){
+                        int statuscode = networkResponse.statusCode;
+                        switch(statuscode){
+                            case 400:
+                            case 500:
+                                functions.makeToast("Erreur serveur.");
+                                break;
+                            case 401:
+                                functions.makeToast("Mauvais identifiants");
+                                break;
+                            default:
+                                Log.d(TAG, "BudgetRequests > handleLogin: statusCode : " + statuscode);
+                                break;
+                        }
+                    }
+                    callback.loginNonOk();
+                }
         );
 
         putToQueue(jsonObjectRequest);
@@ -108,7 +133,26 @@ public class BudgetRequests {
                 response -> {
                     callback.datasSaved();
                 },
-                error -> Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error)
+                error -> {
+                    Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
+                    callback.loginNonOk();
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (!isNull(networkResponse)){
+                        int statuscode = networkResponse.statusCode;
+                        switch(statuscode){
+                            case 400:
+                            case 500:
+                                functions.makeToast("Erreur serveur ("+statuscode+")");
+                                break;
+                            case 401:
+                                functions.makeToast("Erreur lors de l'identification de l'utilisateur.");
+                                break;
+                            default:
+                                Log.d(TAG, "BudgetRequests > handleLogin: statusCode : " + statuscode);
+                                break;
+                        }
+                    }
+                }
         );
 
         putToQueue(jsonObjectRequest);
@@ -135,7 +179,26 @@ public class BudgetRequests {
                         Functions.handleExceptions("BudgetRequests > makeImportDatas : ", e);
                     }
                 },
-                error -> Functions.handleExceptions("BudgetRequests > makeImportDatas : ", error)
+                error -> {
+                    Functions.handleExceptions("BudgetRequests > makeImportDatas : ", error);
+                    callback.loginNonOk();
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (!isNull(networkResponse)){
+                        int statusCode = networkResponse.statusCode;
+                        switch(statusCode){
+                            case 400:
+                            case 500:
+                                functions.makeToast("Erreur serveur (" + statusCode + ")");
+                                break;
+                            case 401:
+                                functions.makeToast("Erreur lors de l'identification (" + statusCode + ")");
+                                break;
+                            default:
+                                Log.d(TAG, "BudgetRequests > handleLogin: statusCode : " + statusCode);
+                                break;
+                        }
+                    }
+                }
         );
 
         putToQueue(jsonObjectRequest);
