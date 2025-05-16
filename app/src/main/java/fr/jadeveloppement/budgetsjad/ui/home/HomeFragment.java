@@ -319,7 +319,10 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         SettingsTable settingUser = functions.getSettingByLabel(Variables.settingUsername);
         SettingsTable settingsToken = functions.getSettingByLabel(Variables.settingsToken);
 
-        if (settingUser.value.isBlank() || settingsToken.value.isBlank()) return;
+        if (settingUser.value.isBlank() || settingsToken.value.isBlank()) {
+            handleLoginMenuVisibility(false);
+            return;
+        }
         TAG_REQUEST = Enums.TagRequest.CHECK_TOKEN;
         BudgetRequests budgetRequests = new BudgetRequests(requireContext(), settingUser.value, "", this);
         budgetRequests.checkToken(settingUser.value, settingsToken.value);
