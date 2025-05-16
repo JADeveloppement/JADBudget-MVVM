@@ -25,6 +25,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 
 import java.util.Arrays;
+import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
@@ -63,6 +64,41 @@ public class BudgetRequests {
         this.password = p;
         this.functions = new Functions(context);
         this.callback = call;
+    }
+
+    /**
+     * Check validity of token
+     */
+    public void checkToken(@NonNull String login, @NonNull String token) {
+        String URL = URL_CHECKTOKEN.replace(loginUrlField, login).replace(tokenUrlField, token);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
+                response -> {
+                    callback.tokenOk();
+                },
+                error -> {
+                    Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
+                    callback.loginNonOk();
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (!isNull(networkResponse)){
+                        int statuscode = networkResponse.statusCode;
+                        switch(statuscode){
+                            case 400:
+                            case 500:
+                                functions.makeToast("Erreur serveur ("+statuscode+")");
+                                break;
+                            case 401:
+                                functions.makeToast("Erreur lors de l'identification de l'utilisateur.");
+                                break;
+                            default:
+                                Log.d(TAG, "BudgetRequests > checkToken: statusCode : " + statuscode);
+                                break;
+                        }
+                    }
+                }
+        );
+
+        putToQueue(jsonObjectRequest);
     }
 
     /**
@@ -129,7 +165,7 @@ public class BudgetRequests {
      * @param t : token sent by the handleLogin
      * @param d : datas to send to be parsed by API
      */
-    public void makeSaveDatas(@NonNull String t, @NonNull String d){
+    public void makeExportDatas(@NonNull String t, @NonNull String d){
         String URL = URL_EXPORTDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(datasUrlField, d);
 
         Log.d(TAG, "makeSaveDatas: URL > " + URL);
@@ -164,23 +200,19 @@ public class BudgetRequests {
 
     }
 
-    /**
-     * Import datas from database, linked to the user credentials
-     * @param t : token sent by the handleLogin
-     */
-    public void makeImportDatas(@NonNull String t, @NonNull Enums.DataToRequest d){
-        if (t.isBlank()){
-            functions.makeToast("Les données n'ont pas permis de vous identifier.");
-            return;
-        }
-
+    private void importDataType(@NonNull Enums.DataToRequest d, String t, int totalRequests, int indexRequest){
         String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(typeUrlField, String.valueOf(d));
+
         Log.d(TAG, "makeImportDatas: URL > " + URL);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
                     try {
                         callback.datasImported(response);
+                        if (indexRequest == totalRequests-1) {
+                            callback.requestsFinished();
+                            functions.makeToast("Données récupérées avec succès.");
+                        }
                     } catch(Exception e){
                         Functions.handleExceptions("BudgetRequests > makeImportDatas : ", e);
                     }
@@ -208,46 +240,27 @@ public class BudgetRequests {
         );
 
         putToQueue(jsonObjectRequest);
+    }
 
+    /**
+     * Import datas from database, linked to the user credentials
+     * @param t : token sent by the handleLogin
+     */
+    public void makeImportDatas(@NonNull String t, @NonNull List<Enums.DataToRequest> datas){
+        if (t.isBlank()){
+            functions.makeToast("Les données n'ont pas permis de vous identifier.");
+            return;
+        }
+
+        int index = 0;
+        for (Enums.DataToRequest d : datas){
+            importDataType(d, t, datas.size(), index);
+            index++;
+        }
     }
 
     private void putToQueue(@NonNull JsonObjectRequest jsonObjectRequest) {
         RequestQueue requestQueue = Volley.newRequestQueue(context);
         requestQueue.add(jsonObjectRequest);
-    }
-
-    /**
-     * Check validity of token
-     */
-    public void checkToken(@NonNull String login, @NonNull String token) {
-        String URL = URL_CHECKTOKEN.replace(loginUrlField, login).replace(tokenUrlField, token);
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
-                response -> {
-                    callback.tokenOk();
-                },
-                error -> {
-                    Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
-                    callback.loginNonOk();
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (!isNull(networkResponse)){
-                        int statuscode = networkResponse.statusCode;
-                        switch(statuscode){
-                            case 400:
-                            case 500:
-                                functions.makeToast("Erreur serveur ("+statuscode+")");
-                                break;
-                            case 401:
-                                functions.makeToast("Erreur lors de l'identification de l'utilisateur.");
-                                break;
-                            default:
-                                Log.d(TAG, "BudgetRequests > checkToken: statusCode : " + statuscode);
-                                break;
-                        }
-                    }
-                }
-        );
-
-        putToQueue(jsonObjectRequest);
     }
 }

@@ -65,15 +65,10 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     private View viewRoot;
 
     private BudgetViewModel budgetViewModel;
-    private SettingsTable settingsAccount;
-    private PeriodsTable periodSelected;
 
     private Functions functions;
 
-    private Enums.TagRequest TAG_REQUEST = null;
-    private List<Enums.DataToRequest> datasToSend, datasToImport = new ArrayList<>();
-    private String login = "", password = "";
-    private LinearLayout popupLoadingScreen;
+    private LinearLayout menuManageImportExportLoadingScreen;
 
     private PopupContainer popupLoginContainer = null;
 
@@ -89,8 +84,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
         popupHelper = new PopupHelper(requireContext(), budgetViewModel);
 
-        setObservers();
-
         initializeUI();
         initializeUIEvents();
 
@@ -104,6 +97,8 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         FlexboxLayout menuModelsContainer = binding.menuModelsContainer;
         FlexboxLayout menuManageDatasContainer = binding.menuManageDatasContainer;
         FlexboxLayout menuManageImportExportContainer = binding.menuManageImportExportContainer;
+
+        menuManageImportExportLoadingScreen = binding.menuManageImportExportLoadingScreen;
 
         // Add Element MENU
         menuAddInvoice = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nprélèvement", R.drawable.invoice);
@@ -191,6 +186,8 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             settingsPassword.value = "";
             functions.updateSettings(settingsPassword);
 
+            functions.makeToast("Déconnecté.");
+
             handleLoginMenuVisibility(false);
         });
 
@@ -205,25 +202,15 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         //
     }
 
-    private void setObservers() {
-        budgetViewModel.getSettingsAccount().observe(getViewLifecycleOwner(), (SettingsTable s) -> {
-            settingsAccount = s;
-        });
-
-        budgetViewModel.getPeriodSelected().observe(getViewLifecycleOwner(), (PeriodsTable p) -> {
-            periodSelected = p;
-        });
-    }
-
     private void checkIfLogged() {
         SettingsTable settingUser = functions.getSettingByLabel(Variables.settingUsername);
         SettingsTable settingsToken = functions.getSettingByLabel(Variables.settingsToken);
 
         if (settingUser.value.isBlank() || settingsToken.value.isBlank()) {
             handleLoginMenuVisibility(false);
+            menuManageImportExportLoadingScreen.setVisibility(View.GONE);
             return;
         }
-        TAG_REQUEST = Enums.TagRequest.CHECK_TOKEN;
         BudgetRequests budgetRequests = new BudgetRequests(requireContext(), settingUser.value, "", this);
         budgetRequests.checkToken(settingUser.value, settingsToken.value);
     }
@@ -238,6 +225,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     @Override
     public void tokenOk(){
         popupHelper.toggleLoadingScreen(false);
+        menuManageImportExportLoadingScreen.setVisibility(View.GONE);
         handleLoginMenuVisibility(true);
     }
 
@@ -245,6 +233,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     public void tokenNonOk(){
         popupHelper.toggleLoadingScreen(false);
         handleLoginMenuVisibility(false);
+        menuManageImportExportLoadingScreen.setVisibility(View.GONE);
     }
 
     @Override
@@ -256,9 +245,15 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
-    public void datasSaved(){
-        functions.makeToast("Données sauvées avec succès.");
+    public void loginNonOk(){
         popupHelper.toggleLoadingScreen(false);
+        requestsFinished();
+    }
+
+    @Override
+    public void datasSaved(){
+        popupHelper.toggleLoadingScreen(false);
+        functions.makeToast("Données sauvées avec succès.");
         requestsFinished();
     }
 
@@ -267,15 +262,13 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         try {
             String datas = r.getString("datas").trim();
             processImportDatas(datas);
-            functions.makeToast("Données récupérées avec succès.");
-            popupHelper.toggleLoadingScreen(false);
-            requestsFinished();
         } catch(Exception e){
             Log.d(TAG, "HomeFragment > datasImported: ", e);
         }
     }
 
     private void processImportDatas(String datas) throws Exception{
+        Log.d(TAG, "processImportDatas: datas : " + datas);
         if (datas.contains("<n>")){
             String[] rows = datas.split("<n>");
             for(String line : rows){
@@ -283,8 +276,8 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
                     String[] cols = line.split("<l>");
                     String label = cols[1];
                     String amount = cols[2];
-                    String period = cols[3];
-                    String account_id = cols[4];
+                    String period = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+                    String account_id = functions.getSettingByLabel(Variables.settingAccount).value;
                     String paid = cols[5];
                     String type = cols[6];
 
@@ -347,21 +340,8 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
-    public void loginNonOk(){
-        popupHelper.toggleLoadingScreen(false);
-        requestsFinished();
-    }
-
-    @Override
     public void requestsFinished(){
         popupHelper.toggleLoadingScreen(false);
-        login = "";
-        password = "";
-        TAG_REQUEST = null;
-        datasToImport = new ArrayList<>();
-        datasToSend = new ArrayList<>();
-        datasToImport = new ArrayList<>();
-        popupLoadingScreen = null;
     }
 
     @Override

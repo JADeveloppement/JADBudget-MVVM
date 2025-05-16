@@ -135,6 +135,8 @@ public class PopupHelper {
         popupContentSynchronize.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
         popupContentSynchronize.getBtnSave().setOnClickListener(v1 -> {
             popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+            toggleLoadingScreen(true);
+
             List<Enums.DataToRequest> datasToImport = new ArrayList<>();
             if (popupContentSynchronize.getPopupContentSynchronizeInvoiceCb().isChecked()) datasToImport.add(Enums.DataToRequest.INVOICE);
             if (popupContentSynchronize.getPopupContentSynchronizeIncomeCb().isChecked()) datasToImport.add(Enums.DataToRequest.INCOME);
@@ -149,10 +151,8 @@ public class PopupHelper {
 
             Log.d(TAG, "PopupHelper > popupImportDatas : login " + login + " password : " + password + " token : " + settingTableToken.value);
             BudgetRequests budgetRequests = new BudgetRequests(context, login, password, callback);
+            budgetRequests.makeImportDatas(settingTableToken.value, datasToImport);
 
-            for (Enums.DataToRequest d : datasToImport){
-                budgetRequests.makeImportDatas(settingTableToken.value, d);
-            }
         });
     }
 
@@ -195,7 +195,7 @@ public class PopupHelper {
             if (datasToSend.contains(Enums.DataToRequest.MODELINVOICE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getModelInvoice().getValue()));
 
             BudgetRequests budgetRequests = new BudgetRequests(context, login, password, callback);
-            budgetRequests.makeSaveDatas(settingTableToken.value, datas.toString());
+            budgetRequests.makeExportDatas(settingTableToken.value, datas.toString());
         });
     }
 
@@ -208,10 +208,10 @@ public class PopupHelper {
 
         popupContentLogin.getBtnSave().setOnClickListener(v1 -> {
             popupLoadingScreen = popupContentLogin.getPopupContentLoginLoadingScreen();
+            toggleLoadingScreen(true);
 
             String login = popupContentLogin.getLogin();
             String password = popupContentLogin.getPassword();
-
 
             if (login.isBlank() || password.isBlank()) functions.makeToast("Veuillez renseigner vos identifiants.");
             else {
