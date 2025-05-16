@@ -27,6 +27,7 @@ import org.json.JSONException;
 import java.util.Arrays;
 
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
 public class BudgetRequests {
 
@@ -76,6 +77,18 @@ public class BudgetRequests {
                     try {
                         if (response.getString("logged").equals("1")){
                             this.token = response.getString("token");
+                            SettingsTable settingUser = functions.getSettingByLabel(Variables.settingUsername);
+                            settingUser.value = login;
+                            functions.updateSettings(settingUser);
+
+                            SettingsTable settingPassword = functions.getSettingByLabel(Variables.settingPassword);
+                            settingPassword.value = password;
+                            functions.updateSettings(settingPassword);
+
+                            SettingsTable settingToken = functions.getSettingByLabel(Variables.settingsToken);
+                            settingToken.value = token;
+                            functions.updateSettings(settingToken);
+
                             callback.loginOk(token);
                         }
                         else functions.makeToast("Mauvais identifiant.");
@@ -119,7 +132,7 @@ public class BudgetRequests {
     public void makeSaveDatas(@NonNull String t, @NonNull String d){
         String URL = URL_EXPORTDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(datasUrlField, d);
 
-        Log.d(TAG, "makeSaveDatas: URL : " + URL);
+        Log.d(TAG, "makeSaveDatas: URL > " + URL);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -162,6 +175,7 @@ public class BudgetRequests {
         }
 
         String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(typeUrlField, String.valueOf(d));
+        Log.d(TAG, "makeImportDatas: URL > " + URL);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -211,7 +225,6 @@ public class BudgetRequests {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
                     callback.tokenOk();
-//                    callback.datasSaved();
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);

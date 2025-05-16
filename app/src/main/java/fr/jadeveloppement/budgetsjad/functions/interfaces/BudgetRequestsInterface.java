@@ -12,4 +12,6 @@ public interface BudgetRequestsInterface {
     void requestsFinished();
 
     void tokenOk();
+
+    void tokenNonOk();
 }
