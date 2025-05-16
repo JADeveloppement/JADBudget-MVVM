@@ -133,16 +133,18 @@ public class Functions {
      */
     public String convertListToDatas(List<Transaction> listOfTransaction) {
         List<String> result = new ArrayList<>();
-        for (Transaction t : listOfTransaction) {
-            result.add(t.getId() + "<l>"
-                    + t.getLabel() + "<l>"
-                    + t.getAmount() + "<l>"
-                    + t.getDate() + "<l>"
-                    + t.getAccount() + "<l>"
-                    + t.getPaid() + "<l>"
-                    + t.getType());
+        if (isNull(listOfTransaction)) result = Collections.emptyList();
+        else {
+            for (Transaction t : listOfTransaction) {
+                result.add(t.getId() + "<l>"
+                        + t.getLabel() + "<l>"
+                        + t.getAmount() + "<l>"
+                        + t.getDate() + "<l>"
+                        + t.getAccount() + "<l>"
+                        + t.getPaid() + "<l>"
+                        + t.getType());
+            }
         }
-
         return TextUtils.join("<n>", result);
     }
 
@@ -156,8 +158,7 @@ public class Functions {
                     i.date,
                     String.valueOf(i.account_id),
                     i.paid,
-                    Enums.TransactionType.INVOICE,
-                    String.valueOf(i.invoice_id)
+                    Enums.TransactionType.INVOICE
             );
         } else if (o instanceof IncomesTable){
             IncomesTable i = (IncomesTable) o;
@@ -167,8 +168,7 @@ public class Functions {
                     i.date,
                     String.valueOf(i.account_id),
                     i.paid,
-                    Enums.TransactionType.INCOME,
-                    String.valueOf(i.income_id)
+                    Enums.TransactionType.INCOME
             );
         } else if (o instanceof ExpensesTable){
             ExpensesTable i = (ExpensesTable) o;
@@ -178,8 +178,7 @@ public class Functions {
                     i.date,
                     String.valueOf(i.account_id),
                     "0",
-                    Enums.TransactionType.EXPENSE,
-                    String.valueOf(i.expense_id)
+                    Enums.TransactionType.EXPENSE
             );
         } else if (o instanceof ModeleInvoices){
             ModeleInvoices i = (ModeleInvoices) o;
@@ -189,8 +188,7 @@ public class Functions {
                     i.date,
                     "",
                     "0",
-                    Enums.TransactionType.MODELINVOICE,
-                    String.valueOf(i.modeleinvoice_id)
+                    Enums.TransactionType.MODELINVOICE
             );
         } else if (o instanceof ModeleIncomes){
             ModeleIncomes i = (ModeleIncomes) o;
@@ -200,8 +198,7 @@ public class Functions {
                     i.date,
                     "",
                     "0",
-                    Enums.TransactionType.MODELINCOME,
-                    String.valueOf(i.modeleincome_id)
+                    Enums.TransactionType.MODELINCOME
             );
         }
 
@@ -289,8 +286,8 @@ public class Functions {
         return sqliteFunctions.insertSettings(settingsTable);
     }
 
-    public void updateSettings(SettingsTable settingsPeriod) {
-        sqliteFunctions.updateSettings(settingsPeriod);
+    public void updateSettings(SettingsTable settingsTable) {
+        sqliteFunctions.updateSettings(settingsTable);
     }
     //
 

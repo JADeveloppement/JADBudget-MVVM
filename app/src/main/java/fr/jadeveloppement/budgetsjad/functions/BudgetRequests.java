@@ -1,9 +1,15 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
 import static java.util.Objects.isNull;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_CHECKTOKEN;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_EXPORTDATA;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_LOGIN;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_RETRIEVEDATA;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.datasUrlField;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.loginUrlField;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.passwordUrlField;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.tokenUrlField;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.typeUrlField;
 
 import android.content.Context;
 import android.util.Log;
@@ -63,13 +69,7 @@ public class BudgetRequests {
      * To call just after the declaration of BudgetRequests(Context, Login, Password, Callback)
      */
     public void handleLogin(){
-        if (login.isBlank() || password.isBlank()) {
-            functions.makeToast("Veuillez renseigner tous les champs.");
-            callback.loginNonOk();
-            return;
-        }
-
-        String URL = URL_LOGIN + "login=" + login + "&password=" + password;
+        String URL = URL_LOGIN.replace(loginUrlField, login).replace(passwordUrlField, password);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -111,23 +111,15 @@ public class BudgetRequests {
 
     }
 
-    private void putToQueue(JsonObjectRequest jsonObjectRequest) {
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(jsonObjectRequest);
-    }
-
     /**
      * Save data into database, linked to user credentials
      * @param t : token sent by the handleLogin
      * @param d : datas to send to be parsed by API
      */
     public void makeSaveDatas(@NonNull String t, @NonNull String d){
-        if (t.isBlank() || d.isBlank()){
-            functions.makeToast("Les données n'ont pas permis de vous identifier.");
-            return;
-        }
+        String URL = URL_EXPORTDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(datasUrlField, d);
 
-        String URL = URL_EXPORTDATA + "login=" + login + "&password=" + password + "&token=" + t + "&datas=" + d;
+        Log.d(TAG, "makeSaveDatas: URL : " + URL);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -169,7 +161,7 @@ public class BudgetRequests {
             return;
         }
 
-        String URL = URL_RETRIEVEDATA + "login=" + login + "&password=" + password + "&token=" + t + "&type="+ d;
+        String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(typeUrlField, String.valueOf(d));
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -203,5 +195,46 @@ public class BudgetRequests {
 
         putToQueue(jsonObjectRequest);
 
+    }
+
+    private void putToQueue(@NonNull JsonObjectRequest jsonObjectRequest) {
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        requestQueue.add(jsonObjectRequest);
+    }
+
+    /**
+     * Check validity of token
+     */
+    public void checkToken(@NonNull String login, @NonNull String token) {
+        String URL = URL_CHECKTOKEN.replace(loginUrlField, login).replace(tokenUrlField, token);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
+                response -> {
+                    callback.tokenOk();
+//                    callback.datasSaved();
+                },
+                error -> {
+                    Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
+                    callback.loginNonOk();
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (!isNull(networkResponse)){
+                        int statuscode = networkResponse.statusCode;
+                        switch(statuscode){
+                            case 400:
+                            case 500:
+                                functions.makeToast("Erreur serveur ("+statuscode+")");
+                                break;
+                            case 401:
+                                functions.makeToast("Erreur lors de l'identification de l'utilisateur.");
+                                break;
+                            default:
+                                Log.d(TAG, "BudgetRequests > checkToken: statusCode : " + statuscode);
+                                break;
+                        }
+                    }
+                }
+        );
+
+        putToQueue(jsonObjectRequest);
     }
 }

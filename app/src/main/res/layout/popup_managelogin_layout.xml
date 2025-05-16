@@ -19,13 +19,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:layout_marginEnd="@dimen/paddingM">
 
             <ImageView
                 android:layout_width="@dimen/iconXL"
                 android:layout_height="@dimen/iconXL"
-                android:background="@drawable/database"/>
+                android:background="@drawable/user"/>
 
         </LinearLayout>
 
@@ -33,7 +33,7 @@
             android:id="@+id/popupContentLoginTitleTv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="8"
+            android:layout_weight="7"
             android:text="@string/connection"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/orange1"
@@ -84,6 +84,7 @@
                         android:background="@drawable/rounded_box_border"
                         android:orientation="vertical"
                         android:padding="@dimen/paddingM"
+                        android:visibility="gone"
                         android:layout_marginBottom="@dimen/paddingXL">
 
                         <TextView
@@ -137,7 +138,7 @@
                         android:id="@+id/manageloginPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Identifiant"
+                        android:hint="Mot de passe"
                         android:singleLine="true"
                         android:inputType="textPassword"
                         android:layout_marginBottom="@dimen/paddingXL"/>

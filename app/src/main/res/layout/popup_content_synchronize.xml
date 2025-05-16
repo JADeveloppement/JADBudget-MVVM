@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/popupContentSynchronizeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10"
+        android:paddingVertical="@dimen/paddingM"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/paddingXL"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconL"
+                android:layout_height="@dimen/iconL"
+                android:background="@drawable/database"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/popupContentSynchronizeTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/orange1"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/popupContentSynchronizeBtnClose"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/close" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/popupContentSynchronizeScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/paddingM"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/popupContentSynchronizeLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/paddingM"
+                android:background="@drawable/rounded_box_border"
+                android:orientation="vertical"
+                android:layout_marginBottom="@dimen/paddingL">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/orange1"
+                    android:textStyle="bold"
+                    android:text="@string/data_type"/>
+
+                <CheckBox
+                    android:id="@+id/popupContentSynchronizeInvoiceCb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/invoices"/>
+
+                <CheckBox
+                    android:id="@+id/popupContentSynchronizeIncomeCb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/income"/>
+
+                <CheckBox
+                    android:id="@+id/popupContentSynchronizeExpenseCb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/expenses"/>
+
+                <CheckBox
+                    android:id="@+id/popupContentSynchronizeModelInvoiceCb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/model_invoice"/>
+
+                <CheckBox
+                    android:id="@+id/popupContentSynchronizeModelIncomeCb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/model_income"/>
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/popupContentSynchronizeBtnSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/orange1"
+                android:text="@string/save"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/popupContentSynchronizeLoadingScreen"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:background="#E0FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/popupContentSynchronizeLayout"
+        app:layout_constraintBottom_toBottomOf="@+id/popupContentSynchronizeScrollView">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

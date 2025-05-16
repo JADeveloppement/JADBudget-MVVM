@@ -47,6 +47,14 @@ public class MenuIcon extends LinearLayout {
         menuIconLabel.setText(menuLabel);
     }
 
+    public void setMenuLabel(String label){
+        menuIconLabel.setText(label);
+    }
+
+    public void setMenuIconImg(int res){
+        menuIconImg.setBackgroundResource(res);
+    }
+
     public LinearLayout getLayout(){
         return (LinearLayout) menuLayout;
     }
