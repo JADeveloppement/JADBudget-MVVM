@@ -4,6 +4,7 @@ import static java.lang.Double.parseDouble;
 import static java.util.Objects.isNull;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.MainActivity;
@@ -36,9 +38,9 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
     private final Functions functions;
     private final BudgetViewModel budgetViewModel;
 
-    public ElementAdapter(@NonNull Context c, @Nullable List<Transaction> listOfElements, @Nullable BudgetViewModel vModel){
+    public ElementAdapter(@NonNull Context c, @NonNull List<Transaction> listOfElements, @Nullable BudgetViewModel vModel){
         this.context = c.getApplicationContext();
-        this.itemList = listOfElements;
+        this.itemList = listOfElements.isEmpty() ? new ArrayList<>() : listOfElements;
         this.functions = new Functions(context);
         this.budgetViewModel = vModel;
     }
@@ -154,6 +156,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
 
     public void addTransaction(Transaction newModelIncome) {
         budgetViewModel.addTransaction(newModelIncome);
+        Log.d(TAG, "addTransaction: size itemList : " + itemList.size());
         itemList.add(newModelIncome);
         notifyItemInserted(itemList.size());
     }
