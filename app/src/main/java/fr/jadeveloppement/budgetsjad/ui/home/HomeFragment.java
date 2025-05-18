@@ -54,7 +54,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             menuAddInvoice, menuAddIncome, menuAddExpense,
             menuModelIncome, menuModelInvoice,
             menuManageAccounts, menuManagePeriods,
-            menuLogin, menuLogout, menuDownload, menuUpload;
+            menuLogin, menuLogout, menuManageExternalDatas, menuDownload, menuUpload;
 
     private View viewRoot;
 
@@ -123,9 +123,11 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         menuLogout = new MenuIcon(requireContext(), menuManageImportExportContainer, "Déconnexion", R.drawable.logout);
         menuDownload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Récupérer", R.drawable.download);
         menuUpload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Envoyer", R.drawable.upload);
+        menuManageExternalDatas = new MenuIcon(requireContext(), menuManageImportExportContainer, "Gestion des\ndonnées", R.drawable.setting);
 
         menuManageImportExportContainer.addView(menuLogin.getLayout());
         menuManageImportExportContainer.addView(menuLogout.getLayout());
+        menuManageImportExportContainer.addView(menuManageExternalDatas.getLayout());
         menuManageImportExportContainer.addView(menuDownload.getLayout());
         menuManageImportExportContainer.addView(menuUpload.getLayout());
         //
@@ -187,6 +189,10 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             requestsFinished();
         });
 
+        menuManageExternalDatas.getLayout().setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.navigation_manageExternalDatas);
+        });
+
         menuDownload.getLayout().setOnClickListener(v -> {
             TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
             popupHelper.popupImportDatas(this);
@@ -217,6 +223,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
         menuLogin.getLayout().setVisibility(isLogged ? View.GONE : View.VISIBLE);
         menuLogout.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
+        menuManageExternalDatas.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
         menuDownload.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
         menuUpload.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
     }

@@ -51,6 +51,8 @@ public class PopupHelper {
 
     public PopupHelper(@NonNull Context c){
         this.context = c.getApplicationContext();
+        this.budgetViewModel = null;
+        this.functions = new Functions(context);
     }
 
     public PopupHelper(@NonNull Context c, @Nullable BudgetViewModel bModel){

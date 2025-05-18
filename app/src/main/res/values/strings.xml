@@ -39,5 +39,6 @@
     <string name="income">Revenus</string>
     <string name="expenses">Dépenses</string>
     <string name="data_type">Type de donnée</string>
+    <string name="external_datas">Données externes</string>
 
 </resources>
