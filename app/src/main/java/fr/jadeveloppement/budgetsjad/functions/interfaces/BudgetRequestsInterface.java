@@ -2,8 +2,10 @@ package fr.jadeveloppement.budgetsjad.functions.interfaces;
 
 import org.json.JSONObject;
 
+import fr.jadeveloppement.budgetsjad.functions.Enums;
+
 public interface BudgetRequestsInterface {
-    void loginOk(String token);
+    void loginOk();
     void loginNonOk();
 
     void datasSaved();
@@ -14,4 +16,6 @@ public interface BudgetRequestsInterface {
     void tokenOk();
 
     void tokenNonOk();
+
+    void previewDatas(Enums.DataToRequest type);
 }

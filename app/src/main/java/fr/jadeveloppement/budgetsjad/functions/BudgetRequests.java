@@ -38,7 +38,6 @@ public class BudgetRequests {
     private BudgetRequestsInterface callback;
     private Functions functions;
     private String login, password;
-    private RequestQueue requestQueue;
     private String token;
 
     /**
@@ -78,7 +77,7 @@ public class BudgetRequests {
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
-                    callback.loginNonOk();
+                    callback.tokenNonOk();
                     NetworkResponse networkResponse = error.networkResponse;
                     if (!isNull(networkResponse)){
                         int statuscode = networkResponse.statusCode;
@@ -86,9 +85,6 @@ public class BudgetRequests {
                             case 400:
                             case 500:
                                 functions.makeToast("Erreur serveur ("+statuscode+")");
-                                break;
-                            case 401:
-                                functions.makeToast("Erreur lors de l'identification de l'utilisateur.");
                                 break;
                             default:
                                 Log.d(TAG, "BudgetRequests > checkToken: statusCode : " + statuscode);
@@ -125,7 +121,7 @@ public class BudgetRequests {
                             settingToken.value = token;
                             functions.updateSettings(settingToken);
 
-                            callback.loginOk(token);
+                            callback.loginOk();
                         }
                         else functions.makeToast("Mauvais identifiant.");
                     } catch(JSONException e){
@@ -211,7 +207,6 @@ public class BudgetRequests {
                         callback.datasImported(response);
                         if (indexRequest == totalRequests-1) {
                             callback.requestsFinished();
-                            functions.makeToast("Données récupérées avec succès.");
                         }
                     } catch(Exception e){
                         Functions.handleExceptions("BudgetRequests > makeImportDatas : ", e);

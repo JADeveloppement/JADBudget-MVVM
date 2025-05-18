@@ -34,6 +34,7 @@ import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentDashboardBinding;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
+import fr.jadeveloppement.budgetsjad.functions.PopupHelper;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
@@ -62,6 +63,7 @@ public class DashboardFragment extends Fragment
 
     private List<AccountsTable> listOfAccounts;
     private PeriodsTable periodSelected;
+    private PopupHelper popupHelper;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -77,6 +79,7 @@ public class DashboardFragment extends Fragment
         budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
         listOfAccounts = functions.getAllAccounts();
         periodSelected = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value));
+        popupHelper = new PopupHelper(requireActivity(), budgetViewModel);
 
         setDashboardAccountsObserver();
         setPeriodObserver();
@@ -105,7 +108,7 @@ public class DashboardFragment extends Fragment
             AccountTile accountTile = new AccountTile(requireContext(), a);
 
             accountTile.getLayout().setOnLongClickListener(v -> {
-                editAccount(a);
+                popupHelper.editAccount(a);
                 return true;
             });
 
@@ -120,7 +123,7 @@ public class DashboardFragment extends Fragment
         }
 
         AddAccountTile addAccountTile = new AddAccountTile(requireContext());
-        addAccountTile.getLayout().setOnClickListener(v -> addAccount());
+        addAccountTile.getLayout().setOnClickListener(v -> popupHelper.popupAddAccount());
         dashboardAccountsContainer.addView(addAccountTile.getLayout());
     }
 
@@ -136,53 +139,7 @@ public class DashboardFragment extends Fragment
     }
 
     private void editAccount(AccountsTable a) {
-        PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-        PopupAccountContent popupAccountContent = new PopupAccountContent(requireContext(), root, a);
-        popupContainer.addContent(popupAccountContent.getLayout());
 
-        popupAccountContent.getBtnSave().setOnClickListener(v1 -> {
-            String label = popupAccountContent.getPopupContentAccountLabel().getText().toString();
-            String amount = popupAccountContent.getPopupContentAccountAmount().getText().toString();
-
-            if (label.isBlank() || amount.isBlank()) Toast.makeText(getContext(), "Veuillez renseigner tous les champs", Toast.LENGTH_LONG).show();
-            else {
-                a.label = label;
-                a.amount = amount;
-
-                budgetViewModel.updateAccount(a);
-                popupContainer.closePopup();
-            }
-        });
-
-        popupAccountContent.getBtnDelete().setVisibility(listOfAccounts.size() == 1 ? View.GONE : View.VISIBLE);
-        popupAccountContent.getBtnDelete().setOnClickListener(v2 -> {
-            budgetViewModel.deleteAccount(a);
-            popupContainer.closePopup();
-        });
-
-        popupAccountContent.getBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
-    }
-
-    private void addAccount(){
-        PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-        PopupAccountContent popupAccountContent = new PopupAccountContent(requireContext(), root, null);
-        popupContainer.addContent(popupAccountContent.getLayout());
-        popupAccountContent.getBtnSave().setOnClickListener(v1 -> {
-            String label = popupAccountContent.getPopupContentAccountLabel().getText().toString();
-            String amount = popupAccountContent.getPopupContentAccountAmount().getText().toString();
-
-            if (label.isBlank() || amount.isBlank()) Toast.makeText(getContext(), "Veuillez renseigner tous les champs", Toast.LENGTH_LONG).show();
-            else {
-                AccountsTable newAccount = new AccountsTable();
-                newAccount.label = label;
-                newAccount.amount = amount;
-
-                budgetViewModel.insertAccount(newAccount);
-                popupContainer.closePopup();
-            }
-        });
-
-        popupAccountContent.getBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
     }
     //
 
@@ -205,45 +162,7 @@ public class DashboardFragment extends Fragment
 
     private void setPeriodEvents() {
         periodLayout.getPeriodLayoutBtnAddPeriod().setOnClickListener(v -> {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-            PopupPeriodContent popupPeriodContent = new PopupPeriodContent(requireContext(), root);
-            popupContainer.addContent(popupPeriodContent.getLayout());
-
-            popupPeriodContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
-
-            popupPeriodContent.getPopupContentPeriodPreviewModelIncome().setOnClickListener(v1 -> {
-                PopupContainer popupContainer1 = new PopupContainer(requireContext(), root);
-                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Enums.TransactionType.MODELINCOME, budgetViewModel);
-
-                popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
-
-                popupContainer1.addContent(popupModelContent.getLayout());
-            });
-
-            popupPeriodContent.getPopupContentPeriodPreviewModelInvoice().setOnClickListener(v1 -> {
-                PopupContainer popupContainer1 = new PopupContainer(requireContext(), root);
-                PopupModelContent popupModelContent = new PopupModelContent(requireContext(), root, Enums.TransactionType.MODELINVOICE, budgetViewModel);
-
-                popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
-                popupContainer1.addContent(popupModelContent.getLayout());
-            });
-
-            popupPeriodContent.getPopupContentPeriodSaveBtn().setOnClickListener(v1 -> {
-                try {
-                    String selectedDate = Functions.convertLocaleDateToStd(popupPeriodContent.getPopupContentPeriodPeriodPreview().getText().toString());
-                    PeriodsTable periodsTable = new PeriodsTable();
-                    periodsTable.label = selectedDate;
-                    budgetViewModel.insertPeriod(periodsTable);
-                    if (popupPeriodContent.getPopupContentPeriodUseModelInvoice().isChecked())
-                        budgetViewModel.insertModelInvoice(periodsTable);
-                    if (popupPeriodContent.getPopupContentPeriodUseModelIncome().isChecked())
-                        budgetViewModel.insertModelIncome(periodsTable);
-                    popupContainer.closePopup();
-                } catch (Exception e){
-                    Toast.makeText(getContext(), "Une erreur est survenue", Toast.LENGTH_LONG).show();
-                    Log.d(TAG, "popupPeriodContent.getPopupContentPeriodSaveBtn() > setPeriodEvents: "+e.getMessage());
-                }
-            });
+            popupHelper.popupCreatePeriod();
         });
     }
 
@@ -259,19 +178,19 @@ public class DashboardFragment extends Fragment
         incomeTile = new DashboardTile(requireContext(), root, this);
         incomeTile.setIcon(R.drawable.income);
         incomeTile.setTileTitle("Revenus");
-        incomeTile.setTypeTile(Variables.strTypeIncome);
+        incomeTile.setTypeTile(Enums.TransactionType.INCOME);
         incomeTile.setProgressBarVisible(false);
         incomeTile.setLastElementVisible(false);
 
         invoiceTile = new DashboardTile(requireContext(), root, this);
         invoiceTile.setIcon(R.drawable.invoice);
-        invoiceTile.setTypeTile(Variables.strTypeInvoice);
+        invoiceTile.setTypeTile(Enums.TransactionType.INVOICE);
         invoiceTile.setTileTitle("Prélèvements");
         invoiceTile.setLastElementVisible(false);
 
         expenseTile = new DashboardTile(requireContext(), root, this);
         expenseTile.setIcon(R.drawable.expense);
-        expenseTile.setTypeTile(Variables.strTypeExpense);
+        expenseTile.setTypeTile(Enums.TransactionType.EXPENSE);
         expenseTile.setTileTitle("Dépenses");
 
         forecastFinalTile = new DashboardTile(requireContext(), root, this);
@@ -307,54 +226,33 @@ public class DashboardFragment extends Fragment
 
     private void setInvoiceTileEvents(){
         invoiceTile.getLayout().setOnClickListener(v -> {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-            PopupDisplayTileContent popupDisplayTileContent = new PopupDisplayTileContent(requireContext(), root, budgetViewModel.getInvoices(), budgetViewModel);
-            popupContainer.addContent(popupDisplayTileContent.getLayout());
-            popupDisplayTileContent.setPopupDisplayContentTitleIcon(R.drawable.invoice);
-            popupDisplayTileContent.setPopupDisplayContentTitle("Liste des prélèvements");
-            popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
-
-            popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+            popupHelper.displayListOfTransaction(budgetViewModel.getInvoices(), Enums.TransactionType.INVOICE);
         });
 
         invoiceTile.getLayout().setOnLongClickListener(v -> {
-            tileAddElementClicked(Variables.strTypeInvoice);
+            tileAddElementClicked(Enums.TransactionType.INVOICE);
             return true;
         });
     }
 
     private void setIncomeTileEvents(){
         incomeTile.getLayout().setOnClickListener(v -> {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-            PopupDisplayTileContent popupDisplayTileContent = new PopupDisplayTileContent(requireContext(), root, budgetViewModel.getIncomes(), budgetViewModel);
-            popupContainer.addContent(popupDisplayTileContent.getLayout());
-            popupDisplayTileContent.setPopupDisplayContentTitleIcon(R.drawable.income);
-            popupDisplayTileContent.setPopupDisplayContentTitle("Liste des revenus");
-            popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
-
-            popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+            popupHelper.displayListOfTransaction(budgetViewModel.getIncomes(), Enums.TransactionType.INCOME);
         });
 
         incomeTile.getLayout().setOnLongClickListener(v -> {
-            tileAddElementClicked(Variables.strTypeIncome);
+            tileAddElementClicked(Enums.TransactionType.INCOME);
             return true;
         });
     }
 
     private void setExpenseTileEvents(){
         expenseTile.getLayout().setOnClickListener(v -> {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-            PopupDisplayTileContent popupDisplayTileContent = new PopupDisplayTileContent(requireContext(), root, budgetViewModel.getExpenses(), budgetViewModel);
-            popupContainer.addContent(popupDisplayTileContent.getLayout());
-            popupDisplayTileContent.setPopupDisplayContentTitle("Liste des dépenses");
-            popupDisplayTileContent.setPopupDisplayContentTitleIcon(R.drawable.expense);
-            popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
-
-            popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+            popupHelper.displayListOfTransaction(budgetViewModel.getExpenses(), Enums.TransactionType.EXPENSE);
         });
 
         expenseTile.getLayout().setOnLongClickListener(v -> {
-            tileAddElementClicked(Variables.strTypeExpense);
+            tileAddElementClicked(Enums.TransactionType.EXPENSE);
             return true;
         });
     }
@@ -448,48 +346,8 @@ public class DashboardFragment extends Fragment
     }
 
     @Override
-    public void tileAddElementClicked(String type){
-        if (type.isBlank()) Toast.makeText(getContext(), "La tuile a été mal configurée.", Toast.LENGTH_LONG).show();
-        else {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), root);
-            PopupElementContent popupElementContent = new PopupElementContent(requireContext(), root, null);
-            popupContainer.addContent(popupElementContent.getLayout());
-
-            popupElementContent.getPopupContentElementIsPaid().setVisibility(type.equalsIgnoreCase(Variables.strTypeInvoice) ? View.VISIBLE : View.GONE);
-            popupElementContent.getPopupContentElementPeriodTv().setText(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
-
-            if (type.equalsIgnoreCase(Variables.strTypeInvoice)){
-                popupElementContent.getPopupContentElementTitle().setText(requireContext().getString(R.string.add_invoice));
-            } else if (type.equalsIgnoreCase(Variables.strTypeIncome)){
-                popupElementContent.getPopupContentElementTitle().setText(requireContext().getString(R.string.add_income));
-            } else if (type.equalsIgnoreCase(Variables.strTypeExpense)){
-                popupElementContent.getPopupContentElementTitle().setText(requireContext().getString(R.string.add_expense));
-            }
-
-            popupElementContent.getPopupContentElementBtnClose().setOnClickListener(v -> popupContainer.closePopup());
-
-            popupElementContent.getPopupContentElementBtnDelete().setVisibility(View.GONE);
-
-            popupElementContent.getPopupContentElementBtnSave().setOnClickListener(v -> {
-                String label = popupElementContent.getPopupContentElementLabel().getText().toString();
-                String amount = popupElementContent.getPopupContentElementAmount().getText().toString();
-
-                if (label.isBlank() || amount.isBlank()) Toast.makeText(getContext(), "Veuillez remplir tous les champs.", Toast.LENGTH_LONG).show();
-                else {
-                    Transaction newTransaction = new Transaction(
-                            label,
-                            amount,
-                            periodSelected.label,
-                            functions.getSettingByLabel(Variables.settingAccount).value,
-                            popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0",
-                            type.equalsIgnoreCase(Variables.strTypeInvoice) ? Enums.TransactionType.INVOICE : (type.equalsIgnoreCase(Variables.strTypeIncome) ? Enums.TransactionType.INCOME : (type.equalsIgnoreCase(Variables.strTypeExpense) ? Enums.TransactionType.EXPENSE : Enums.TransactionType.UNDEFINED ))
-                    );
-                    budgetViewModel.addTransaction(newTransaction);
-                    Toast.makeText(getContext(), "Elément rajouté avec sucès", Toast.LENGTH_LONG).show();
-                    popupContainer.closePopup();
-                }
-            });
-        }
+    public void tileAddElementClicked(@NonNull Enums.TransactionType type){
+        popupHelper.popupAddElement(type);
     }
     //
 

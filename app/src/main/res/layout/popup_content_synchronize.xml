@@ -85,37 +85,163 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/orange1"
                     android:textStyle="bold"
-                    android:text="@string/data_type"/>
+                    android:text="@string/data_type"
+                    android:layout_marginBottom="@dimen/paddingM"/>
 
-                <CheckBox
-                    android:id="@+id/popupContentSynchronizeInvoiceCb"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/invoices"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:weightSum="10"
+                    android:layout_marginBottom="@dimen/paddingM">
 
-                <CheckBox
-                    android:id="@+id/popupContentSynchronizeIncomeCb"
+                    <CheckBox
+                        android:id="@+id/popupContentSynchronizeInvoiceCb"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="8"
+                        android:text="@string/invoices"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="end|center">
+
+                        <ImageButton
+                            android:id="@+id/popupContentSynchronizePreviewInvoice"
+                            android:layout_width="@dimen/iconM"
+                            android:layout_height="@dimen/iconM"
+                            android:background="@drawable/preview"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/income"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:weightSum="10"
+                    android:layout_marginBottom="@dimen/paddingM">
 
-                <CheckBox
-                    android:id="@+id/popupContentSynchronizeExpenseCb"
+                    <CheckBox
+                        android:id="@+id/popupContentSynchronizeIncomeCb"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/income"
+                        android:layout_weight="8"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="end|center">
+
+                        <ImageButton
+                            android:id="@+id/popupContentSynchronizePreviewIncome"
+                            android:layout_width="@dimen/iconM"
+                            android:layout_height="@dimen/iconM"
+                            android:background="@drawable/preview"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/expenses"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:weightSum="10"
+                    android:layout_marginBottom="@dimen/paddingM">
 
-                <CheckBox
-                    android:id="@+id/popupContentSynchronizeModelInvoiceCb"
+                    <CheckBox
+                        android:id="@+id/popupContentSynchronizeExpenseCb"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/expenses"
+                        android:layout_weight="8"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="end|center">
+
+                        <ImageButton
+                            android:id="@+id/popupContentSynchronizePreviewExpense"
+                            android:layout_width="@dimen/iconM"
+                            android:layout_height="@dimen/iconM"
+                            android:background="@drawable/preview"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/model_invoice"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:weightSum="10"
+                    android:layout_marginBottom="@dimen/paddingM">
 
-                <CheckBox
-                    android:id="@+id/popupContentSynchronizeModelIncomeCb"
+                    <CheckBox
+                        android:id="@+id/popupContentSynchronizeModelInvoiceCb"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/model_invoice"
+                        android:layout_weight="8"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="end|center">
+
+                        <ImageButton
+                            android:id="@+id/popupContentSynchronizePreviewModelInvoice"
+                            android:layout_width="@dimen/iconM"
+                            android:layout_height="@dimen/iconM"
+                            android:background="@drawable/preview"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/model_income"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:weightSum="10"
+                    android:layout_marginBottom="@dimen/paddingM">
+
+                    <CheckBox
+                        android:id="@+id/popupContentSynchronizeModelIncomeCb"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/model_income"
+                        android:layout_weight="8"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="end|center">
+
+                        <ImageButton
+                            android:id="@+id/popupContentSynchronizePreviewModelIncome"
+                            android:layout_width="@dimen/iconM"
+                            android:layout_height="@dimen/iconM"
+                            android:background="@drawable/preview"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
 
             </LinearLayout>
 

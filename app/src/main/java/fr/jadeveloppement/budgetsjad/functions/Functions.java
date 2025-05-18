@@ -12,11 +12,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
+import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.SQLiteFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
@@ -83,6 +86,32 @@ public class Functions {
             String[] dateSplitted = date.split("/");
             return dateSplitted[2] + "-" + dateSplitted[1] + "-" + dateSplitted[0];
         } else return date;
+    }
+
+    /**
+     * convert string type (INVOICE, INCOME, EXPENSE, MODELINVOICE, MODELINCOME) to Enums.TransactionType
+     * @param strType : string to convert
+     * @return : corresponding Enums.TransactionType, Enums.TransactionType.UNDEFINED if not recongnized
+     */
+    public static Enums.TransactionType convertStrtypeToTransactionType(String strType) {
+        Enums.TransactionType type = Enums.TransactionType.UNDEFINED;
+
+        if (strType.equalsIgnoreCase(String.valueOf(Enums.TransactionType.INVOICE))) type = Enums.TransactionType.INVOICE;
+        else if (strType.equalsIgnoreCase(String.valueOf(Enums.TransactionType.INCOME))) type = Enums.TransactionType.INCOME;
+        else if (strType.equalsIgnoreCase(String.valueOf(Enums.TransactionType.EXPENSE))) type = Enums.TransactionType.EXPENSE;
+        else if (strType.equalsIgnoreCase(String.valueOf(Enums.TransactionType.MODELINVOICE))) type = Enums.TransactionType.MODELINVOICE;
+        else if (strType.equalsIgnoreCase(String.valueOf(Enums.TransactionType.MODELINCOME))) type = Enums.TransactionType.MODELINCOME;
+
+        return type;
+    }
+
+    /**
+     * Display a snackBar to MainActivity rootview (warning : can be in background instead of foreground)
+     * @param message : message to display
+     */
+    public static void makeSnakebar(String message) {
+        Snackbar snackbar = Snackbar.make(MainActivity.getViewRoot(), message, Snackbar.LENGTH_SHORT);
+        snackbar.show();
     }
 
     /**
@@ -434,6 +463,20 @@ public class Functions {
 
     public void deleteModelIncome(ModeleIncomes modeleIncomes) {
         sqliteFunctions.deleteModelIncome(modeleIncomes);
+    }
+
+    public void emptyUserInfos() {
+        SettingsTable settingUser = getSettingByLabel(Variables.settingUsername);
+        SettingsTable settingPassword = getSettingByLabel(Variables.settingPassword);
+        SettingsTable settingToken = getSettingByLabel(Variables.settingsToken);
+
+        settingUser.value = "";
+        settingPassword.value = "";
+        settingToken.value = "";
+
+        updateSettings(settingUser);
+        updateSettings(settingPassword);
+        updateSettings(settingToken);
     }
     //
 }

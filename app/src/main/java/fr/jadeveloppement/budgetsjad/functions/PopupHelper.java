@@ -11,20 +11,28 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.MainActivity;
+import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountsContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContentLogin;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContentSynchronize;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupDisplayTileContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 import fr.jadeveloppement.budgetsjad.ui.home.HomeFragment;
@@ -154,6 +162,36 @@ public class PopupHelper {
             budgetRequests.makeImportDatas(settingTableToken.value, datasToImport);
 
         });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewInvoice().setOnClickListener(v -> {
+            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+            toggleLoadingScreen(true);
+            callback.previewDatas(Enums.DataToRequest.INVOICE);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewIncome().setOnClickListener(v -> {
+            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+            toggleLoadingScreen(true);
+            callback.previewDatas(Enums.DataToRequest.INCOME);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewExpense().setOnClickListener(v -> {
+            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+            toggleLoadingScreen(true);
+            callback.previewDatas(Enums.DataToRequest.EXPENSE);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewModelInvoice().setOnClickListener(v -> {
+            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+            toggleLoadingScreen(true);
+            callback.previewDatas(Enums.DataToRequest.MODELINVOICE);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewModelIncome().setOnClickListener(v -> {
+            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+            toggleLoadingScreen(true);
+            callback.previewDatas(Enums.DataToRequest.MODELINCOME);
+        });
     }
 
     public void popupExportDatas(BudgetRequestsInterface callback) {
@@ -167,8 +205,8 @@ public class PopupHelper {
 
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
         PopupContentSynchronize popupContentSynchronize = new PopupContentSynchronize(context);
-        popupContentSynchronize.setTitle("Récupérer les données");
-        popupContentSynchronize.setBtnSaveLabel("Récupérer");
+        popupContentSynchronize.setTitle("Envoyer les données");
+        popupContentSynchronize.setBtnSaveLabel("Envoyer");
         popupContainer.addContent(popupContentSynchronize.getLayout());
 
         popupContentSynchronize.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
@@ -197,9 +235,39 @@ public class PopupHelper {
             BudgetRequests budgetRequests = new BudgetRequests(context, login, password, callback);
             budgetRequests.makeExportDatas(settingTableToken.value, datas.toString());
         });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewInvoice().setOnClickListener(v -> {
+            List<Transaction> listOfInvoices = functions.getAllInvoicesTransaction();
+            if (listOfInvoices.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+            else displayListOfTransaction(new MutableLiveData<>(listOfInvoices), Enums.TransactionType.INVOICE);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewIncome().setOnClickListener(v -> {
+            List<Transaction> listOfIncomes = functions.getAllIncomesTransaction();
+            if (listOfIncomes.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+            else displayListOfTransaction(new MutableLiveData<>(listOfIncomes), Enums.TransactionType.INCOME);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewExpense().setOnClickListener(v -> {
+            List<Transaction> listOfExpenses = functions.getAllExpensesTransaction();
+            if (listOfExpenses.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+            else displayListOfTransaction(new MutableLiveData<>(listOfExpenses), Enums.TransactionType.EXPENSE);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewModelInvoice().setOnClickListener(v -> {
+            List<Transaction> listOfModelInvoices = functions.getModelInvoiceTransaction();
+            if (listOfModelInvoices.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+            else displayListOfTransaction(new MutableLiveData<>(listOfModelInvoices), Enums.TransactionType.MODELINVOICE);
+        });
+
+        popupContentSynchronize.getPopupContentSynchronizePreviewModelIncome().setOnClickListener(v -> {
+            List<Transaction> listOfModelIncomes = functions.getModelIncomeTransaction();
+            if (listOfModelIncomes.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+            else displayListOfTransaction(new MutableLiveData<>(listOfModelIncomes), Enums.TransactionType.MODELINCOME);
+        });
     }
 
-    public void makeLoginRequest(BudgetRequestsInterface callback) {
+    public void makeLoginPopup(BudgetRequestsInterface callback) {
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
         PopupContentLogin popupContentLogin = new PopupContentLogin(context);
         popupContainer.addContent(popupContentLogin.getLayout());
@@ -237,5 +305,128 @@ public class PopupHelper {
             popupLoadingScreen.setVisibility(isVisible ? View.VISIBLE : View.GONE);
             if (!isVisible) popupLoadingScreen = null;
         }
+    }
+
+    public void displayListOfTransaction(LiveData<List<Transaction>> listOfTransaction, Enums.TransactionType type, boolean... isEx) {
+        boolean isExternal = isEx.length > 0 && isEx[0];
+
+        if (isNull(budgetViewModel) && !isExternal) {
+            functions.makeToast("BudgetViewModel not defined but required.");
+            return;
+        }
+
+        int icon = R.drawable.undefined;
+        String title = "";
+        if (type == Enums.TransactionType.INVOICE || type == Enums.TransactionType.MODELINVOICE) {
+            icon = type == Enums.TransactionType.INVOICE ? R.drawable.invoice : R.drawable.model;
+            title = "Liste des prélèvements";
+        } else if (type == Enums.TransactionType.INCOME || type == Enums.TransactionType.MODELINCOME){
+            icon = type == Enums.TransactionType.INCOME ? R.drawable.income : R.drawable.model;
+            title = "Liste des revenus";
+        } else if (type == Enums.TransactionType.EXPENSE){
+            icon = R.drawable.expense;
+            title = "Liste des dépenses";
+        }
+
+        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+        PopupDisplayTileContent popupDisplayTileContent = new PopupDisplayTileContent(context, MainActivity.getViewRoot(), listOfTransaction, budgetViewModel, isExternal);
+        popupContainer.addContent(popupDisplayTileContent.getLayout());
+        popupDisplayTileContent.setPopupDisplayContentTitle(title);
+        popupDisplayTileContent.setPopupDisplayContentTitleIcon(icon);
+        popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
+
+        popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+    }
+
+    public void popupCreatePeriod() {
+        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+        PopupPeriodContent popupPeriodContent = new PopupPeriodContent(context, MainActivity.getViewRoot());
+        popupContainer.addContent(popupPeriodContent.getLayout());
+
+        popupPeriodContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
+
+        popupPeriodContent.getPopupContentPeriodPreviewModelIncome().setOnClickListener(v1 -> {
+            PopupContainer popupContainer1 = new PopupContainer(context, MainActivity.getViewRoot());
+            PopupModelContent popupModelContent = new PopupModelContent(context, MainActivity.getViewRoot(), Enums.TransactionType.MODELINCOME, budgetViewModel);
+
+            popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
+
+            popupContainer1.addContent(popupModelContent.getLayout());
+        });
+
+        popupPeriodContent.getPopupContentPeriodPreviewModelInvoice().setOnClickListener(v1 -> {
+            PopupContainer popupContainer1 = new PopupContainer(context, MainActivity.getViewRoot());
+            PopupModelContent popupModelContent = new PopupModelContent(context, MainActivity.getViewRoot(), Enums.TransactionType.MODELINVOICE, budgetViewModel);
+
+            popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
+            popupContainer1.addContent(popupModelContent.getLayout());
+        });
+
+        popupPeriodContent.getPopupContentPeriodSaveBtn().setOnClickListener(v1 -> {
+            try {
+                String selectedDate = Functions.convertLocaleDateToStd(popupPeriodContent.getPopupContentPeriodPeriodPreview().getText().toString());
+                PeriodsTable periodsTable = new PeriodsTable();
+                periodsTable.label = selectedDate;
+                budgetViewModel.insertPeriod(periodsTable);
+                if (popupPeriodContent.getPopupContentPeriodUseModelInvoice().isChecked())
+                    budgetViewModel.insertModelInvoice(periodsTable);
+                if (popupPeriodContent.getPopupContentPeriodUseModelIncome().isChecked())
+                    budgetViewModel.insertModelIncome(periodsTable);
+                popupContainer.closePopup();
+            } catch (Exception e){
+                functions.makeToast("Une erreur est survenue");
+                Log.d(TAG, "popupPeriodContent.getPopupContentPeriodSaveBtn() > setPeriodEvents: "+e.getMessage());
+            }
+        });
+    }
+
+    public void popupAddAccount(){
+        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+        PopupAccountContent popupAccountContent = new PopupAccountContent(context, MainActivity.getViewRoot(), null);
+        popupContainer.addContent(popupAccountContent.getLayout());
+        popupAccountContent.getBtnSave().setOnClickListener(v1 -> {
+            String label = popupAccountContent.getPopupContentAccountLabel().getText().toString();
+            String amount = popupAccountContent.getPopupContentAccountAmount().getText().toString();
+
+            if (label.isBlank() || amount.isBlank()) functions.makeToast("Veuillez renseigner tous les champs");
+            else {
+                AccountsTable newAccount = new AccountsTable();
+                newAccount.label = label;
+                newAccount.amount = amount;
+
+                budgetViewModel.insertAccount(newAccount);
+                popupContainer.closePopup();
+            }
+        });
+
+        popupAccountContent.getBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+    }
+
+    public void editAccount(AccountsTable a) {
+        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+        PopupAccountContent popupAccountContent = new PopupAccountContent(context, MainActivity.getViewRoot(), a);
+        popupContainer.addContent(popupAccountContent.getLayout());
+
+        popupAccountContent.getBtnSave().setOnClickListener(v1 -> {
+            String label = popupAccountContent.getPopupContentAccountLabel().getText().toString();
+            String amount = popupAccountContent.getPopupContentAccountAmount().getText().toString();
+
+            if (label.isBlank() || amount.isBlank()) functions.makeToast("Veuillez renseigner tous les champs");
+            else {
+                a.label = label;
+                a.amount = amount;
+
+                budgetViewModel.updateAccount(a);
+                popupContainer.closePopup();
+            }
+        });
+
+        popupAccountContent.getBtnDelete().setVisibility(functions.getAllAccounts().size() == 1 ? View.GONE : View.VISIBLE);
+        popupAccountContent.getBtnDelete().setOnClickListener(v2 -> {
+            budgetViewModel.deleteAccount(a);
+            popupContainer.closePopup();
+        });
+
+        popupAccountContent.getBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
     }
 }

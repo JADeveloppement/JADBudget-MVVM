@@ -6,7 +6,7 @@ public class Enums {
      * Enum used for BudgetRequests class inside HomeFragment to differentiate an API call to retrieve or export datas
      */
     public enum TagRequest {
-        LOGIN, CHECK_TOKEN, EXPORT_DATA, IMPORT_DATA
+        LOGIN, CHECK_TOKEN, EXPORT_DATA, DISPLAY_DATA, LOGOUT, LOGIN_NON_OK, TOKEN_NON_OK, IMPORT_DATA
     }
 
     /**

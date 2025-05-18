@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -24,6 +25,12 @@ public class PopupContentSynchronize extends LinearLayout {
     private LinearLayout popupContentSynchronizeBtnClose, popupContentSynchronizeLoadingScreen;
     private TextView popupContentSynchronizeTitle;
     private Button popupContentSynchronizeBtnSave;
+
+    private ImageButton popupContentSynchronizePreviewInvoice,
+            popupContentSynchronizePreviewIncome,
+            popupContentSynchronizePreviewExpense,
+            popupContentSynchronizePreviewModelInvoice,
+            popupContentSynchronizePreviewModelIncome;
 
     private CheckBox popupContentSynchronizeInvoiceCb, popupContentSynchronizeIncomeCb, popupContentSynchronizeExpenseCb,
             popupContentSynchronizeModelInvoiceCb, popupContentSynchronizeModelIncomeCb;
@@ -46,6 +53,31 @@ public class PopupContentSynchronize extends LinearLayout {
         popupContentSynchronizeModelInvoiceCb = popupLayout.findViewById(R.id.popupContentSynchronizeModelInvoiceCb);
         popupContentSynchronizeModelIncomeCb = popupLayout.findViewById(R.id.popupContentSynchronizeModelIncomeCb);
         popupContentSynchronizeLoadingScreen = popupLayout.findViewById(R.id.popupContentSynchronizeLoadingScreen);
+        popupContentSynchronizePreviewInvoice = popupLayout.findViewById(R.id.popupContentSynchronizePreviewInvoice);
+        popupContentSynchronizePreviewIncome = popupLayout.findViewById(R.id.popupContentSynchronizePreviewIncome);
+        popupContentSynchronizePreviewExpense = popupLayout.findViewById(R.id.popupContentSynchronizePreviewExpense);
+        popupContentSynchronizePreviewModelInvoice = popupLayout.findViewById(R.id.popupContentSynchronizePreviewModelInvoice);
+        popupContentSynchronizePreviewModelIncome = popupLayout.findViewById(R.id.popupContentSynchronizePreviewModelIncome);
+    }
+
+    public ImageButton getPopupContentSynchronizePreviewInvoice(){
+        return popupContentSynchronizePreviewInvoice;
+    }
+
+    public ImageButton getPopupContentSynchronizePreviewIncome(){
+        return popupContentSynchronizePreviewIncome;
+    }
+
+    public ImageButton getPopupContentSynchronizePreviewExpense(){
+        return popupContentSynchronizePreviewExpense;
+    }
+
+    public ImageButton getPopupContentSynchronizePreviewModelInvoice(){
+        return popupContentSynchronizePreviewModelInvoice;
+    }
+
+    public ImageButton getPopupContentSynchronizePreviewModelIncome(){
+        return popupContentSynchronizePreviewModelIncome;
     }
 
     public CheckBox getPopupContentSynchronizeInvoiceCb(){

@@ -1,7 +1,6 @@
 package fr.jadeveloppement.budgetsjad.ui.home;
 
 import static java.lang.Long.parseLong;
-import static java.util.Objects.isNull;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,10 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
@@ -21,17 +20,11 @@ import com.google.android.flexbox.FlexboxLayout;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.MenuIcon;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountsContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupContentLogin;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupContentSynchronize;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentHomeBinding;
 import fr.jadeveloppement.budgetsjad.functions.BudgetRequests;
 import fr.jadeveloppement.budgetsjad.functions.PopupHelper;
@@ -47,11 +40,12 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
-import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
 public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
+    private static Enums.TagRequest TAG_REQUEST = null;
+    
     private FragmentHomeBinding binding;
 
     private final String TAG = "JadBudget";
@@ -69,8 +63,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     private Functions functions;
 
     private LinearLayout menuManageImportExportLoadingScreen;
-
-    private PopupContainer popupLoginContainer = null;
 
     private PopupHelper popupHelper;
 
@@ -173,11 +165,15 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
         // Login MENU
         menuLogin.getLayout().setOnClickListener(v -> {
-            popupHelper.makeLoginRequest(this);
+            TAG_REQUEST = Enums.TagRequest.LOGIN;
+
+            popupHelper.makeLoginPopup(this);
             popupHelper.toggleLoadingScreen(true);
         });
 
         menuLogout.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.LOGOUT;
+
             SettingsTable settingsTable = functions.getSettingByLabel(Variables.settingsToken);
             settingsTable.value = "";
             functions.updateSettings(settingsTable);
@@ -186,16 +182,18 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
             settingsPassword.value = "";
             functions.updateSettings(settingsPassword);
 
-            functions.makeToast("Déconnecté.");
-
             handleLoginMenuVisibility(false);
+
+            requestsFinished();
         });
 
         menuDownload.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
             popupHelper.popupImportDatas(this);
             popupHelper.toggleLoadingScreen(true);
         });
         menuUpload.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.EXPORT_DATA;
             popupHelper.popupExportDatas(this);
             popupHelper.toggleLoadingScreen(true);
         });
@@ -208,7 +206,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
         if (settingUser.value.isBlank() || settingsToken.value.isBlank()) {
             handleLoginMenuVisibility(false);
-            menuManageImportExportLoadingScreen.setVisibility(View.GONE);
             return;
         }
         BudgetRequests budgetRequests = new BudgetRequests(requireContext(), settingUser.value, "", this);
@@ -216,55 +213,12 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     private void handleLoginMenuVisibility(boolean isLogged) {
+        menuManageImportExportLoadingScreen.setVisibility(View.GONE);
+
         menuLogin.getLayout().setVisibility(isLogged ? View.GONE : View.VISIBLE);
         menuLogout.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
         menuDownload.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
         menuUpload.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    public void tokenOk(){
-        popupHelper.toggleLoadingScreen(false);
-        menuManageImportExportLoadingScreen.setVisibility(View.GONE);
-        handleLoginMenuVisibility(true);
-    }
-
-    @Override
-    public void tokenNonOk(){
-        popupHelper.toggleLoadingScreen(false);
-        handleLoginMenuVisibility(false);
-        menuManageImportExportLoadingScreen.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void loginOk(String t){
-        functions.makeToast("Vous êtes connectés");
-        popupHelper.closeLoginPopup();
-        popupHelper.toggleLoadingScreen(false);
-        handleLoginMenuVisibility(true);
-    }
-
-    @Override
-    public void loginNonOk(){
-        popupHelper.toggleLoadingScreen(false);
-        requestsFinished();
-    }
-
-    @Override
-    public void datasSaved(){
-        popupHelper.toggleLoadingScreen(false);
-        functions.makeToast("Données sauvées avec succès.");
-        requestsFinished();
-    }
-
-    @Override
-    public void datasImported(JSONObject r){
-        try {
-            String datas = r.getString("datas").trim();
-            processImportDatas(datas);
-        } catch(Exception e){
-            Log.d(TAG, "HomeFragment > datasImported: ", e);
-        }
     }
 
     private void processImportDatas(String datas) throws Exception{
@@ -340,7 +294,88 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
+    public void tokenOk(){
+        requestsFinished();
+        handleLoginMenuVisibility(true);
+    }
+
+    @Override
+    public void tokenNonOk(){
+        TAG_REQUEST = Enums.TagRequest.TOKEN_NON_OK;
+        functions.emptyUserInfos();
+        handleLoginMenuVisibility(false);
+        requestsFinished();
+    }
+
+    @Override
+    public void previewDatas(Enums.DataToRequest type) {
+        TAG_REQUEST = Enums.TagRequest.DISPLAY_DATA;
+        String login = functions.getSettingByLabel(Variables.settingUsername).value;
+        String password = functions.getSettingByLabel(Variables.settingPassword).value;
+        String token = functions.getSettingByLabel(Variables.settingsToken).value;
+        BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+        budgetRequests.makeImportDatas(token, Collections.singletonList(type));
+    }
+
+    @Override
+    public void loginOk(){
+        popupHelper.closeLoginPopup();
+        handleLoginMenuVisibility(true);
+        requestsFinished();
+    }
+
+    @Override
+    public void loginNonOk(){
+        TAG_REQUEST = Enums.TagRequest.LOGIN_NON_OK;
+        requestsFinished();
+    }
+
+    @Override
+    public void datasSaved(){
+        requestsFinished();
+    }
+
+    @Override
+    public void datasImported(JSONObject r){
+        try {
+            String datas = r.getString("datas").trim();
+            Enums.TransactionType type = Functions.convertStrtypeToTransactionType(r.getString("type").trim());
+            Log.d(TAG, "datasImported: type : " + type);
+            if (TAG_REQUEST == Enums.TagRequest.DISPLAY_DATA) {
+                List<Transaction> listOfDatas = new ArrayList<>();
+                if (datas.contains("<n>") && datas.contains("<l>")){
+                    for(String row : datas.split("<n>")){
+                        String[] cols = row.split("<l>");
+                        listOfDatas.add(new Transaction(cols[1], cols[2], cols[3], cols[4], cols[5], Functions.convertStrtypeToTransactionType(cols[6])));
+                    }
+                    popupHelper.displayListOfTransaction(new MutableLiveData<>(listOfDatas), type, true);
+                } else Functions.makeSnakebar("Aucune données à afficher.");
+                popupHelper.toggleLoadingScreen(false);
+            }
+            else {
+                processImportDatas(datas);
+            }
+        } catch(Exception e){
+            Log.d(TAG, "HomeFragment > datasImported: ", e);
+        }
+    }
+
+    @Override
     public void requestsFinished(){
+        if (TAG_REQUEST == Enums.TagRequest.LOGIN)
+            Functions.makeSnakebar("Vous êtes connecté.");
+        else if (TAG_REQUEST == Enums.TagRequest.LOGIN_NON_OK)
+            functions.makeToast("Mauvais identifiants.");
+        else if (TAG_REQUEST == Enums.TagRequest.LOGOUT)
+            Functions.makeSnakebar("Vous êtes déconnecté.");
+        if (TAG_REQUEST == Enums.TagRequest.IMPORT_DATA)
+            functions.makeToast("Données importées avec succès.");
+        else if (TAG_REQUEST == Enums.TagRequest.EXPORT_DATA)
+            functions.makeToast("Données envoyées avec succès.");
+        else if (TAG_REQUEST == Enums.TagRequest.TOKEN_NON_OK)
+            Functions.makeSnakebar("Votre session a expiré.");
+
+        TAG_REQUEST = null;
         popupHelper.toggleLoadingScreen(false);
     }
 
@@ -348,5 +383,6 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        TAG_REQUEST = null;
     }
 }
