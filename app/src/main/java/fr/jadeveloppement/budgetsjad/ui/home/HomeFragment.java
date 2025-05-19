@@ -387,7 +387,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
-    public void datasImportedV2(ArrayList<Transaction> transactions) {
+    public void allDataRetrieved(ArrayList<Transaction> transactions) {
 
     }
 

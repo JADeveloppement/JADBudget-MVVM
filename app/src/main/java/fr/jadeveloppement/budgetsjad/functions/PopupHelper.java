@@ -177,7 +177,6 @@ public class PopupHelper {
                 return;
             }
 
-            Log.d(TAG, "PopupHelper > popupImportDatas : login " + login + " password : " + password + " token : " + settingTableToken.value);
             BudgetRequests budgetRequests = new BudgetRequests(context, login, password, callback);
             budgetRequests.makeImportDatas(settingTableToken.value, datasToImport);
 

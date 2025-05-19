@@ -15,7 +15,6 @@ import static fr.jadeveloppement.budgetsjad.functions.Variables.passwordUrlField
 import static fr.jadeveloppement.budgetsjad.functions.Variables.tokenUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.transactionIdField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.typeUrlField;
-import static kotlin.jvm.internal.Reflection.typeOf;
 
 import android.content.Context;
 import android.util.Log;
@@ -25,22 +24,18 @@ import androidx.annotation.NonNull;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
-import kotlin.ContextFunctionTypeParams;
-import kotlin.reflect.KClassifier;
 
 public class BudgetRequests {
 
@@ -78,6 +73,38 @@ public class BudgetRequests {
     }
 
     /**
+     * Handler if API send an error : 400/401/500
+     * @param error : volleyError catched by App
+     * @param type : type of request done when catching the exception
+     */
+    public void volleyErrorHandler(@NonNull VolleyError error, @NonNull Enums.ErrorRequest type){
+        NetworkResponse networkResponse = error.networkResponse;
+        if (!isNull(networkResponse)){
+            int statuscode = networkResponse.statusCode;
+            switch(statuscode){
+                case 400:
+                case 401:
+                    functions.makeToast("Session expirée ou mauvais identifiants.");
+                    break;
+                case 500:
+                    functions.makeToast("Erreur serveur ("+statuscode+")");
+                    break;
+                default:
+                    Log.d(TAG, "BudgetRequests > checkToken: statusCode : " + statuscode);
+                    break;
+            }
+        }
+
+        if (type == Enums.ErrorRequest.TOKEN_NON_OK) callback.tokenNonOk();
+        else if (type == Enums.ErrorRequest.LOGIN_NON_OK) callback.loginNonOk();
+        else if (type == Enums.ErrorRequest.EXPORT_ERROR) callback.loginNonOk();
+        else if (type == Enums.ErrorRequest.IMPORT_ERROR) callback.loginNonOk();
+        else if (type == Enums.ErrorRequest.ALL_DATA_ERROR) callback.loginNonOk();
+        else if (type == Enums.ErrorRequest.DELETE_TRANSACTION_ERROR) callback.tokenNonOk();
+        else if (type == Enums.ErrorRequest.ADD_TRANSACTION_ERROR) callback.tokenNonOk();
+    }
+
+    /**
      * Check validity of token
      */
     public void checkToken(@NonNull String login, @NonNull String token) {
@@ -89,20 +116,7 @@ public class BudgetRequests {
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
-                    callback.tokenNonOk();
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (!isNull(networkResponse)){
-                        int statuscode = networkResponse.statusCode;
-                        switch(statuscode){
-                            case 400:
-                            case 500:
-                                functions.makeToast("Erreur serveur ("+statuscode+")");
-                                break;
-                            default:
-                                Log.d(TAG, "BudgetRequests > checkToken: statusCode : " + statuscode);
-                                break;
-                        }
-                    }
+                    volleyErrorHandler(error, Enums.ErrorRequest.TOKEN_NON_OK);
                 }
         );
 
@@ -144,23 +158,7 @@ public class BudgetRequests {
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > handleLogin : ", error);
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (!isNull(networkResponse)){
-                        int statuscode = networkResponse.statusCode;
-                        switch(statuscode){
-                            case 400:
-                            case 500:
-                                functions.makeToast("Erreur serveur.");
-                                break;
-                            case 401:
-                                functions.makeToast("Mauvais identifiants");
-                                break;
-                            default:
-                                Log.d(TAG, "BudgetRequests > handleLogin: statusCode : " + statuscode);
-                                break;
-                        }
-                    }
-                    callback.loginNonOk();
+                    volleyErrorHandler(error, Enums.ErrorRequest.LOGIN_NON_OK);
                 }
         );
 
@@ -184,23 +182,7 @@ public class BudgetRequests {
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
-                    callback.loginNonOk();
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (!isNull(networkResponse)){
-                        int statuscode = networkResponse.statusCode;
-                        switch(statuscode){
-                            case 400:
-                            case 500:
-                                functions.makeToast("Erreur serveur ("+statuscode+")");
-                                break;
-                            case 401:
-                                functions.makeToast("Erreur lors de l'identification de l'utilisateur.");
-                                break;
-                            default:
-                                Log.d(TAG, "BudgetRequests > handleLogin: statusCode : " + statuscode);
-                                break;
-                        }
-                    }
+                    volleyErrorHandler(error, Enums.ErrorRequest.EXPORT_ERROR);
                 }
         );
 
@@ -208,6 +190,13 @@ public class BudgetRequests {
 
     }
 
+    /**
+     * Allow to import datas given their datatype
+     * @param d : datatype to request
+     * @param t : token
+     * @param totalRequests : total of datatype to retrieve
+     * @param indexRequest : index of current datatype being retrieved
+     */
     private void importDataType(@NonNull Enums.DataToRequest d, String t, int totalRequests, int indexRequest){
         String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(typeUrlField, String.valueOf(d));
 
@@ -226,23 +215,7 @@ public class BudgetRequests {
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > makeImportDatas : ", error);
-                    callback.loginNonOk();
-                    NetworkResponse networkResponse = error.networkResponse;
-                    if (!isNull(networkResponse)){
-                        int statusCode = networkResponse.statusCode;
-                        switch(statusCode){
-                            case 400:
-                            case 500:
-                                functions.makeToast("Erreur serveur (" + statusCode + ")");
-                                break;
-                            case 401:
-                                functions.makeToast("Erreur lors de l'identification (" + statusCode + ")");
-                                break;
-                            default:
-                                Log.d(TAG, "BudgetRequests > handleLogin: statusCode : " + statusCode);
-                                break;
-                        }
-                    }
+                    volleyErrorHandler(error, Enums.ErrorRequest.IMPORT_ERROR);
                 }
         );
 
@@ -266,13 +239,12 @@ public class BudgetRequests {
         }
     }
 
-    private void putToQueue(@NonNull JsonObjectRequest jsonObjectRequest) {
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(jsonObjectRequest);
-    }
-
-    public void makeImportDatasV2(String token) {
-        String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(typeUrlField, "ALL_DATAS");
+    /**
+     * Retrieve all rows of transaction table for user connected from distant DB
+     * @param token : token of the user connected
+     */
+    public void retrieveAllTransactions(String token) {
+        String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(typeUrlField, String.valueOf(Enums.DataToRequest.ALL_DATAS));
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
                 try {
                     String datasResponse = response.getString("datas");
@@ -293,18 +265,24 @@ public class BudgetRequests {
                         }
                     }
 
-                    callback.datasImportedV2(listOfTransaction);
+                    callback.allDataRetrieved(listOfTransaction);
 
                 } catch(Exception e){
-                    Functions.handleExceptions("BudgetRequests > makeImportDatasV2 : ", e);
+                    Functions.handleExceptions("BudgetRequests > retrieveAllTransactions : ", e);
                 }
             },
-            error -> {}
+            error -> {
+                volleyErrorHandler(error, Enums.ErrorRequest.ALL_DATA_ERROR);
+            }
         );
 
         putToQueue(jsonObjectRequest);
     }
 
+    /**
+     * Delete a transaction for a user in distant DB
+     * @param id : distant transaction_id to delete
+     */
     public void deleteTransaction(String id) {
         String URL = URL_DELETEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(transactionIdField, id);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
@@ -314,12 +292,20 @@ public class BudgetRequests {
                 Functions.handleExceptions("BudgetRequests > deleteTransaction : ", e);
             }
         },
-                error -> {}
+                error -> {
+                    volleyErrorHandler(error, Enums.ErrorRequest.DELETE_TRANSACTION_ERROR);
+                }
         );
 
         putToQueue(jsonObjectRequest);
     }
 
+    /**
+     * Add transaction to distant DB
+     * @param label : label of transaction
+     * @param amount : amount of transaction
+     * @param type : type of transaction
+     */
     public void addTransaction(String label, String amount, String type) {
         String URL = URL_ADD_TRANSACTION.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(labelUrlField, label)
                 .replace(amountUrlField, amount).replace(typeUrlField, type);
@@ -331,9 +317,20 @@ public class BudgetRequests {
                 Functions.handleExceptions("BudgetRequests > addTransaction : ", e);
             }
         },
-                error -> {}
+                error -> {
+                    volleyErrorHandler(error, Enums.ErrorRequest.ADD_TRANSACTION_ERROR);
+                }
         );
 
         putToQueue(jsonObjectRequest);
+    }
+
+    /**
+     * Put request to queue
+     * @param jsonObjectRequest : jsonobject to send to API
+     */
+    private void putToQueue(@NonNull JsonObjectRequest jsonObjectRequest) {
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        requestQueue.add(jsonObjectRequest);
     }
 }

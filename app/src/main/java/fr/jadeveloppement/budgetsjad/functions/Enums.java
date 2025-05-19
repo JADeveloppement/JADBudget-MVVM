@@ -2,6 +2,10 @@ package fr.jadeveloppement.budgetsjad.functions;
 
 public class Enums {
 
+    public enum ErrorRequest{
+        LOGIN_NON_OK, EXPORT_ERROR, IMPORT_ERROR, ALL_DATA_ERROR, DELETE_TRANSACTION_ERROR, ADD_TRANSACTION_ERROR, TOKEN_NON_OK
+    };
+
     /**
      * Enum used for BudgetRequests class inside HomeFragment to differentiate an API call to retrieve or export datas
      */

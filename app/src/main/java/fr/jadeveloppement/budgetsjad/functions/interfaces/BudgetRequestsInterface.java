@@ -18,9 +18,10 @@ public interface BudgetRequestsInterface {
     void datasSaved();
 
     void datasImported(JSONObject response);
-    void datasImportedV2(ArrayList<Transaction> transactions);
 
     void previewDatas(Enums.DataToRequest type);
 
     void requestsFinished();
+
+    void allDataRetrieved(ArrayList<Transaction> listOfTransaction);
 }

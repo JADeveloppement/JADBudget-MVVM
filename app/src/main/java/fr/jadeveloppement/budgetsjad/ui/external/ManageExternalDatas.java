@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -45,13 +44,13 @@ public class ManageExternalDatas extends Fragment implements
     private FragmentManageExternalDatasBinding binding;
     private View viewRoot;
 
-    private LinearLayout fragment_ManageExternalLoadingScreen;
-
     private ImageButton fragment_ManageExternalPreviewInvoice, fragment_ManageExternalAddInvoice,
             fragment_ManageExternalPreviewIncome, fragment_ManageExternalAddIncome,
             fragment_ManageExternalPreviewExpense, fragment_ManageExternalAddExpense,
             fragment_ManageExternalPreviewModelInvoice, fragment_ManageExternalAddModelInvoice,
             fragment_ManageExternalPreviewModelIncome, fragment_ManageExternalAddModelIncome;
+
+    private LinearLayout fragment_ManageExternalLoadingScreen;
 
     private RecyclerView fragment_ManageExternalRecyclerviewInvoices,
             fragment_ManageExternalRecyclerviewIncomes,
@@ -59,10 +58,16 @@ public class ManageExternalDatas extends Fragment implements
             fragment_ManageExternalRecyclerviewModelInvoice,
             fragment_ManageExternalRecyclerviewModelIncome;
 
+    private TextView fragment_ManageExternalInvoiceNb, fragment_ManageExternalIncomeNb, fragment_ManageExternalExpenseNb,
+            fragment_ManageExternalModelIncomeNb, fragment_ManageExternalModelInvoiceNb;
+
     private BudgetRequests budgetRequests;
-    private String login, password, token;
+    private String login;
+    private String token;
     private Functions functions;
     private PopupHelper popupHelper;
+
+    ArrayList<List<String>> datasImportedArray = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -75,41 +80,25 @@ public class ManageExternalDatas extends Fragment implements
         return viewRoot;
     }
 
-    private void initializeUiEvents() {
-        budgetRequests.handleLogin();
 
-        fragment_ManageExternalPreviewInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewInvoices));
-        fragment_ManageExternalAddInvoice.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.INVOICE, true);
-        });
-
-        fragment_ManageExternalPreviewIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewIncomes));
-        fragment_ManageExternalAddIncome.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.INCOME, true);
-        });
-
-        fragment_ManageExternalPreviewExpense.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewExpenses));
-        fragment_ManageExternalAddExpense.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.EXPENSE, true);
-        });
-
-        fragment_ManageExternalPreviewModelInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelInvoice));
-        fragment_ManageExternalAddModelInvoice.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.MODELINVOICE, true);
-        });
-
-        fragment_ManageExternalPreviewModelIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelIncome));
-        fragment_ManageExternalAddModelIncome.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.MODELINCOME, true);
-        });
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState){
+        initializeUi();
+        initializeUiEvents();
     }
 
-    private void toggleRecyclerView(RecyclerView recyclerView) {
-        recyclerView.setVisibility(recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-    }
+    private void initFields(){
+        functions = new Functions(requireContext());
+        popupHelper = new PopupHelper(requireContext(), this);
+        login = functions.getSettingByLabel(Variables.settingUsername).value;
+        String password = functions.getSettingByLabel(Variables.settingPassword).value;
+        token = functions.getSettingByLabel(Variables.settingsToken).value;
+        budgetRequests = new BudgetRequests(requireContext(), login, password, this);
 
-    private TextView fragment_ManageExternalInvoiceNb, fragment_ManageExternalIncomeNb, fragment_ManageExternalExpenseNb,
-            fragment_ManageExternalModelIncomeNb, fragment_ManageExternalModelInvoiceNb;
+        if (login.isBlank() || password.isBlank() || token.isBlank()) {
+            exitFragment();
+        }
+    }
 
     private void initializeUi() {
         fragment_ManageExternalLoadingScreen = binding.fragmentManageExternalLoadingScreen;
@@ -140,54 +129,33 @@ public class ManageExternalDatas extends Fragment implements
         fragment_ManageExternalModelInvoiceNb = binding.fragmentManageExternalModelInvoiceNb;
     }
 
-    private void initFields(){
-        functions = new Functions(requireContext());
-        popupHelper = new PopupHelper(requireContext(), this);
-        login = functions.getSettingByLabel(Variables.settingUsername).value;
-        password = functions.getSettingByLabel(Variables.settingPassword).value;
-        token = functions.getSettingByLabel(Variables.settingsToken).value;
-        budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+    private void initializeUiEvents() {
+        fragment_ManageExternalPreviewInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewInvoices));
+        fragment_ManageExternalAddInvoice.setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.INVOICE, true);
+        });
 
-        if (login.isBlank() || password.isBlank() || token.isBlank()) {
-            exitFragment();
-        }
-    }
+        fragment_ManageExternalPreviewIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewIncomes));
+        fragment_ManageExternalAddIncome.setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.INCOME, true);
+        });
 
-    private List<Transaction> listOfInvoiceTransaction, listOfIncomeTransaction, listOfExpenseTransaction,
-                listOfModelInvoiceTransaction, listOfModelIncomeTransaction;
+        fragment_ManageExternalPreviewExpense.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewExpenses));
+        fragment_ManageExternalAddExpense.setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.EXPENSE, true);
+        });
 
-    private void initializeData(){
-        datasImportedArray = new ArrayList<>();
-        List<Enums.DataToRequest> datasToRequest = List.of(Enums.DataToRequest.INVOICE, Enums.DataToRequest.INCOME, Enums.DataToRequest.EXPENSE,
-                Enums.DataToRequest.MODELINVOICE, Enums.DataToRequest.MODELINCOME);
+        fragment_ManageExternalPreviewModelInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelInvoice));
+        fragment_ManageExternalAddModelInvoice.setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.MODELINVOICE, true);
+        });
 
-        TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
+        fragment_ManageExternalPreviewModelIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelIncome));
+        fragment_ManageExternalAddModelIncome.setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.MODELINCOME, true);
+        });
 
-//        budgetRequests.makeImportDatas(token, datasToRequest);
-        budgetRequests.makeImportDatasV2(token);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState){
-        initializeUi();
-        initializeUiEvents();
-    }
-
-    private void exitFragment(){
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        fragmentManager.popBackStack();
-    }
-
-    @Override
-    public void tokenOk() {
-        fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
-        initializeData();
-    }
-
-    @Override
-    public void tokenNonOk() {
-        Functions.makeSnakebar("Session expirée, veuillez vous reconnecter.");
-        exitFragment();
+        budgetRequests.handleLogin();
     }
 
     @Override
@@ -197,50 +165,23 @@ public class ManageExternalDatas extends Fragment implements
     }
 
     @Override
-    public void loginNonOk() {
-        Functions.makeSnakebar("Session expirée, veuillez vous reconnecter.");
-        exitFragment();
-    }
-
-    @Override
-    public void datasSaved() {
-
-    }
-
-    ArrayList<List<String>> datasImportedArray = new ArrayList();
-
-    @Override
-    public void datasImported(JSONObject response) {
-        try {
-            String datasResponse = response.getString("datas");
-            List<String> datasString = new ArrayList<>();
-            if (datasResponse.contains("<n>") && datasResponse.contains("<l>")){
-                datasImportedArray.add(List.of(datasResponse.split("<n>")));
-            }
-        } catch (Exception e){
-            Functions.handleExceptions("ManageExternalDatas > datasImport : ", e);
-        }
-    }
-
-    @Override
-    public void requestsFinished() {
+    public void tokenOk() {
         initializeData();
-        if (TAG_REQUEST == Enums.TagRequest.DELETE_TRANSACTION){
-            Functions.makeSnakebar("Elément supprimé avec succès.");
-        } else if (TAG_REQUEST == Enums.TagRequest.ADD_TRANSACTION){
-            Functions.makeSnakebar("Elément ajouté avec succès.");
-        }
-        TAG_REQUEST = null;
-        if (!isNull(fragment_ManageExternalLoadingScreen) && fragment_ManageExternalLoadingScreen.getVisibility() == View.VISIBLE) fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
+    }
+
+    private void initializeData(){
+        datasImportedArray = new ArrayList<>();
+        TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
+        budgetRequests.retrieveAllTransactions(token);
     }
 
     @Override
-    public void datasImportedV2(ArrayList<Transaction> listOfTransaction) {
-        listOfInvoiceTransaction = new ArrayList<>();
-        listOfExpenseTransaction = new ArrayList<>();
-        listOfIncomeTransaction = new ArrayList<>();
-        listOfModelIncomeTransaction = new ArrayList<>();
-        listOfModelInvoiceTransaction = new ArrayList<>();
+    public void allDataRetrieved(ArrayList<Transaction> listOfTransaction) {
+        List<Transaction> listOfInvoiceTransaction = new ArrayList<>();
+        List<Transaction> listOfExpenseTransaction = new ArrayList<>();
+        List<Transaction> listOfIncomeTransaction = new ArrayList<>();
+        List<Transaction> listOfModelIncomeTransaction = new ArrayList<>();
+        List<Transaction> listOfModelInvoiceTransaction = new ArrayList<>();
 
         if(!listOfTransaction.isEmpty()){
             for (Transaction t : listOfTransaction){
@@ -286,8 +227,15 @@ public class ManageExternalDatas extends Fragment implements
     }
 
     @Override
-    public void previewDatas(Enums.DataToRequest type) {
-
+    public void requestsFinished() {
+        initializeData();
+        if (TAG_REQUEST == Enums.TagRequest.DELETE_TRANSACTION){
+            functions.makeToast("Elément supprimé avec succès.");
+        } else if (TAG_REQUEST == Enums.TagRequest.ADD_TRANSACTION){
+            functions.makeToast("Elément ajouté avec succès.");
+        }
+        TAG_REQUEST = null;
+        if (!isNull(fragment_ManageExternalLoadingScreen) && fragment_ManageExternalLoadingScreen.getVisibility() == View.VISIBLE) fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
     }
 
     @Override
@@ -302,5 +250,36 @@ public class ManageExternalDatas extends Fragment implements
         TAG_REQUEST = Enums.TagRequest.ADD_TRANSACTION;
         if (!isNull(fragment_ManageExternalLoadingScreen)) fragment_ManageExternalLoadingScreen.setVisibility(View.VISIBLE);
         budgetRequests.addTransaction(label, amount, String.valueOf(type));
+    }
+
+    private void toggleRecyclerView(RecyclerView recyclerView) {
+        recyclerView.setVisibility(recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+    }
+
+    private void exitFragment(){
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        fragmentManager.popBackStack();
+    }
+
+    @Override
+    public void tokenNonOk() {
+        functions.makeToast("Session expirée, veuillez vous reconnecter.");
+        exitFragment();
+    }
+
+    @Override
+    public void loginNonOk() {
+        functions.makeToast("Session expirée, veuillez vous reconnecter.");
+        exitFragment();
+    }
+
+    @Override
+    public void datasSaved() {}
+
+    @Override
+    public void datasImported(JSONObject response) {}
+
+    @Override
+    public void previewDatas(Enums.DataToRequest type) {
     }
 }
