@@ -14,13 +14,12 @@ import androidx.lifecycle.ViewModel;
 import java.util.Collections;
 import java.util.List;
 
-import fr.jadeveloppement.budgetsjad.MainActivity;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.classes.BudgetData;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
-import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
@@ -28,20 +27,24 @@ public class BudgetViewModel extends ViewModel {
 
     private final String TAG = "BudgetJAD";
 
-    private final Context context;
-    private BudgetData budgetData;
-    private MutableLiveData<List<Transaction>> invoicesLiveData, incomesLiveData, expensesLiveData, modelIncomeLiveData, modelInvoiceLiveData;
-    private MutableLiveData<List<AccountsTable>> accountsLiveData;
-    private MutableLiveData<Double> forecastFinal, forecastEncours;
-    private MutableLiveData<Integer> nbInvoicePaid;
-    private MutableLiveData<Double> amountInvoicePaid, amountInvoiceUnpaid;
-    private MutableLiveData<PeriodsTable> periodSelected;
+    private final BudgetData budgetData;
+    private final MutableLiveData<List<Transaction>> invoicesLiveData;
+    private final MutableLiveData<List<Transaction>> incomesLiveData;
+    private final MutableLiveData<List<Transaction>> expensesLiveData;
+    private final MutableLiveData<List<Transaction>> modelIncomeLiveData;
+    private final MutableLiveData<List<Transaction>> modelInvoiceLiveData;
+    private final MutableLiveData<List<AccountsTable>> accountsLiveData;
+    private final MutableLiveData<Double> forecastFinal;
+    private final MutableLiveData<Double> forecastEncours;
+    private final MutableLiveData<Integer> nbInvoicePaid;
+    private final MutableLiveData<Double> amountInvoicePaid;
+    private final MutableLiveData<Double> amountInvoiceUnpaid;
+    private final MutableLiveData<PeriodsTable> periodSelected;
     private Functions functions;
-    private MutableLiveData<SettingsTable> settingsAccount;
-    private MutableLiveData<SettingsTable> settingsPeriod;
+    private final MutableLiveData<SettingsTable> settingsAccount;
 
     public BudgetViewModel(Context c) {
-        this.context = c.getApplicationContext();
+        Context context = c.getApplicationContext();
         this.budgetData = new BudgetData(context.getApplicationContext());
         this.functions = new Functions(context.getApplicationContext());
         this.invoicesLiveData = new MutableLiveData<>();
@@ -131,7 +134,6 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void deleteTransaction(Transaction t){
-        Log.d(TAG, "deleteTransaction: delete transaction : " + t.getType());
         budgetData.deleteTransaction(t);
 
         updateLiveData();
@@ -182,6 +184,7 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void updateTransaction(Transaction transaction) {
+        Log.d(TAG, "updateTransaction: label : " + transaction.getLabel() + "amount : " + transaction.getAmount() + " type : " + transaction.getType());
         budgetData.updateTransaction(transaction);
         updateLiveData();
     }
@@ -219,7 +222,7 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void deletePeriod(PeriodsTable periodsTable){
-
+        functions.deletePeriod(periodsTable);
     }
 
     public void updatePeriod(String newPeriod){
@@ -237,20 +240,15 @@ public class BudgetViewModel extends ViewModel {
         }
     }
 
-    public LiveData<SettingsTable> getSettingsPeriod() {
-        return settingsPeriod;
-    }
-
     public void insertModelInvoice(PeriodsTable periodsTable) {
         String date = periodsTable.label;
         List<Transaction> listOfModelInvoice = isNull(getModelInvoice().getValue()) ? Collections.emptyList() : getModelInvoice().getValue() ;
         String account = isNull(settingsAccount.getValue()) ? String.valueOf(functions.getAccountById(parseLong(functions.getSettingByLabel(Variables.settingAccount).value)).account_id) : settingsAccount.getValue().value;
 
         for (Transaction t : listOfModelInvoice){
-            t.setType(Transaction.TransactionType.INVOICE);
+            t.setType(Enums.TransactionType.INVOICE);
             t.setDate(date);
             t.setAccount(account);
-            Log.d(TAG, "insertModelInvoice: add model " + t.getLabel() + " account : " + t.getAccount() + " date " + t.getDate());
             addTransaction(t);
         }
     }
@@ -261,7 +259,7 @@ public class BudgetViewModel extends ViewModel {
         String account = isNull(settingsAccount.getValue()) ? String.valueOf(functions.getAccountById(parseLong(functions.getSettingByLabel(Variables.settingAccount).value)).account_id) : settingsAccount.getValue().value;
 
         for (Transaction t : listOfModelIncome){
-            t.setType(Transaction.TransactionType.INCOME);
+            t.setType(Enums.TransactionType.INCOME);
             t.setDate(date);
             t.setAccount(account);
             addTransaction(t);

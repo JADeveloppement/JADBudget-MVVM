@@ -84,6 +84,33 @@ public class MainActivity extends AppCompatActivity {
             functions.insertSettings(settingAccount);
         }
 
+        SettingsTable settingsUserName = functions.getSettingByLabel(Variables.settingUsername);
+        if (isNull(settingsUserName)){
+            Log.d(TAG, "MainActivity > onCreate: Create setting username data");
+            settingsUserName = new SettingsTable();
+            settingsUserName.label = Variables.settingUsername;
+            settingsUserName.value = "";
+            functions.insertSettings(settingsUserName);
+        }
+
+        SettingsTable settingsUserPassword = functions.getSettingByLabel(Variables.settingPassword);
+        if (isNull(settingsUserPassword)){
+            Log.d(TAG, "MainActivity > onCreate: Create setting password data");
+            settingsUserPassword = new SettingsTable();
+            settingsUserPassword.label = Variables.settingPassword;
+            settingsUserPassword.value = "";
+            functions.insertSettings(settingsUserPassword);
+        }
+
+        SettingsTable settingsToken = functions.getSettingByLabel(Variables.settingsToken);
+        if (isNull(settingsToken)){
+            Log.d(TAG, "MainActivity > onCreate: Create setting token data");
+            settingsToken = new SettingsTable();
+            settingsToken.label = Variables.settingsToken;
+            settingsToken.value = "";
+            functions.insertSettings(settingsToken);
+        }
+
         functions.checkSettingPeriod();
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());

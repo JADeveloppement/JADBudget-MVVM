@@ -248,5 +248,13 @@ public class SQLiteFunctions {
     public ModeleIncomes getModeleIncomeById(long id) {
         return sqLiteModeleIncomeFunctions.getModeleIncomeById(id);
     }
+
+    public void updateModeleIncome(ModeleIncomes modeleIncomes) {
+        sqLiteModeleIncomeFunctions.updateModeleIncome(modeleIncomes);
+    }
+
+    public void updateModeleInvoice(ModeleInvoices modeleInvoices) {
+        sqLiteModeleInvoiceFunctions.updateModeleInvoice(modeleInvoices);
+    }
     //
 }

@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 
 public class PopupElementContent extends LinearLayout {
@@ -63,7 +64,7 @@ public class PopupElementContent extends LinearLayout {
     private void initVisibility() {
         popupContentElementBtnDelete.setVisibility(!isNull(element) ? View.VISIBLE : View.GONE);
         if (!isNull(element)){
-            popupContentElementIsPaid.setVisibility((element.getType() != Transaction.TransactionType.INVOICE) ? View.GONE : View.VISIBLE);
+            popupContentElementIsPaid.setVisibility((element.getType() != Enums.TransactionType.INVOICE) ? View.GONE : View.VISIBLE);
         }
     }
 

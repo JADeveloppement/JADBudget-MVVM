@@ -1,54 +1,70 @@
 package fr.jadeveloppement.budgetsjad.ui.home;
 
+import static java.lang.Long.parseLong;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.google.android.flexbox.FlexboxLayout;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.MenuIcon;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountsContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentHomeBinding;
+import fr.jadeveloppement.budgetsjad.functions.BudgetRequests;
+import fr.jadeveloppement.budgetsjad.functions.PopupHelper;
+import fr.jadeveloppement.budgetsjad.functions.Variables;
+import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
-import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
+    private static Enums.TagRequest TAG_REQUEST = null;
+    
     private FragmentHomeBinding binding;
 
     private final String TAG = "JadBudget";
 
-    private FlexboxLayout menuAddElementContainer, menuModelsContainer, menuManageDatasContainer;
-    private MenuIcon menuAddInvoice, menuAddIncome, menuAddExpense, menuModelIncome, menuModelInvoice, menuManageAccounts, menuManagePeriods;
+    private MenuIcon
+            menuAddInvoice, menuAddIncome, menuAddExpense,
+            menuModelIncome, menuModelInvoice,
+            menuManageAccounts, menuManagePeriods,
+            menuLogin, menuLogout, menuManageExternalDatas, menuDownload, menuUpload;
+
     private View viewRoot;
+
     private BudgetViewModel budgetViewModel;
-    private SettingsTable settingsAccount;
-    private PeriodsTable periodSelected;
 
-    private List<Transaction> listModelInvoices, listModelIncomes;
+    private Functions functions;
 
-    private PopupModelContent popupModelContent;
+    private LinearLayout menuManageImportExportLoadingScreen;
+
+    private PopupHelper popupHelper;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -56,136 +72,27 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         viewRoot = binding.getRoot();
 
-        menuAddElementContainer = binding.menuAddElementContainer;
-        menuModelsContainer = binding.menuModelsContainer;
-        menuManageDatasContainer = binding.menuManageDatasContainer;
+        functions = new Functions(requireActivity());
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
+        popupHelper = new PopupHelper(requireContext(), budgetViewModel);
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        initializeUI();
+        initializeUIEvents();
 
-        setObservers();
-
-        setAddElementMenu();
-        setModelsMenu();
-        setModelManage();
-
-        setMenuAddElementEvents();
-        setMenuModelsEvents();
-        setMenuManageEvents();
+        checkIfLogged();
 
         return viewRoot;
     }
 
-    private void setObservers() {
-        budgetViewModel.getSettingsAccount().observe(getViewLifecycleOwner(), (SettingsTable s) -> {
-            settingsAccount = s;
-        });
+    private void initializeUI(){
+        FlexboxLayout menuAddElementContainer = binding.menuAddElementContainer;
+        FlexboxLayout menuModelsContainer = binding.menuModelsContainer;
+        FlexboxLayout menuManageDatasContainer = binding.menuManageDatasContainer;
+        FlexboxLayout menuManageImportExportContainer = binding.menuManageImportExportContainer;
 
-        budgetViewModel.getPeriodSelected().observe(getViewLifecycleOwner(), (PeriodsTable p) -> {
-            periodSelected = p;
-        });
-    }
+        menuManageImportExportLoadingScreen = binding.menuManageImportExportLoadingScreen;
 
-    private void makePopupAddElement(Transaction.TransactionType type){
-        PopupContainer popupContainer = new PopupContainer(requireContext(), viewRoot);
-        PopupElementContent popupElementContent = new PopupElementContent(requireContext(), viewRoot, null);
-        popupElementContent.getPopupContentElementPeriodTv().setText(Functions.convertStdDateToLocale(periodSelected.label));
-        popupElementContent.getPopupContentElementBtnDelete().setVisibility(View.GONE);
-        popupContainer.addContent(popupElementContent.getLayout());
-
-        String titlePopup = "Ajouter un élément";
-        if (type == Transaction.TransactionType.EXPENSE) titlePopup = "Ajouter une dépense";
-        else if (type == Transaction.TransactionType.INCOME) titlePopup = "Ajouter un revenu";
-        else if (type == Transaction.TransactionType.INVOICE) titlePopup = "Ajouter un prélèvement";
-        else if (type == Transaction.TransactionType.MODELINCOME) titlePopup = "Nouveau modèle de revenu";
-        else if (type == Transaction.TransactionType.MODELINVOICE) titlePopup = "Nouveau modèle de prélèvement";
-
-        popupElementContent.getPopupContentElementTitle().setText(titlePopup);
-
-        if (type != Transaction.TransactionType.INVOICE)
-            popupElementContent.getPopupContentElementIsPaid().setVisibility(View.GONE);
-
-        popupElementContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> {
-            popupContainer.closePopup();
-        });
-
-        popupElementContent.getPopupContentElementBtnSave().setOnClickListener(v -> {
-            String label = popupElementContent.getPopupContentElementLabel().getText().toString();
-            String amount = popupElementContent.getPopupContentElementAmount().getText().toString();
-            if (label.isBlank() || amount.isBlank()) Toast.makeText(requireContext(), "Veuillez renseigner tous les champs", Toast.LENGTH_LONG).show();
-            else {
-                Transaction transaction = new Transaction(
-                        label,
-                        amount,
-                        Functions.convertLocaleDateToStd(popupElementContent.getPopupContentElementPeriodTv().getText().toString()),
-                        settingsAccount.value,
-                        type == Transaction.TransactionType.INVOICE ? (popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0") : "0",
-                        type
-                );
-                budgetViewModel.addTransaction(transaction);
-                Toast.makeText(getContext(), "Elément rajouté avec succès", Toast.LENGTH_LONG).show();
-                popupContainer.closePopup();
-            }
-        });
-    }
-
-    private void setMenuAddElementEvents() {
-        menuAddInvoice.getLayout().setOnClickListener(v -> {
-            makePopupAddElement(Transaction.TransactionType.INVOICE);
-        });
-        menuAddIncome.getLayout().setOnClickListener(v -> {
-            makePopupAddElement(Transaction.TransactionType.INCOME);
-        });
-        menuAddExpense.getLayout().setOnClickListener(v -> {
-            makePopupAddElement(Transaction.TransactionType.EXPENSE);
-        });
-    }
-
-    private void setMenuModelsEvents() {
-        menuModelIncome.getLayout().setOnClickListener(v -> {
-            Navigation.findNavController(v).navigate(R.id.navigation_modeleincome);
-        });
-        menuModelInvoice.getLayout().setOnClickListener(v -> {
-            Navigation.findNavController(v).navigate(R.id.navigation_modeleinvoice);
-        });
-    }
-
-    // DONE
-    private void setMenuManageEvents() {
-        menuManageAccounts.getLayout().setOnClickListener(v -> {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), viewRoot);
-            PopupAccountsContent popupAccountContent = new PopupAccountsContent(requireContext(), viewRoot);
-
-            popupContainer.addContent(popupAccountContent.getLayout());
-
-            popupAccountContent.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
-        });
-        menuManagePeriods.getLayout().setOnClickListener(v -> {
-            PopupContainer popupContainer = new PopupContainer(requireContext(), viewRoot);
-            PopupPeriodsContent popupPeriodContent = new PopupPeriodsContent(requireContext(), viewRoot);
-
-            popupContainer.addContent(popupPeriodContent.getLayout());
-
-            popupPeriodContent.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
-        });
-    }
-
-    private void setModelManage() {
-        menuManageAccounts = new MenuIcon(requireContext(), menuAddElementContainer, "Gestion\nomptes", R.drawable.account_card);
-        menuManagePeriods = new MenuIcon(requireContext(), menuAddElementContainer, "Gestion\npériode", R.drawable.schedule);
-
-        menuManageDatasContainer.addView(menuManageAccounts.getLayout());
-        menuManageDatasContainer.addView(menuManagePeriods.getLayout());
-    }
-
-    private void setModelsMenu() {
-        menuModelIncome = new MenuIcon(requireContext(), menuAddElementContainer, "Modèles de\nrevenu", R.drawable.model);
-        menuModelInvoice = new MenuIcon(requireContext(), menuAddElementContainer, "Modèles de\nprélèvement", R.drawable.model);
-
-        menuModelsContainer.addView(menuModelIncome.getLayout());
-        menuModelsContainer.addView(menuModelInvoice.getLayout());
-    }
-
-    private void setAddElementMenu() {
+        // Add Element MENU
         menuAddInvoice = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nprélèvement", R.drawable.invoice);
         menuAddIncome = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nrevenu", R.drawable.income);
         menuAddExpense = new MenuIcon(requireContext(), menuAddElementContainer, "Nouvelle\ndépense", R.drawable.expense);
@@ -193,11 +100,301 @@ public class HomeFragment extends Fragment {
         menuAddElementContainer.addView(menuAddInvoice.getLayout());
         menuAddElementContainer.addView(menuAddIncome.getLayout());
         menuAddElementContainer.addView(menuAddExpense.getLayout());
+        //
+
+        // Models MENU
+        menuModelIncome = new MenuIcon(requireContext(), menuAddElementContainer, "Modèles de\nrevenu", R.drawable.model);
+        menuModelInvoice = new MenuIcon(requireContext(), menuAddElementContainer, "Modèles de\nprélèvement", R.drawable.model);
+
+        menuModelsContainer.addView(menuModelIncome.getLayout());
+        menuModelsContainer.addView(menuModelInvoice.getLayout());
+        //
+
+        // Manage Accounts/Period MENU
+        menuManageAccounts = new MenuIcon(requireContext(), menuAddElementContainer, "Gestion\nomptes", R.drawable.account_card);
+        menuManagePeriods = new MenuIcon(requireContext(), menuAddElementContainer, "Gestion\npériode", R.drawable.schedule);
+
+        menuManageDatasContainer.addView(menuManageAccounts.getLayout());
+        menuManageDatasContainer.addView(menuManagePeriods.getLayout());
+        //
+
+        // Manage Login MENU
+        menuLogin = new MenuIcon(requireContext(), menuManageImportExportContainer, "Connexion", R.drawable.user);
+        menuLogout = new MenuIcon(requireContext(), menuManageImportExportContainer, "Déconnexion", R.drawable.logout);
+        menuDownload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Récupérer", R.drawable.download);
+        menuUpload = new MenuIcon(requireContext(), menuManageImportExportContainer, "Envoyer", R.drawable.upload);
+        menuManageExternalDatas = new MenuIcon(requireContext(), menuManageImportExportContainer, "Gestion des\ndonnées", R.drawable.setting);
+
+        menuManageImportExportContainer.addView(menuLogin.getLayout());
+        menuManageImportExportContainer.addView(menuLogout.getLayout());
+        menuManageImportExportContainer.addView(menuManageExternalDatas.getLayout());
+        menuManageImportExportContainer.addView(menuDownload.getLayout());
+        menuManageImportExportContainer.addView(menuUpload.getLayout());
+        //
+
+    }
+
+    private void initializeUIEvents(){
+        // Add element MENU
+        menuAddInvoice.getLayout().setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
+        });
+        menuAddIncome.getLayout().setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
+        });
+        menuAddExpense.getLayout().setOnClickListener(v -> {
+            popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
+        });
+        //
+
+        // Manage Account/Period MENU
+        menuManageAccounts.getLayout().setOnClickListener(v -> {
+            popupHelper.popupManageAccounts();
+        });
+        menuManagePeriods.getLayout().setOnClickListener(v -> {
+            popupHelper.popupManagePeriods();
+        });
+        //
+
+        // Models MENU
+        menuModelIncome.getLayout().setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.navigation_modeleincome);
+        });
+        menuModelInvoice.getLayout().setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.navigation_modeleinvoice);
+        });
+        //
+
+        // Login MENU
+        menuLogin.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.LOGIN;
+
+            popupHelper.makeLoginPopup(this);
+            popupHelper.toggleLoadingScreen(true);
+        });
+
+        menuLogout.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.LOGOUT;
+
+            SettingsTable settingsTable = functions.getSettingByLabel(Variables.settingsToken);
+            settingsTable.value = "";
+            functions.updateSettings(settingsTable);
+
+            SettingsTable settingsPassword = functions.getSettingByLabel(Variables.settingPassword);
+            settingsPassword.value = "";
+            functions.updateSettings(settingsPassword);
+
+            handleLoginMenuVisibility(false);
+
+            requestsFinished();
+        });
+
+        menuManageExternalDatas.getLayout().setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.navigation_manageExternalDatas);
+        });
+
+        menuDownload.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
+            popupHelper.popupImportDatas(this);
+            popupHelper.toggleLoadingScreen(true);
+        });
+        menuUpload.getLayout().setOnClickListener(v -> {
+            TAG_REQUEST = Enums.TagRequest.EXPORT_DATA;
+            popupHelper.popupExportDatas(this);
+            popupHelper.toggleLoadingScreen(true);
+        });
+        //
+    }
+
+    private void checkIfLogged() {
+        SettingsTable settingUser = functions.getSettingByLabel(Variables.settingUsername);
+        SettingsTable settingsToken = functions.getSettingByLabel(Variables.settingsToken);
+
+        if (settingUser.value.isBlank() || settingsToken.value.isBlank()) {
+            handleLoginMenuVisibility(false);
+            return;
+        }
+        BudgetRequests budgetRequests = new BudgetRequests(requireContext(), settingUser.value, "", this);
+        budgetRequests.checkToken(settingUser.value, settingsToken.value);
+    }
+
+    private void handleLoginMenuVisibility(boolean isLogged) {
+        menuManageImportExportLoadingScreen.setVisibility(View.GONE);
+
+        menuLogin.getLayout().setVisibility(isLogged ? View.GONE : View.VISIBLE);
+        menuLogout.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
+        menuManageExternalDatas.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
+        menuDownload.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
+        menuUpload.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
+    }
+
+    private void processImportDatas(String datas) throws Exception{
+        Log.d(TAG, "processImportDatas: datas : " + datas);
+        if (datas.contains("<n>")){
+            String[] rows = datas.split("<n>");
+            for(String line : rows){
+                if (line.contains("<l>")){
+                    String[] cols = line.split("<l>");
+                    String label = cols[1];
+                    String amount = cols[2];
+                    String period = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+                    String account_id = functions.getSettingByLabel(Variables.settingAccount).value;
+                    String paid = cols[5];
+                    String type = cols[6];
+
+                    if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.INVOICE))){
+                        InvoicesTable invoicesTable = new InvoicesTable();
+
+                        invoicesTable.label = label;
+                        invoicesTable.amount = amount;
+                        invoicesTable.account_id = parseLong(account_id);
+                        invoicesTable.date = period;
+                        invoicesTable.paid = paid;
+
+                        budgetViewModel.addTransaction(functions.convertObjectToTransaction(invoicesTable));
+
+                    } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.INCOME))){
+
+                        IncomesTable incomesTable = new IncomesTable();
+
+                        incomesTable.label = label;
+                        incomesTable.amount = amount;
+                        incomesTable.account_id = parseLong(account_id);
+                        incomesTable.date = period;
+                        incomesTable.paid = paid;
+
+                        budgetViewModel.addTransaction(functions.convertObjectToTransaction(incomesTable));
+
+                    } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.EXPENSE))){
+
+                        ExpensesTable expensesTable = new ExpensesTable();
+
+                        expensesTable.label = label;
+                        expensesTable.amount = amount;
+                        expensesTable.account_id = parseLong(account_id);
+                        expensesTable.date = period;
+
+                        budgetViewModel.addTransaction(functions.convertObjectToTransaction(expensesTable));
+
+                    } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.MODELINVOICE))){
+
+                        ModeleInvoices modeleInvoices = new ModeleInvoices();
+
+                        modeleInvoices.label = label;
+                        modeleInvoices.amount = amount;
+                        modeleInvoices.date = period;
+
+                        budgetViewModel.addTransaction(functions.convertObjectToTransaction(modeleInvoices));
+
+                    } else if (type.equalsIgnoreCase(String.valueOf(Enums.TransactionType.MODELINCOME))){
+                        ModeleIncomes modeleIncomes = new ModeleIncomes();
+
+                        modeleIncomes.label = label;
+                        modeleIncomes.amount = amount;
+                        modeleIncomes.date = period;
+
+                        budgetViewModel.addTransaction(functions.convertObjectToTransaction(modeleIncomes));
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void tokenOk(){
+        requestsFinished();
+        handleLoginMenuVisibility(true);
+    }
+
+    @Override
+    public void tokenNonOk(){
+        TAG_REQUEST = Enums.TagRequest.TOKEN_NON_OK;
+        functions.emptyUserInfos();
+        handleLoginMenuVisibility(false);
+        requestsFinished();
+    }
+
+    @Override
+    public void previewDatas(Enums.DataToRequest type) {
+        TAG_REQUEST = Enums.TagRequest.DISPLAY_DATA;
+        String login = functions.getSettingByLabel(Variables.settingUsername).value;
+        String password = functions.getSettingByLabel(Variables.settingPassword).value;
+        String token = functions.getSettingByLabel(Variables.settingsToken).value;
+        BudgetRequests budgetRequests = new BudgetRequests(requireContext(), login, password, this);
+        budgetRequests.makeImportDatas(token, Collections.singletonList(type));
+    }
+
+    @Override
+    public void loginOk(){
+        popupHelper.closeLoginPopup();
+        handleLoginMenuVisibility(true);
+        requestsFinished();
+    }
+
+    @Override
+    public void loginNonOk(){
+        TAG_REQUEST = Enums.TagRequest.LOGIN_NON_OK;
+        requestsFinished();
+    }
+
+    @Override
+    public void datasSaved(){
+        requestsFinished();
+    }
+
+    @Override
+    public void datasImported(JSONObject r){
+        try {
+            String datas = r.getString("datas").trim();
+            Enums.TransactionType type = Functions.convertStrtypeToTransactionType(r.getString("type").trim());
+            Log.d(TAG, "datasImported: type : " + type);
+            if (TAG_REQUEST == Enums.TagRequest.DISPLAY_DATA) {
+                List<Transaction> listOfDatas = new ArrayList<>();
+                if (datas.contains("<n>") && datas.contains("<l>")){
+                    for(String row : datas.split("<n>")){
+                        String[] cols = row.split("<l>");
+                        listOfDatas.add(new Transaction(cols[1], cols[2], cols[3], cols[4], cols[5], Functions.convertStrtypeToTransactionType(cols[6])));
+                    }
+                    popupHelper.displayListOfTransaction(new MutableLiveData<>(listOfDatas), type, true);
+                } else Functions.makeSnakebar("Aucune données à afficher.");
+                popupHelper.toggleLoadingScreen(false);
+            }
+            else {
+                processImportDatas(datas);
+            }
+        } catch(Exception e){
+            Log.d(TAG, "HomeFragment > datasImported: ", e);
+        }
+    }
+
+    @Override
+    public void requestsFinished(){
+        if (TAG_REQUEST == Enums.TagRequest.LOGIN)
+            Functions.makeSnakebar("Vous êtes connecté.");
+        else if (TAG_REQUEST == Enums.TagRequest.LOGIN_NON_OK)
+            functions.makeToast("Mauvais identifiants.");
+        else if (TAG_REQUEST == Enums.TagRequest.LOGOUT)
+            Functions.makeSnakebar("Vous êtes déconnecté.");
+        if (TAG_REQUEST == Enums.TagRequest.IMPORT_DATA)
+            functions.makeToast("Données importées avec succès.");
+        else if (TAG_REQUEST == Enums.TagRequest.EXPORT_DATA)
+            functions.makeToast("Données envoyées avec succès.");
+        else if (TAG_REQUEST == Enums.TagRequest.TOKEN_NON_OK)
+            Functions.makeSnakebar("Votre session a expiré.");
+
+        TAG_REQUEST = null;
+        popupHelper.toggleLoadingScreen(false);
+    }
+
+    @Override
+    public void allDataRetrieved(ArrayList<Transaction> transactions) {
+
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        TAG_REQUEST = null;
     }
 }

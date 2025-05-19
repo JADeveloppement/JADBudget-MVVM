@@ -11,6 +11,7 @@ import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.sqlite.DatabaseInstance;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.ModeleIncomesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
 
 public class SQLiteModeleIncomeFunctions {
 
@@ -57,6 +58,14 @@ public class SQLiteModeleIncomeFunctions {
         } catch(Exception e){
             Functions.handleExceptions("SQLiteModeleIncomeFunctions > getModeleIncomeById", e);
             return null;
+        }
+    }
+
+    public void updateModeleIncome(ModeleIncomes modeleIncomes) {
+        try {
+            executorService.submit(() -> modeleIncomesDAO.updateModeleIncome(modeleIncomes)).get();
+        } catch(Exception e){
+            Functions.handleExceptions("SQLiteModeleIncomeFunctions > updateModeleIncome", e);
         }
     }
 }

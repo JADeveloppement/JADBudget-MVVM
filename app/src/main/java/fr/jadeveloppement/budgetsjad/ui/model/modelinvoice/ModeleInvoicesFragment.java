@@ -24,6 +24,7 @@ import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentModeleinvoicesBinding;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
@@ -58,7 +59,7 @@ public class ModeleInvoicesFragment extends Fragment {
         binding = FragmentModeleinvoicesBinding.inflate(inflater, container, false);
         viewRoot = binding.getRoot();
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
 
         fragmentModelInvoiceAddElement = binding.fragmentModelInvoiceAddElement;
         fragmentModelInvoiceLoading = binding.fragmentModelInvoiceLoading;
@@ -91,7 +92,7 @@ public class ModeleInvoicesFragment extends Fragment {
                             "",
                             "",
                             "",
-                            Transaction.TransactionType.MODELINVOICE
+                            Enums.TransactionType.MODELINVOICE
                     );
 
                     if (!isNull(modelInvoiceAdapter)){
@@ -135,7 +136,7 @@ public class ModeleInvoicesFragment extends Fragment {
     }
 
     private void addDatasToView(){
-        modelInvoiceAdapter = new ElementAdapter(requireContext(), listOfInvoices, budgetViewModel);
+        modelInvoiceAdapter = new ElementAdapter(requireContext(), listOfInvoices, budgetViewModel, null);
         fragmentModelInvoiceListContainer.setAdapter(modelInvoiceAdapter);
         fragmentModelInvoiceListContainer.setLayoutManager(new LinearLayoutManager(getContext()));
         double amount = 0;

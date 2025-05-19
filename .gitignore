@@ -13,5 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-/.idea/AndroidProjectSystem.xml
-/.idea/.name
+build.gradle.kts
+/app/build.gradle.kts

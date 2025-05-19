@@ -26,6 +26,7 @@ import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentModeleincomesBinding;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
@@ -60,7 +61,7 @@ public class ModeleIncomesFragment extends Fragment {
         binding = FragmentModeleincomesBinding.inflate(inflater, container, false);
         viewRoot = binding.getRoot();
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireContext())).get(BudgetViewModel.class);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
 
         fragmentModelIncomeAddElement = binding.fragmentModelIncomeAddElement;
         fragmentModelIncomeLoading = binding.fragmentModelIncomeLoading;
@@ -93,7 +94,7 @@ public class ModeleIncomesFragment extends Fragment {
                             "",
                             "",
                             "",
-                            Transaction.TransactionType.MODELINCOME
+                            Enums.TransactionType.MODELINCOME
                     );
 
                     if (!isNull(modelIncomeAdapter)){
@@ -137,7 +138,7 @@ public class ModeleIncomesFragment extends Fragment {
     }
 
     private void addDatasToView(){
-        modelIncomeAdapter = new ElementAdapter(requireContext(), listOfIncomes, budgetViewModel);
+        modelIncomeAdapter = new ElementAdapter(requireContext(), listOfIncomes, budgetViewModel, null);
         fragmentModelIncomeListContainer.setAdapter(modelIncomeAdapter);
         fragmentModelIncomeListContainer.setLayoutManager(new LinearLayoutManager(getContext()));
         double amount = 0;

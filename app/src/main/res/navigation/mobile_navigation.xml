@@ -34,4 +34,10 @@
         android:name="fr.jadeveloppement.budgetsjad.ui.model.modelinvoice.ModeleInvoicesFragment"
         android:label="@string/models"
         tools:layout="@layout/fragment_modeleinvoices" />
+
+    <fragment
+        android:id="@+id/navigation_manageExternalDatas"
+        android:name="fr.jadeveloppement.budgetsjad.ui.external.ManageExternalDatas"
+        android:label="@string/models"
+        tools:layout="@layout/fragment_manage_external_datas" />
 </navigation>

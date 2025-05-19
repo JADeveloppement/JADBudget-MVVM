@@ -21,6 +21,7 @@ import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 
 public class DashboardTile extends LinearLayout {
@@ -31,7 +32,7 @@ public class DashboardTile extends LinearLayout {
     private DashboardTileAddElementClickedInterface listener;
 
     public interface DashboardTileAddElementClickedInterface{
-        void tileAddElementClicked(String type);
+        void tileAddElementClicked(Enums.TransactionType type);
     }
 
     public DashboardTile(Context c){
@@ -55,7 +56,7 @@ public class DashboardTile extends LinearLayout {
     private ProgressBar dashboardTileProgressbar;
     private ConstraintLayout dashboardTileProgressbarContainer;
     private LinearLayout dashboardTileLastElementContainer, dashboardTileAddElementContainer, dashboardTileLoading;
-    private String type = "";
+    private Enums.TransactionType type = null;
 
     private void initLayout() {
         dashboardTileIcon = layout.findViewById(R.id.dashboardTileIcon);
@@ -124,7 +125,7 @@ public class DashboardTile extends LinearLayout {
         return layout;
     }
 
-    public void setTypeTile(String t){
+    public void setTypeTile(Enums.TransactionType t){
         type = t;
     }
 
