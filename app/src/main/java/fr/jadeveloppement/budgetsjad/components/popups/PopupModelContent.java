@@ -58,7 +58,7 @@ public class PopupModelContent extends LinearLayout {
         RecyclerView popupContentModelListContainer = popupLayout.findViewById(R.id.popupContentModelListContainer);
         popupContentModelBtnAdd = popupLayout.findViewById(R.id.popupContentModelBtnAdd);
 
-        ElementAdapter listAdapter = new ElementAdapter(context, listOfElements, null);
+        ElementAdapter listAdapter = new ElementAdapter(context, listOfElements, null, null);
         popupContentModelListContainer.setAdapter(listAdapter);
         popupContentModelListContainer.setLayoutManager(new LinearLayoutManager(context));
     }

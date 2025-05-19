@@ -387,6 +387,11 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     }
 
     @Override
+    public void datasImportedV2(ArrayList<Transaction> transactions) {
+
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;

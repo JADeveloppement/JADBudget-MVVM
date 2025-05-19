@@ -138,7 +138,7 @@ public class ModeleIncomesFragment extends Fragment {
     }
 
     private void addDatasToView(){
-        modelIncomeAdapter = new ElementAdapter(requireContext(), listOfIncomes, budgetViewModel);
+        modelIncomeAdapter = new ElementAdapter(requireContext(), listOfIncomes, budgetViewModel, null);
         fragmentModelIncomeListContainer.setAdapter(modelIncomeAdapter);
         fragmentModelIncomeListContainer.setLayoutManager(new LinearLayoutManager(getContext()));
         double amount = 0;

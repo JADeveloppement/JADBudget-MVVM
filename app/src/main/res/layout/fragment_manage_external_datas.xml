@@ -69,14 +69,32 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="@dimen/paddingM">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_weight="8"
-                        android:text="@string/invoices"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:textColor="@color/orange1"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/fragment_ManageExternalInvoiceNb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/rounded_box_orange1"
+                            android:padding="@dimen/paddingS"
+                            android:textColor="@color/white"
+                            android:text="0"
+                            android:layout_marginEnd="@dimen/paddingM"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/invoices"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                            android:textColor="@color/orange1"
+                            android:textStyle="bold"/>
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -131,14 +149,32 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="@dimen/paddingM">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_weight="8"
-                        android:text="@string/income"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:textColor="@color/orange1"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/fragment_ManageExternalIncomeNb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/rounded_box_orange1"
+                            android:padding="@dimen/paddingS"
+                            android:textColor="@color/white"
+                            android:text="0"
+                            android:layout_marginEnd="@dimen/paddingM"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/income"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                            android:textColor="@color/orange1"
+                            android:textStyle="bold"/>
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -193,14 +229,32 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="@dimen/paddingM">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_weight="8"
-                        android:text="@string/expenses"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:textColor="@color/orange1"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/fragment_ManageExternalExpenseNb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/rounded_box_orange1"
+                            android:padding="@dimen/paddingS"
+                            android:textColor="@color/white"
+                            android:text="0"
+                            android:layout_marginEnd="@dimen/paddingM"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/expenses"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                            android:textColor="@color/orange1"
+                            android:textStyle="bold"/>
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -255,14 +309,32 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="@dimen/paddingM">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_weight="8"
-                        android:text="@string/model_invoice"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:textColor="@color/orange1"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/fragment_ManageExternalModelInvoiceNb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/rounded_box_orange1"
+                            android:padding="@dimen/paddingS"
+                            android:textColor="@color/white"
+                            android:text="0"
+                            android:layout_marginEnd="@dimen/paddingM"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/model_invoice"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                            android:textColor="@color/orange1"
+                            android:textStyle="bold"/>
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -317,14 +389,32 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="@dimen/paddingM">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_weight="8"
-                        android:text="@string/model_income"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:textColor="@color/orange1"
-                        android:textStyle="bold"/>
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/fragment_ManageExternalModelIncomeNb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/rounded_box_orange1"
+                            android:padding="@dimen/paddingS"
+                            android:textColor="@color/white"
+                            android:text="0"
+                            android:layout_marginEnd="@dimen/paddingM"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/model_income"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                            android:textColor="@color/orange1"
+                            android:textStyle="bold"/>
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"

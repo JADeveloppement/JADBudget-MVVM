@@ -136,7 +136,7 @@ public class ModeleInvoicesFragment extends Fragment {
     }
 
     private void addDatasToView(){
-        modelInvoiceAdapter = new ElementAdapter(requireContext(), listOfInvoices, budgetViewModel);
+        modelInvoiceAdapter = new ElementAdapter(requireContext(), listOfInvoices, budgetViewModel, null);
         fragmentModelInvoiceListContainer.setAdapter(modelInvoiceAdapter);
         fragmentModelInvoiceListContainer.setLayoutManager(new LinearLayoutManager(getContext()));
         double amount = 0;

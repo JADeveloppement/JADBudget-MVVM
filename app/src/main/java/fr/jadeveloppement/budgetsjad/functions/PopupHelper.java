@@ -61,7 +61,9 @@ public class PopupHelper {
         this.functions = new Functions(context);
     }
 
-    public void popupAddElement(Enums.TransactionType type){
+    public void popupAddElement(Enums.TransactionType type, boolean... isEx){
+        boolean isExternal = isEx.length > 0 && isEx[0];
+
         periodSelected = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value));
         SettingsTable settingsAccount = functions.getSettingByLabel(Variables.settingAccount);
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
@@ -99,11 +101,20 @@ public class PopupHelper {
                         type == Enums.TransactionType.INVOICE ? (popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0") : "0",
                         type
                 );
-                budgetViewModel.addTransaction(transaction);
-                functions.makeToast("Elément rajouté avec succès");
+
+                if (!isExternal){
+                    budgetViewModel.addTransaction(transaction);
+                    functions.makeToast("Elément rajouté avec succès");
+                } else {
+
+                }
                 popupContainer.closePopup();
             }
         });
+    }
+
+    public void popupAddExternal(Enums.TransactionType type){
+
     }
 
     public void popupManageAccounts(){

@@ -59,7 +59,7 @@ public class PopupDisplayTileContent extends LinearLayout {
         popupDisplayTileContentBtnClose = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentBtnClose);
         RecyclerView popupDisplayTileContentListContainer = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentListContainer);
 
-        ElementAdapter elementAdapter = new ElementAdapter(context, elementsToDisplay.getValue(), isExternal ? null : budgetViewModel);
+        ElementAdapter elementAdapter = new ElementAdapter(context, elementsToDisplay.getValue(), isExternal ? null : budgetViewModel, null);
         popupDisplayTileContentListContainer.setAdapter(elementAdapter);
         popupDisplayTileContentListContainer.setLayoutManager(new LinearLayoutManager(context));
     }

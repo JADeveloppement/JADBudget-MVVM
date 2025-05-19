@@ -19,11 +19,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
+import fr.jadeveloppement.budgetsjad.functions.BudgetRequests;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
@@ -37,12 +39,20 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
     private final List<Transaction> itemList;
     private final Functions functions;
     private final BudgetViewModel budgetViewModel;
+    private final boolean isExternal;
+    private final ElementAdapterDeleteClickListener callback;
 
-    public ElementAdapter(@NonNull Context c, @NonNull List<Transaction> listOfElements, @Nullable BudgetViewModel vModel){
+    public interface ElementAdapterDeleteClickListener{
+        void elementAdapterDeleteClicked(Transaction t);
+    }
+
+    public ElementAdapter(@NonNull Context c, @NonNull List<Transaction> listOfElements, @Nullable BudgetViewModel vModel, @Nullable ElementAdapterDeleteClickListener call, @Nullable Boolean... isExt){
         this.context = c.getApplicationContext();
         this.itemList = listOfElements.isEmpty() ? new ArrayList<>() : listOfElements;
         this.functions = new Functions(context);
         this.budgetViewModel = vModel;
+        this.isExternal = !isNull(isExt) && isExt.length > 0 && isExt[0];
+        this.callback = call;
     }
 
     @NonNull
@@ -62,7 +72,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         holder.budgetElementLayoutPaid.setVisibility(currentItem.getType() == Enums.TransactionType.INVOICE ? View.VISIBLE : View.GONE);
         holder.label = currentItem.getLabel();
 
-        if (!isNull(budgetViewModel)){
+        if (!isNull(budgetViewModel) && !isExternal){
             holder.budgetElementLayoutDelete.setOnClickListener(v -> {
                 int finalPosition = holder.getAdapterPosition();
                 if (finalPosition != RecyclerView.NO_POSITION && finalPosition < itemList.size()) {
@@ -140,11 +150,21 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
                 if (!isNull(budgetViewModel)) toggleElementActionsButtons(holder);
             });
         }
+        else if (isExternal){
+            holder.budgetElementLayoutDelete.setOnClickListener(v -> {
+                if (!isNull(callback)) callback.elementAdapterDeleteClicked(currentItem);
+                else Log.d(TAG, "ElementAdapter > onBindViewHolder: interface not implemented");
+            });
+
+            holder.elementLayoutLabelContainer.setOnClickListener(v -> {
+                toggleElementActionsButtons(holder);
+            });
+        }
     }
 
     private void toggleElementActionsButtons(ViewHolder holder){
         holder.isClicked = !holder.isClicked;
-        holder.budgetElementLayoutEdit.setVisibility(holder.isClicked ? View.VISIBLE : View.GONE);
+        holder.budgetElementLayoutEdit.setVisibility(holder.isClicked && !isExternal ? View.VISIBLE : View.GONE);
         holder.budgetElementLayoutDelete.setVisibility(holder.isClicked ? View.VISIBLE : View.GONE);
         holder.elementLayoutContainer.setBackgroundColor(context.getColor(holder.isClicked ? R.color.orange4 : R.color.white));
     }

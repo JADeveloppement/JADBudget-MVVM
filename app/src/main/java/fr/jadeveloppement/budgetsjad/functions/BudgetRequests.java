@@ -2,6 +2,7 @@ package fr.jadeveloppement.budgetsjad.functions;
 
 import static java.util.Objects.isNull;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_CHECKTOKEN;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_DELETEDATA;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_EXPORTDATA;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_LOGIN;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_RETRIEVEDATA;
@@ -9,7 +10,9 @@ import static fr.jadeveloppement.budgetsjad.functions.Variables.datasUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.loginUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.passwordUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.tokenUrlField;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.transactionIdField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.typeUrlField;
+import static kotlin.jvm.internal.Reflection.typeOf;
 
 import android.content.Context;
 import android.util.Log;
@@ -24,11 +27,17 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
+import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import kotlin.ContextFunctionTypeParams;
+import kotlin.reflect.KClassifier;
 
 public class BudgetRequests {
 
@@ -257,5 +266,57 @@ public class BudgetRequests {
     private void putToQueue(@NonNull JsonObjectRequest jsonObjectRequest) {
         RequestQueue requestQueue = Volley.newRequestQueue(context);
         requestQueue.add(jsonObjectRequest);
+    }
+
+    public void makeImportDatasV2(String token) {
+        String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(typeUrlField, "ALL_DATAS");
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
+                try {
+                    String datasResponse = response.getString("datas");
+                    ArrayList<Transaction> listOfTransaction = null;
+                    if (datasResponse.contains("<n>") && datasResponse.contains("<l>")){
+                        listOfTransaction = new ArrayList<>();
+                        for (String line : datasResponse.split("<n>")){
+                            String[] cols = line.split("<l>");
+                            listOfTransaction.add(new Transaction(
+                                    cols[1],
+                                    cols[2],
+                                    cols[3],
+                                    cols[4],
+                                    cols[5],
+                                    Functions.convertStrtypeToTransactionType(cols[6]),
+                                    cols[7]
+                            ));
+                        }
+                    }
+
+                    callback.datasImportedV2(listOfTransaction);
+
+                } catch(Exception e){
+                    Functions.handleExceptions("BudgetRequests > makeImportDatasV2 : ", e);
+                }
+            },
+            error -> {}
+        );
+
+        putToQueue(jsonObjectRequest);
+    }
+
+    public void deleteTransaction(String id) {
+        String URL = URL_DELETEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(transactionIdField, id);
+        Log.d(TAG, "deleteTransaction: " + URL);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
+            try {
+                String datasResponse = response.getString("datas");
+                callback.requestsFinished();
+                Log.d(TAG, "deleteTransaction: response :\n " + datasResponse);
+            } catch(Exception e){
+                Functions.handleExceptions("BudgetRequests > makeImportDatasV2 : ", e);
+            }
+        },
+                error -> {}
+        );
+
+        putToQueue(jsonObjectRequest);
     }
 }

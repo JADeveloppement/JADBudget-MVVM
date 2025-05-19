@@ -1,5 +1,7 @@
 package fr.jadeveloppement.budgetsjad.ui.external;
 
+import static java.util.Objects.isNull;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,18 +10,21 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.MutableLiveData;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentManageExternalDatasBinding;
 import fr.jadeveloppement.budgetsjad.functions.BudgetRequests;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
@@ -29,7 +34,9 @@ import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 
-public class ManageExternalDatas extends Fragment implements BudgetRequestsInterface {
+public class ManageExternalDatas extends Fragment implements BudgetRequestsInterface, ElementAdapter.ElementAdapterDeleteClickListener {
+
+    private static Enums.TagRequest TAG_REQUEST = null;
     private final String TAG = "JADBudget";
 
     private FragmentManageExternalDatasBinding binding;
@@ -70,33 +77,36 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
 
         fragment_ManageExternalPreviewInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewInvoices));
         fragment_ManageExternalAddInvoice.setOnClickListener(v -> {
-            Log.d(TAG, "initializeUiEvents: add external invoice");
+            popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
         });
 
         fragment_ManageExternalPreviewIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewIncomes));
         fragment_ManageExternalAddIncome.setOnClickListener(v -> {
-            Log.d(TAG, "initializeUiEvents: add external income");
+            popupHelper.popupAddElement(Enums.TransactionType.INCOME);
         });
 
         fragment_ManageExternalPreviewExpense.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewExpenses));
         fragment_ManageExternalAddExpense.setOnClickListener(v -> {
-            Log.d(TAG, "initializeUiEvents: add external expense");
+            popupHelper.popupAddElement(Enums.TransactionType.EXPENSE);
         });
 
         fragment_ManageExternalPreviewModelInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelInvoice));
         fragment_ManageExternalAddModelInvoice.setOnClickListener(v -> {
-            Log.d(TAG, "initializeUiEvents: add external model invoice");
+            popupHelper.popupAddElement(Enums.TransactionType.MODELINVOICE);
         });
 
         fragment_ManageExternalPreviewModelIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelIncome));
         fragment_ManageExternalAddModelIncome.setOnClickListener(v -> {
-            Log.d(TAG, "initializeUiEvents: add external model income");
+            popupHelper.popupAddElement(Enums.TransactionType.MODELINCOME);
         });
     }
 
     private void toggleRecyclerView(RecyclerView recyclerView) {
         recyclerView.setVisibility(recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
     }
+
+    private TextView fragment_ManageExternalInvoiceNb, fragment_ManageExternalIncomeNb, fragment_ManageExternalExpenseNb,
+            fragment_ManageExternalModelIncomeNb, fragment_ManageExternalModelInvoiceNb;
 
     private void initializeUi() {
         fragment_ManageExternalLoadingScreen = binding.fragmentManageExternalLoadingScreen;
@@ -119,6 +129,12 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
         fragment_ManageExternalAddExpense = binding.fragmentManageExternalAddExpenses;
         fragment_ManageExternalAddModelInvoice = binding.fragmentManageExternalAddModelInvoice;
         fragment_ManageExternalAddModelIncome = binding.fragmentManageExternalAddModelIncome;
+
+        fragment_ManageExternalInvoiceNb = binding.fragmentManageExternalInvoiceNb;
+        fragment_ManageExternalIncomeNb = binding.fragmentManageExternalIncomeNb;
+        fragment_ManageExternalExpenseNb = binding.fragmentManageExternalExpenseNb;
+        fragment_ManageExternalModelIncomeNb = binding.fragmentManageExternalModelIncomeNb;
+        fragment_ManageExternalModelInvoiceNb = binding.fragmentManageExternalModelInvoiceNb;
     }
 
     private void initFields(){
@@ -132,6 +148,20 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
         if (login.isBlank() || password.isBlank() || token.isBlank()) {
             exitFragment();
         }
+    }
+
+    private List<Transaction> listOfInvoiceTransaction, listOfIncomeTransaction, listOfExpenseTransaction,
+                listOfModelInvoiceTransaction, listOfModelIncomeTransaction;
+
+    private void initializeData(){
+        datasImportedArray = new ArrayList<>();
+        List<Enums.DataToRequest> datasToRequest = List.of(Enums.DataToRequest.INVOICE, Enums.DataToRequest.INCOME, Enums.DataToRequest.EXPENSE,
+                Enums.DataToRequest.MODELINVOICE, Enums.DataToRequest.MODELINCOME);
+
+        TAG_REQUEST = Enums.TagRequest.IMPORT_DATA;
+
+//        budgetRequests.makeImportDatas(token, datasToRequest);
+        budgetRequests.makeImportDatasV2(token);
     }
 
     @Override
@@ -148,6 +178,7 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
     @Override
     public void tokenOk() {
         fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
+        initializeData();
     }
 
     @Override
@@ -173,18 +204,90 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
 
     }
 
+    ArrayList<List<String>> datasImportedArray = new ArrayList();
+
     @Override
     public void datasImported(JSONObject response) {
+        try {
+            String datasResponse = response.getString("datas");
+            List<String> datasString = new ArrayList<>();
+            if (datasResponse.contains("<n>") && datasResponse.contains("<l>")){
+                datasImportedArray.add(List.of(datasResponse.split("<n>")));
+            }
+        } catch (Exception e){
+            Functions.handleExceptions("ManageExternalDatas > datasImport : ", e);
+        }
+    }
 
+    ArrayList<List<Transaction>> listOfAllTransaction;
+    @Override
+    public void requestsFinished() {
+        if (TAG_REQUEST == Enums.TagRequest.DELETE_TRANSACTION){
+            initializeData();
+        }
+        TAG_REQUEST = null;
     }
 
     @Override
-    public void requestsFinished() {
+    public void datasImportedV2(ArrayList<Transaction> listOfTransaction) {
+        listOfInvoiceTransaction = new ArrayList<>();
+        listOfExpenseTransaction = new ArrayList<>();
+        listOfIncomeTransaction = new ArrayList<>();
+        listOfModelIncomeTransaction = new ArrayList<>();
+        listOfModelInvoiceTransaction = new ArrayList<>();
 
+        if(!listOfTransaction.isEmpty()){
+            for (Transaction t : listOfTransaction){
+                if (t.getType() == Enums.TransactionType.INVOICE){
+                    listOfInvoiceTransaction.add(t);
+                } else if (t.getType() == Enums.TransactionType.INCOME){
+                    listOfIncomeTransaction.add(t);
+                } else if (t.getType() == Enums.TransactionType.EXPENSE){
+                    listOfExpenseTransaction.add(t);
+                } else if (t.getType() == Enums.TransactionType.MODELINCOME){
+                    listOfModelIncomeTransaction.add(t);
+                } else if (t.getType() == Enums.TransactionType.MODELINVOICE){
+                    listOfModelInvoiceTransaction.add(t);
+                }
+            }
+        }
+
+        ElementAdapter elementAdapterInvoice = new ElementAdapter(requireContext(), listOfInvoiceTransaction, null, this, true);
+        ElementAdapter elementAdapterIncome = new ElementAdapter(requireContext(), listOfIncomeTransaction, null, this,true);
+        ElementAdapter elementAdapterExpense = new ElementAdapter(requireContext(), listOfExpenseTransaction, null, this, true);
+        ElementAdapter elementAdapterModelIncome = new ElementAdapter(requireContext(), listOfModelIncomeTransaction, null, this, true);
+        ElementAdapter elementAdapterModelInvoice = new ElementAdapter(requireContext(), listOfModelInvoiceTransaction, null, this, true);
+
+        fragment_ManageExternalInvoiceNb.setText(String.valueOf(elementAdapterInvoice.getItemCount()));
+        fragment_ManageExternalIncomeNb.setText(String.valueOf(elementAdapterIncome.getItemCount()));
+        fragment_ManageExternalExpenseNb.setText(String.valueOf(elementAdapterExpense.getItemCount()));
+        fragment_ManageExternalModelIncomeNb.setText(String.valueOf(elementAdapterModelIncome.getItemCount()));
+        fragment_ManageExternalModelInvoiceNb.setText(String.valueOf(elementAdapterModelInvoice.getItemCount()));
+
+        fragment_ManageExternalRecyclerviewInvoices.setAdapter(elementAdapterInvoice);
+        fragment_ManageExternalRecyclerviewIncomes.setAdapter(elementAdapterIncome);
+        fragment_ManageExternalRecyclerviewExpenses.setAdapter(elementAdapterExpense);
+        fragment_ManageExternalRecyclerviewModelIncome.setAdapter(elementAdapterModelIncome);
+        fragment_ManageExternalRecyclerviewModelInvoice.setAdapter(elementAdapterModelInvoice);
+
+        fragment_ManageExternalRecyclerviewInvoices.setLayoutManager(new LinearLayoutManager(requireContext()));
+        fragment_ManageExternalRecyclerviewIncomes.setLayoutManager(new LinearLayoutManager(requireContext()));
+        fragment_ManageExternalRecyclerviewExpenses.setLayoutManager(new LinearLayoutManager(requireContext()));
+        fragment_ManageExternalRecyclerviewModelIncome.setLayoutManager(new LinearLayoutManager(requireContext()));
+        fragment_ManageExternalRecyclerviewModelInvoice.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        if (!isNull(fragment_ManageExternalLoadingScreen) && fragment_ManageExternalLoadingScreen.getVisibility() == View.VISIBLE) fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
     }
 
     @Override
     public void previewDatas(Enums.DataToRequest type) {
 
+    }
+
+    @Override
+    public void elementAdapterDeleteClicked(Transaction t) {
+        if (!isNull(fragment_ManageExternalLoadingScreen)) fragment_ManageExternalLoadingScreen.setVisibility(View.VISIBLE);
+        TAG_REQUEST = Enums.TagRequest.DELETE_TRANSACTION;
+        budgetRequests.deleteTransaction(t.getId());
     }
 }
