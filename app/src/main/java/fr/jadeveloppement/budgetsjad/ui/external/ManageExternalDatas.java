@@ -34,7 +34,10 @@ import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 
-public class ManageExternalDatas extends Fragment implements BudgetRequestsInterface, ElementAdapter.ElementAdapterDeleteClickListener {
+public class ManageExternalDatas extends Fragment implements
+        BudgetRequestsInterface,
+        ElementAdapter.ElementAdapterDeleteClickListener,
+        PopupHelper.PopupHelperAddElementBtnClicked {
 
     private static Enums.TagRequest TAG_REQUEST = null;
     private final String TAG = "JADBudget";
@@ -77,27 +80,27 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
 
         fragment_ManageExternalPreviewInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewInvoices));
         fragment_ManageExternalAddInvoice.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
+            popupHelper.popupAddElement(Enums.TransactionType.INVOICE, true);
         });
 
         fragment_ManageExternalPreviewIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewIncomes));
         fragment_ManageExternalAddIncome.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.INCOME);
+            popupHelper.popupAddElement(Enums.TransactionType.INCOME, true);
         });
 
         fragment_ManageExternalPreviewExpense.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewExpenses));
         fragment_ManageExternalAddExpense.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.EXPENSE);
+            popupHelper.popupAddElement(Enums.TransactionType.EXPENSE, true);
         });
 
         fragment_ManageExternalPreviewModelInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelInvoice));
         fragment_ManageExternalAddModelInvoice.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.MODELINVOICE);
+            popupHelper.popupAddElement(Enums.TransactionType.MODELINVOICE, true);
         });
 
         fragment_ManageExternalPreviewModelIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelIncome));
         fragment_ManageExternalAddModelIncome.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.MODELINCOME);
+            popupHelper.popupAddElement(Enums.TransactionType.MODELINCOME, true);
         });
     }
 
@@ -139,7 +142,7 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
 
     private void initFields(){
         functions = new Functions(requireContext());
-        popupHelper = new PopupHelper(requireContext());
+        popupHelper = new PopupHelper(requireContext(), this);
         login = functions.getSettingByLabel(Variables.settingUsername).value;
         password = functions.getSettingByLabel(Variables.settingPassword).value;
         token = functions.getSettingByLabel(Variables.settingsToken).value;
@@ -219,13 +222,16 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
         }
     }
 
-    ArrayList<List<Transaction>> listOfAllTransaction;
     @Override
     public void requestsFinished() {
+        initializeData();
         if (TAG_REQUEST == Enums.TagRequest.DELETE_TRANSACTION){
-            initializeData();
+            Functions.makeSnakebar("Elément supprimé avec succès.");
+        } else if (TAG_REQUEST == Enums.TagRequest.ADD_TRANSACTION){
+            Functions.makeSnakebar("Elément ajouté avec succès.");
         }
         TAG_REQUEST = null;
+        if (!isNull(fragment_ManageExternalLoadingScreen) && fragment_ManageExternalLoadingScreen.getVisibility() == View.VISIBLE) fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
     }
 
     @Override
@@ -289,5 +295,12 @@ public class ManageExternalDatas extends Fragment implements BudgetRequestsInter
         if (!isNull(fragment_ManageExternalLoadingScreen)) fragment_ManageExternalLoadingScreen.setVisibility(View.VISIBLE);
         TAG_REQUEST = Enums.TagRequest.DELETE_TRANSACTION;
         budgetRequests.deleteTransaction(t.getId());
+    }
+
+    @Override
+    public void popupAddElementBtnSaveClicked(String label, String amount, Enums.TransactionType type) {
+        TAG_REQUEST = Enums.TagRequest.ADD_TRANSACTION;
+        if (!isNull(fragment_ManageExternalLoadingScreen)) fragment_ManageExternalLoadingScreen.setVisibility(View.VISIBLE);
+        budgetRequests.addTransaction(label, amount, String.valueOf(type));
     }
 }

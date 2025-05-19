@@ -1,12 +1,15 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
 import static java.util.Objects.isNull;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_ADD_TRANSACTION;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_CHECKTOKEN;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_DELETEDATA;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_EXPORTDATA;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_LOGIN;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.URL_RETRIEVEDATA;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.amountUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.datasUrlField;
+import static fr.jadeveloppement.budgetsjad.functions.Variables.labelUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.loginUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.passwordUrlField;
 import static fr.jadeveloppement.budgetsjad.functions.Variables.tokenUrlField;
@@ -304,14 +307,28 @@ public class BudgetRequests {
 
     public void deleteTransaction(String id) {
         String URL = URL_DELETEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(transactionIdField, id);
-        Log.d(TAG, "deleteTransaction: " + URL);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
             try {
-                String datasResponse = response.getString("datas");
                 callback.requestsFinished();
-                Log.d(TAG, "deleteTransaction: response :\n " + datasResponse);
             } catch(Exception e){
-                Functions.handleExceptions("BudgetRequests > makeImportDatasV2 : ", e);
+                Functions.handleExceptions("BudgetRequests > deleteTransaction : ", e);
+            }
+        },
+                error -> {}
+        );
+
+        putToQueue(jsonObjectRequest);
+    }
+
+    public void addTransaction(String label, String amount, String type) {
+        String URL = URL_ADD_TRANSACTION.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(labelUrlField, label)
+                .replace(amountUrlField, amount).replace(typeUrlField, type);
+        Log.d(TAG, "addTransaction: " + URL);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
+            try {
+                callback.requestsFinished();
+            } catch(Exception e){
+                Functions.handleExceptions("BudgetRequests > addTransaction : ", e);
             }
         },
                 error -> {}

@@ -42,6 +42,7 @@ public class PopupHelper {
     private final String TAG = "JADBudget";
 
     private final Context context;
+    private PopupHelperAddElementBtnClicked callback;
     private PeriodsTable periodSelected;
     private Functions functions;
     private BudgetViewModel budgetViewModel;
@@ -49,16 +50,22 @@ public class PopupHelper {
     private PopupContainer popupLogin = null;
     private LinearLayout popupLoadingScreen = null;
 
-    public PopupHelper(@NonNull Context c){
+    public interface PopupHelperAddElementBtnClicked{
+        void popupAddElementBtnSaveClicked(String label, String amount, Enums.TransactionType type);
+    }
+
+    public PopupHelper(@NonNull Context c, @Nullable PopupHelperAddElementBtnClicked call){
         this.context = c.getApplicationContext();
         this.budgetViewModel = null;
         this.functions = new Functions(context);
+        this.callback = call;
     }
 
     public PopupHelper(@NonNull Context c, @Nullable BudgetViewModel bModel){
         this.context = c.getApplicationContext();
         this.budgetViewModel = bModel;
         this.functions = new Functions(context);
+        this.callback = null;
     }
 
     public void popupAddElement(Enums.TransactionType type, boolean... isEx){
@@ -106,7 +113,7 @@ public class PopupHelper {
                     budgetViewModel.addTransaction(transaction);
                     functions.makeToast("Elément rajouté avec succès");
                 } else {
-
+                    if (!isNull(callback)) callback.popupAddElementBtnSaveClicked(label, amount, type);
                 }
                 popupContainer.closePopup();
             }
