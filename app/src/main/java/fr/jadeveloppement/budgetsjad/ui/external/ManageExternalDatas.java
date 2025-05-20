@@ -3,26 +3,24 @@ package fr.jadeveloppement.budgetsjad.ui.external;
 import static java.util.Objects.isNull;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.components.ExternalDataTile;
 import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentManageExternalDatasBinding;
 import fr.jadeveloppement.budgetsjad.functions.BudgetRequests;
@@ -33,33 +31,20 @@ import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 
-public class ManageExternalDatas extends Fragment implements
+public class ManageExternalDatas extends Fragment
+        implements
         BudgetRequestsInterface,
         ElementAdapter.ElementAdapterDeleteClickListener,
-        PopupHelper.PopupHelperAddElementBtnClicked {
+        PopupHelper.PopupHelperAddElementBtnClicked,
+        ExternalDataTile.ExternalDataTileClicked
+{
 
     private static Enums.TagRequest TAG_REQUEST = null;
     private final String TAG = "JADBudget";
 
     private FragmentManageExternalDatasBinding binding;
-    private View viewRoot;
-
-    private ImageButton fragment_ManageExternalPreviewInvoice, fragment_ManageExternalAddInvoice,
-            fragment_ManageExternalPreviewIncome, fragment_ManageExternalAddIncome,
-            fragment_ManageExternalPreviewExpense, fragment_ManageExternalAddExpense,
-            fragment_ManageExternalPreviewModelInvoice, fragment_ManageExternalAddModelInvoice,
-            fragment_ManageExternalPreviewModelIncome, fragment_ManageExternalAddModelIncome;
 
     private LinearLayout fragment_ManageExternalLoadingScreen;
-
-    private RecyclerView fragment_ManageExternalRecyclerviewInvoices,
-            fragment_ManageExternalRecyclerviewIncomes,
-            fragment_ManageExternalRecyclerviewExpenses,
-            fragment_ManageExternalRecyclerviewModelInvoice,
-            fragment_ManageExternalRecyclerviewModelIncome;
-
-    private TextView fragment_ManageExternalInvoiceNb, fragment_ManageExternalIncomeNb, fragment_ManageExternalExpenseNb,
-            fragment_ManageExternalModelIncomeNb, fragment_ManageExternalModelInvoiceNb;
 
     private BudgetRequests budgetRequests;
     private String login;
@@ -73,7 +58,7 @@ public class ManageExternalDatas extends Fragment implements
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentManageExternalDatasBinding.inflate(inflater, container, false);
-        viewRoot = binding.getRoot();
+        View viewRoot = binding.getRoot();
 
         initFields();
 
@@ -100,61 +85,47 @@ public class ManageExternalDatas extends Fragment implements
         }
     }
 
+    private ExternalDataTile externalDataTileInvoice, externalDataTileIncome, externalDataTileExpense,
+        externalDataTileModelInvoice, externalDataTileModelIncome;
+
+    private final LinearLayout.LayoutParams tileLayoutParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+
     private void initializeUi() {
         fragment_ManageExternalLoadingScreen = binding.fragmentManageExternalLoadingScreen;
 
-        fragment_ManageExternalPreviewInvoice = binding.fragmentManageExternalPreviewInvoice;
-        fragment_ManageExternalPreviewIncome = binding.fragmentManageExternalPreviewIncome;
-        fragment_ManageExternalPreviewExpense = binding.fragmentManageExternalPreviewExpenses;
-        fragment_ManageExternalPreviewModelInvoice = binding.fragmentManageExternalPreviewModelInvoice;
-        fragment_ManageExternalPreviewModelIncome = binding.fragmentManageExternalPreviewModelIncome;
+        LinearLayout fragment_ManageExternalTilesContainer = binding.fragmentManageExternalTilesContainer;
 
-        fragment_ManageExternalRecyclerviewInvoices = binding.fragmentManageExternalRecyclerviewInvoices;
-        fragment_ManageExternalRecyclerviewIncomes = binding.fragmentManageExternalRecyclerviewIncomes;
-        fragment_ManageExternalRecyclerviewExpenses = binding.fragmentManageExternalRecyclerviewExpenses;
-        fragment_ManageExternalRecyclerviewModelInvoice = binding.fragmentManageExternalRecyclerviewModelInvoice;
-        fragment_ManageExternalRecyclerviewModelIncome = binding.fragmentManageExternalRecyclerviewModelIncome;
+        externalDataTileInvoice = new ExternalDataTile(requireContext(), Enums.TransactionType.INVOICE, this);
+        externalDataTileInvoice.setLayoutParams(tileLayoutParams);
+        externalDataTileInvoice.setTitle(getString(R.string.invoices));
 
+        externalDataTileIncome = new ExternalDataTile(requireContext(), Enums.TransactionType.INCOME, this);
+        externalDataTileIncome.setLayoutParams(tileLayoutParams);
+        externalDataTileIncome.setTitle(getString(R.string.income));
 
-        fragment_ManageExternalAddInvoice = binding.fragmentManageExternalAddInvoice;
-        fragment_ManageExternalAddIncome = binding.fragmentManageExternalAddIncome;
-        fragment_ManageExternalAddExpense = binding.fragmentManageExternalAddExpenses;
-        fragment_ManageExternalAddModelInvoice = binding.fragmentManageExternalAddModelInvoice;
-        fragment_ManageExternalAddModelIncome = binding.fragmentManageExternalAddModelIncome;
+        externalDataTileExpense = new ExternalDataTile(requireContext(), Enums.TransactionType.EXPENSE, this);
+        externalDataTileExpense.setLayoutParams(tileLayoutParams);
+        externalDataTileExpense.setTitle(getString(R.string.expenses));
 
-        fragment_ManageExternalInvoiceNb = binding.fragmentManageExternalInvoiceNb;
-        fragment_ManageExternalIncomeNb = binding.fragmentManageExternalIncomeNb;
-        fragment_ManageExternalExpenseNb = binding.fragmentManageExternalExpenseNb;
-        fragment_ManageExternalModelIncomeNb = binding.fragmentManageExternalModelIncomeNb;
-        fragment_ManageExternalModelInvoiceNb = binding.fragmentManageExternalModelInvoiceNb;
+        externalDataTileModelInvoice = new ExternalDataTile(requireContext(), Enums.TransactionType.MODELINVOICE, this);
+        externalDataTileModelInvoice.setLayoutParams(tileLayoutParams);
+        externalDataTileModelInvoice.setTitle(getString(R.string.model_invoice));
+
+        externalDataTileModelIncome = new ExternalDataTile(requireContext(), Enums.TransactionType.MODELINCOME, this);
+        externalDataTileModelIncome.setLayoutParams(tileLayoutParams);
+        externalDataTileModelIncome.setTitle(getString(R.string.model_income));
+
+        fragment_ManageExternalTilesContainer.addView(externalDataTileInvoice.getLayout());
+        fragment_ManageExternalTilesContainer.addView(externalDataTileIncome.getLayout());
+        fragment_ManageExternalTilesContainer.addView(externalDataTileExpense.getLayout());
+        fragment_ManageExternalTilesContainer.addView(externalDataTileModelInvoice.getLayout());
+        fragment_ManageExternalTilesContainer.addView(externalDataTileModelIncome.getLayout());
     }
 
     private void initializeUiEvents() {
-        fragment_ManageExternalPreviewInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewInvoices));
-        fragment_ManageExternalAddInvoice.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.INVOICE, true);
-        });
-
-        fragment_ManageExternalPreviewIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewIncomes));
-        fragment_ManageExternalAddIncome.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.INCOME, true);
-        });
-
-        fragment_ManageExternalPreviewExpense.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewExpenses));
-        fragment_ManageExternalAddExpense.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.EXPENSE, true);
-        });
-
-        fragment_ManageExternalPreviewModelInvoice.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelInvoice));
-        fragment_ManageExternalAddModelInvoice.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.MODELINVOICE, true);
-        });
-
-        fragment_ManageExternalPreviewModelIncome.setOnClickListener(v -> toggleRecyclerView(fragment_ManageExternalRecyclerviewModelIncome));
-        fragment_ManageExternalAddModelIncome.setOnClickListener(v -> {
-            popupHelper.popupAddElement(Enums.TransactionType.MODELINCOME, true);
-        });
-
         budgetRequests.handleLogin();
     }
 
@@ -205,25 +176,30 @@ public class ManageExternalDatas extends Fragment implements
         ElementAdapter elementAdapterModelIncome = new ElementAdapter(requireContext(), listOfModelIncomeTransaction, null, this, true);
         ElementAdapter elementAdapterModelInvoice = new ElementAdapter(requireContext(), listOfModelInvoiceTransaction, null, this, true);
 
-        fragment_ManageExternalInvoiceNb.setText(String.valueOf(elementAdapterInvoice.getItemCount()));
-        fragment_ManageExternalIncomeNb.setText(String.valueOf(elementAdapterIncome.getItemCount()));
-        fragment_ManageExternalExpenseNb.setText(String.valueOf(elementAdapterExpense.getItemCount()));
-        fragment_ManageExternalModelIncomeNb.setText(String.valueOf(elementAdapterModelIncome.getItemCount()));
-        fragment_ManageExternalModelInvoiceNb.setText(String.valueOf(elementAdapterModelInvoice.getItemCount()));
+        externalDataTileInvoice.setNbElements(String.valueOf(elementAdapterInvoice.getItemCount()));
+        externalDataTileIncome.setNbElements(String.valueOf(elementAdapterIncome.getItemCount()));
+        externalDataTileExpense.setNbElements(String.valueOf(elementAdapterExpense.getItemCount()));
+        externalDataTileModelIncome.setNbElements(String.valueOf(elementAdapterModelIncome.getItemCount()));
+        externalDataTileModelInvoice.setNbElements(String.valueOf(elementAdapterModelInvoice.getItemCount()));
 
-        fragment_ManageExternalRecyclerviewInvoices.setAdapter(elementAdapterInvoice);
-        fragment_ManageExternalRecyclerviewIncomes.setAdapter(elementAdapterIncome);
-        fragment_ManageExternalRecyclerviewExpenses.setAdapter(elementAdapterExpense);
-        fragment_ManageExternalRecyclerviewModelIncome.setAdapter(elementAdapterModelIncome);
-        fragment_ManageExternalRecyclerviewModelInvoice.setAdapter(elementAdapterModelInvoice);
+        externalDataTileInvoice.getManageExternDataTileListElementsContainer().setAdapter(elementAdapterInvoice);
+        externalDataTileIncome.getManageExternDataTileListElementsContainer().setAdapter(elementAdapterIncome);
+        externalDataTileExpense.getManageExternDataTileListElementsContainer().setAdapter(elementAdapterExpense);
+        externalDataTileModelIncome.getManageExternDataTileListElementsContainer().setAdapter(elementAdapterModelIncome);
+        externalDataTileModelInvoice.getManageExternDataTileListElementsContainer().setAdapter(elementAdapterModelInvoice);
 
-        fragment_ManageExternalRecyclerviewInvoices.setLayoutManager(new LinearLayoutManager(requireContext()));
-        fragment_ManageExternalRecyclerviewIncomes.setLayoutManager(new LinearLayoutManager(requireContext()));
-        fragment_ManageExternalRecyclerviewExpenses.setLayoutManager(new LinearLayoutManager(requireContext()));
-        fragment_ManageExternalRecyclerviewModelIncome.setLayoutManager(new LinearLayoutManager(requireContext()));
-        fragment_ManageExternalRecyclerviewModelInvoice.setLayoutManager(new LinearLayoutManager(requireContext()));
+        externalDataTileInvoice.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
+        externalDataTileIncome.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
+        externalDataTileExpense.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
+        externalDataTileModelIncome.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
+        externalDataTileModelInvoice.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
 
         if (!isNull(fragment_ManageExternalLoadingScreen) && fragment_ManageExternalLoadingScreen.getVisibility() == View.VISIBLE) fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
+    }
+
+    private void exitFragment(){
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        fragmentManager.popBackStack();
     }
 
     @Override
@@ -252,15 +228,6 @@ public class ManageExternalDatas extends Fragment implements
         budgetRequests.addTransaction(label, amount, String.valueOf(type));
     }
 
-    private void toggleRecyclerView(RecyclerView recyclerView) {
-        recyclerView.setVisibility(recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-    }
-
-    private void exitFragment(){
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        fragmentManager.popBackStack();
-    }
-
     @Override
     public void tokenNonOk() {
         functions.makeToast("Session expirée, veuillez vous reconnecter.");
@@ -281,5 +248,15 @@ public class ManageExternalDatas extends Fragment implements
 
     @Override
     public void previewDatas(Enums.DataToRequest type) {
+    }
+
+    @Override
+    public void externalDataTileAddElementClicked(Enums.TransactionType type) {
+        popupHelper.popupAddElement(type, true);
+    }
+
+    @Override
+    public void externalDataTilePreviewElementsClicked(ExternalDataTile tile){
+        tile.toggleRecyclerView();
     }
 }

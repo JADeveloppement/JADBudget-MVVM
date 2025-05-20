@@ -7,7 +7,6 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,7 +34,6 @@ import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
-import fr.jadeveloppement.budgetsjad.ui.home.HomeFragment;
 
 public class PopupHelper {
 
@@ -118,10 +116,6 @@ public class PopupHelper {
                 popupContainer.closePopup();
             }
         });
-    }
-
-    public void popupAddExternal(Enums.TransactionType type){
-
     }
 
     public void popupManageAccounts(){
