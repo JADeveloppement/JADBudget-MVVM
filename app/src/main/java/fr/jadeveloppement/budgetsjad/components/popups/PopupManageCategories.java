@@ -50,26 +50,14 @@ public class PopupManageCategories extends LinearLayout {
         this.layoutAddCategorySaveBtn = popupLayout.findViewById(R.id.popupManageCategoriesAddCategoryBtnSave);
         this.popupManageCategoriesListContainer = popupLayout.findViewById(R.id.popupManageCategoriesListContainer);
         this.functions = new Functions(context);
-    }
-
-    public PopupManageCategories(@NonNull Context c, List<CategoryTable> catList){
-        super(c.getApplicationContext());
-        this.context = c.getApplicationContext();
-        this.popupLayout = LayoutInflater.from(context).inflate(R.layout.popup_manage_categories, (ViewGroup) MainActivity.getViewRoot(), false);
-        this.btnClose = popupLayout.findViewById(R.id.popupManageCategoriesBtnClose);
-        this.btnAddCategory = popupLayout.findViewById(R.id.popupManageCategoriesBtnAdd);
-        this.layoutAddCategory = popupLayout.findViewById(R.id.popupManageCategoriesAddCategoryLayout);
-        this.layoutAddCategoryLabel = popupLayout.findViewById(R.id.popupManageCategoriesAddCategoryLabel);
-        this.layoutAddCategorySaveBtn = popupLayout.findViewById(R.id.popupManageCategoriesAddCategoryBtnSave);
-        this.popupManageCategoriesListContainer = popupLayout.findViewById(R.id.popupManageCategoriesListContainer);
-        this.listOfCategories = isNull(catList) ? Collections.emptyList() : catList;
-        this.functions = new Functions(context);
 
         initPopup();
     }
 
-    private void initPopup(){
+    public void initPopup(){
+        this.listOfCategories = functions.getAllCategories();
         if (!listOfCategories.isEmpty()){
+            popupManageCategoriesListContainer.removeAllViews();
             for(CategoryTable c : listOfCategories){
                 CategoryLayout catLayout = new CategoryLayout(context, c);
 

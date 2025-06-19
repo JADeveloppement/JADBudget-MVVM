@@ -79,15 +79,47 @@
                 android:padding="@dimen/paddingM"
                 android:background="@drawable/rounded_box">
 
-                <com.google.android.flexbox.FlexboxLayout
-                    android:id="@+id/menuManageImportExportContainer"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:flexWrap="wrap"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"/>
+                    app:layout_constraintStart_toStartOf="parent">
+
+                    <LinearLayout
+                        android:id="@+id/menuManageImportExportLoginStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/paddingM"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/iconS"
+                            android:layout_height="@dimen/iconS"
+                            android:background="@drawable/check"
+                            android:layout_marginEnd="@dimen/paddingM"/>
+
+                        <TextView
+                            android:id="@+id/menuManageImportExportLoginTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Connecté en tant que Jalal"/>
+
+                    </LinearLayout>
+
+                    <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/menuManageImportExportContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:flexWrap="wrap" />
+
+
+                </LinearLayout>
+
 
                 <LinearLayout
                     android:id="@+id/menuManageImportExportLoadingScreen"

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -66,6 +67,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
     private PopupHelper popupHelper;
 
+    private LinearLayout menuManageImportExportLoginStatus;
+    private TextView menuManageImportExportLoginTv;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -89,6 +93,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         FlexboxLayout menuModelsContainer = binding.menuModelsContainer;
         FlexboxLayout menuManageDatasContainer = binding.menuManageDatasContainer;
         FlexboxLayout menuManageImportExportContainer = binding.menuManageImportExportContainer;
+
+        menuManageImportExportLoginTv = binding.menuManageImportExportLoginTv;
+        menuManageImportExportLoginStatus = binding.menuManageImportExportLoginStatus;
 
         menuManageImportExportLoadingScreen = binding.menuManageImportExportLoadingScreen;
 
@@ -225,6 +232,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
     private void handleLoginMenuVisibility(boolean isLogged) {
         menuManageImportExportLoadingScreen.setVisibility(View.GONE);
+
+        menuManageImportExportLoginStatus.setVisibility(isLogged ? View.VISIBLE : View.GONE);
+        menuManageImportExportLoginTv.setText(isLogged ? "Connecté.e en tant que " + functions.getSettingByLabel(Variables.settingUsername).value : "");
 
         menuLogin.getLayout().setVisibility(isLogged ? View.GONE : View.VISIBLE);
         menuLogout.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);

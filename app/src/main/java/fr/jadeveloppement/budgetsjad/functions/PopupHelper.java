@@ -55,6 +55,10 @@ public class PopupHelper {
         void popupAddElementBtnSaveClicked(String label, String amount, Enums.TransactionType type);
     }
 
+    public interface PopupHelperCategoryAdded{
+        void categoryAdded();
+    }
+
     public PopupHelper(@NonNull Context c, @Nullable PopupHelperAddElementBtnClicked call){
         this.context = c.getApplicationContext();
         this.budgetViewModel = null;
@@ -70,10 +74,8 @@ public class PopupHelper {
     }
 
     public void popupManageCategories(){
-        List<CategoryTable> categoryTableList = functions.getAllCategories();
-
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
-        PopupManageCategories popupManageCategories = new PopupManageCategories(context, categoryTableList);
+        PopupManageCategories popupManageCategories = new PopupManageCategories(context);
 
         popupContainer.addContent(popupManageCategories.getLayout());
         popupManageCategories.getBtnClose().setOnClickListener(v -> {
@@ -95,7 +97,8 @@ public class PopupHelper {
             CategoryTable categoryTable = new CategoryTable(label);
             functions.insertCategory(categoryTable);
             functions.makeToast("Catégorie '"+label+"' créée avec succès.");
-            popupContainer.closePopup();
+
+            if (!isNull(popupManageCategories)) popupManageCategories.initPopup();
         });
     }
 
