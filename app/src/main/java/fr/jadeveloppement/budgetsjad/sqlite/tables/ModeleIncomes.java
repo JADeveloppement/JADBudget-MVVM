@@ -12,4 +12,6 @@ public class ModeleIncomes {
     public String date;
     public String amount;
     public String paid;
+
+    public Long category_id;
 }

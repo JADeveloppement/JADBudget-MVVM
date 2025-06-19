@@ -14,6 +14,7 @@ import java.util.List;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteAccountsFunctions;
+import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteCategoryFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteExpensesFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteIncomesFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteInvoicesFunctions;
@@ -22,6 +23,7 @@ import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteModeleInvoiceFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLitePeriodsFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteSettingsFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
@@ -42,6 +44,8 @@ public class SQLiteFunctions {
     private final SQLiteModeleInvoiceFunctions sqLiteModeleInvoiceFunctions;
     private final SQLiteModeleIncomeFunctions sqLiteModeleIncomeFunctions;
 
+    private final SQLiteCategoryFunctions sqLiteCategoryFunctions;
+
 
     public SQLiteFunctions(@NonNull Context c){
         this.context = c.getApplicationContext();
@@ -53,6 +57,7 @@ public class SQLiteFunctions {
         this.sqLiteExpensesFunctions = new SQLiteExpensesFunctions(context);
         this.sqLiteModeleInvoiceFunctions = new SQLiteModeleInvoiceFunctions(context);
         this.sqLiteModeleIncomeFunctions = new SQLiteModeleIncomeFunctions(context);
+        this.sqLiteCategoryFunctions = new SQLiteCategoryFunctions(context);
     }
     public List<AccountsTable> getAllAccounts() {
         return sqLiteAccountsFunctions.getAllAccounts();
@@ -69,6 +74,32 @@ public class SQLiteFunctions {
     public void updateAccount(AccountsTable a) {
         sqLiteAccountsFunctions.updateAccount(a);
     }
+
+    // CATEGORY
+    public List<CategoryTable> getAllCategories() {
+        return sqLiteCategoryFunctions.getAllCategories();
+    }
+
+    public CategoryTable getCategoryById(long id){
+        return sqLiteCategoryFunctions.getCategoryById(id);
+    }
+
+    public CategoryTable getCategoryByLabel(@NonNull String label) {
+        return sqLiteCategoryFunctions.getCategoryByLabel(label);
+    }
+
+    public Long insertCategory(CategoryTable categoryTable) {
+        return sqLiteCategoryFunctions.insertCategory(categoryTable);
+    }
+
+    public void deleteCategory(CategoryTable categoryTable) {
+        sqLiteCategoryFunctions.deleteCategory(categoryTable);
+    }
+
+    public void updateCategory(CategoryTable categoryTable) {
+        sqLiteCategoryFunctions.updateCategory(categoryTable);
+    }
+    //
 
     public List<PeriodsTable> getAllPeriods() {
         return sqlitePeriodsFunctions.getAllPeriods();

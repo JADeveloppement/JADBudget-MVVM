@@ -29,11 +29,8 @@ public class ApiURLBuilder {
 
     public String build(@NonNull String endpoint, @NonNull String... params){
         String URL = baseUrl + endpoint;
-        Log.d(TAG, "ApiURLBuilder > build\nURL : " + URL);
-        for(int i = 0; i < params.length; i+= 2){
+        for(int i = 0; i < params.length; i+= 2)
             URL = URL.replace(params[i], params[i+1]);
-            Log.d(TAG, "ApiURLBuilder > build\nURL : " + URL);
-        }
         return URL;
     }
 }

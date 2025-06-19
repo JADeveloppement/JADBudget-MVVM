@@ -194,6 +194,12 @@ public class ManageExternalDatas extends Fragment
         externalDataTileModelIncome.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
         externalDataTileModelInvoice.getManageExternDataTileListElementsContainer().setLayoutManager(new LinearLayoutManager(requireContext()));
 
+        externalDataTileInvoice.getManageExternDataTilePreviewElements().setVisibility(listOfInvoiceTransaction.isEmpty() ? View.GONE : View.VISIBLE);
+        externalDataTileIncome.getManageExternDataTilePreviewElements().setVisibility(listOfIncomeTransaction.isEmpty() ? View.GONE : View.VISIBLE);
+        externalDataTileExpense.getManageExternDataTilePreviewElements().setVisibility(listOfExpenseTransaction.isEmpty() ? View.GONE : View.VISIBLE);
+        externalDataTileModelInvoice.getManageExternDataTilePreviewElements().setVisibility(listOfModelInvoiceTransaction.isEmpty() ? View.GONE : View.VISIBLE);
+        externalDataTileModelIncome.getManageExternDataTilePreviewElements().setVisibility(listOfModelIncomeTransaction.isEmpty() ? View.GONE : View.VISIBLE);
+
         if (!isNull(fragment_ManageExternalLoadingScreen) && fragment_ManageExternalLoadingScreen.getVisibility() == View.VISIBLE) fragment_ManageExternalLoadingScreen.setVisibility(View.GONE);
     }
 

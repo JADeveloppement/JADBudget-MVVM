@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         SettingsTable settingsPeriod = functions.getSettingByLabel(Variables.settingPeriod);
+        Log.d(TAG, "MainActivity > onCreate: settingsPeriod : " + settingsPeriod.label);
         if (isNull(settingsPeriod)){
-            Log.d(TAG, "MainActivity > onCreate: Create setting Period data");
             SettingsTable settingPeriod = new SettingsTable();
             settingPeriod.label = Variables.settingPeriod;
             settingPeriod.value = String.valueOf(functions.getAllPeriods().get(0).period_id);

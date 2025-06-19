@@ -51,7 +51,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     private final String TAG = "JadBudget";
 
     private MenuIcon
-            menuAddInvoice, menuAddIncome, menuAddExpense,
+            menuAddInvoice, menuAddIncome, menuAddExpense, menuManageCategory,
             menuModelIncome, menuModelInvoice,
             menuManageAccounts, menuManagePeriods,
             menuLogin, menuLogout, menuManageExternalDatas, menuDownload, menuUpload;
@@ -96,10 +96,12 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         menuAddInvoice = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nprélèvement", R.drawable.invoice);
         menuAddIncome = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nrevenu", R.drawable.income);
         menuAddExpense = new MenuIcon(requireContext(), menuAddElementContainer, "Nouvelle\ndépense", R.drawable.expense);
+        menuManageCategory = new MenuIcon(requireContext(), menuAddElementContainer, "Catégories", R.drawable.categorie);
 
         menuAddElementContainer.addView(menuAddInvoice.getLayout());
         menuAddElementContainer.addView(menuAddIncome.getLayout());
         menuAddElementContainer.addView(menuAddExpense.getLayout());
+        menuAddElementContainer.addView(menuManageCategory.getLayout());
         //
 
         // Models MENU
@@ -144,6 +146,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         });
         menuAddExpense.getLayout().setOnClickListener(v -> {
             popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
+        });
+        menuManageCategory.getLayout().setOnClickListener(v -> {
+            popupHelper.popupManageCategories();
         });
         //
 

@@ -21,4 +21,6 @@ public class ExpensesTable {
     public String label;
     public String date;
     public String amount;
+
+    public Long category_id;
 }

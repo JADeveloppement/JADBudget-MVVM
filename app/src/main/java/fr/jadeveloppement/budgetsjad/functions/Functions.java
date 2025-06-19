@@ -24,6 +24,7 @@ import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.SQLiteFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
@@ -167,7 +168,7 @@ public class Functions {
         else {
             for (Transaction t : listOfTransaction) {
                 result.add(t.getId() + "<l>"
-                        + t.getLabel() + "<l>"
+                        + sanitizeDatas(t.getLabel()) + "<l>"
                         + t.getAmount() + "<l>"
                         + t.getDate() + "<l>"
                         + t.getAccount() + "<l>"
@@ -176,6 +177,11 @@ public class Functions {
             }
         }
         return TextUtils.join("<n>", result);
+    }
+
+    private String sanitizeDatas(String label) {
+        String regex = "[&=;%+#/?<>\\\\\\[\\]{}|^`\\s'\"]";
+        return label.replaceAll(regex, "");
     }
 
     public Transaction convertObjectToTransaction(Object o) throws Exception {
@@ -270,6 +276,30 @@ public class Functions {
             settingAccount.value = String.valueOf(getAllAccounts().get(0).account_id);
             updateSettings(settingAccount);
         }
+    }
+    //
+
+    // CATEGORY MANAGEMENT
+    public List<CategoryTable> getAllCategories(){
+        return sqliteFunctions.getAllCategories();
+    }
+
+    public CategoryTable getCategoryById(long id) {
+        return sqliteFunctions.getCategoryById(id);
+    }
+
+    public Long insertCategory(CategoryTable categoryTable){
+        CategoryTable catLabel = sqliteFunctions.getCategoryByLabel(categoryTable.label);
+        if (isNull(catLabel)) return sqliteFunctions.insertCategory(categoryTable);
+        else return null;
+    }
+
+    public void updateCategory(CategoryTable categoryTable) {
+        sqliteFunctions.updateCategory(categoryTable);
+    }
+
+    public void deleteCategory(CategoryTable categoryTable){
+        sqliteFunctions.deleteCategory(categoryTable);
     }
     //
 

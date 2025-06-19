@@ -180,7 +180,7 @@ public class BudgetRequests {
     public void makeExportDatas(@NonNull String t, @NonNull String datas){
         String URL = apiURLBuilder.build(URL_EXPORTDATA, loginUrlField, login, passwordUrlField, password, tokenUrlField, t, datasUrlField, datas);
 
-        Log.d(TAG, "makeSaveDatas: URL > " + URL);
+        Log.d(TAG, "BudgetRequests > makeSaveDatas: URL > " + URL);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {

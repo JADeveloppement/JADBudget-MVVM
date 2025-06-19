@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/paddingM">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="10"
+        android:paddingVertical="@dimen/paddingM"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/paddingXL">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconXL"
+                android:layout_height="@dimen/iconXL"
+                android:background="@drawable/categorie"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/popupContentElementTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            android:text="@string/categories"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/orange1"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/popupManageCategoriesBtnClose"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_marginEnd="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/close" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/list_of_categories"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_box_border"
+            android:layout_marginTop="@dimen/paddingM"
+            android:padding="@dimen/paddingM">
+
+            <LinearLayout
+                android:id="@+id/popupManageCategoriesListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+        </ScrollView>
+
+        <Button
+            android:id="@+id/popupManageCategoriesBtnAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/paddingL"
+            android:backgroundTint="@color/orange1"
+            android:textColor="@color/white"
+            android:text="@string/add_category"/>
+
+        <LinearLayout
+            android:id="@+id/popupManageCategoriesAddCategoryLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/paddingM"
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_box_border"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/paddingL">
+
+            <EditText
+                android:id="@+id/popupManageCategoriesAddCategoryLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/label_category"
+                android:singleLine="true"/>
+
+            <Button
+                android:id="@+id/popupManageCategoriesAddCategoryBtnSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/add"
+                android:backgroundTint="@color/orange1"
+                android:textColor="@color/white"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

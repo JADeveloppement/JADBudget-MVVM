@@ -5,8 +5,10 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
 
 import fr.jadeveloppement.budgetsjad.sqlite.dao.AccountsDAO;
+import fr.jadeveloppement.budgetsjad.sqlite.dao.CategoryDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.ExpensesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.IncomesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.InvoicesDAO;
@@ -14,7 +16,9 @@ import fr.jadeveloppement.budgetsjad.sqlite.dao.ModeleIncomesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.ModeleInvoicesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.PeriodsDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.SettingsDAO;
+import fr.jadeveloppement.budgetsjad.sqlite.migrations.Migration_1_2;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
@@ -32,9 +36,10 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
                 ExpensesTable.class,
                 AccountsTable.class,
                 SettingsTable.class,
-                PeriodsTable.class
+                PeriodsTable.class,
+                CategoryTable.class
         },
-        version = 1
+        version = 2
 )
 public abstract class DatabaseInstance extends RoomDatabase {
     private static volatile DatabaseInstance INSTANCE;
@@ -48,6 +53,8 @@ public abstract class DatabaseInstance extends RoomDatabase {
     public abstract SettingsDAO settingsDAO();
     public abstract PeriodsDAO periodsDAO();
 
+    public abstract CategoryDAO categoryDAO();
+
     public static DatabaseInstance getInstance(Context c){
         if (INSTANCE == null){
             synchronized (DatabaseInstance.class) {
@@ -57,6 +64,7 @@ public abstract class DatabaseInstance extends RoomDatabase {
                                     DatabaseInstance.class,
                                     "BudgetsJAD.db"
                             )
+                            .addMigrations(new Migration_1_2())
                             .build();
                 }
             }
