@@ -8,6 +8,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -114,6 +115,15 @@ public class Functions {
     public static void makeSnakebar(String message) {
         Snackbar snackbar = Snackbar.make(MainActivity.getViewRoot(), message, Snackbar.LENGTH_SHORT);
         snackbar.show();
+    }
+
+    /**
+     * Generic function to handle potential catch case or exception
+     * @param s : Message to display in log
+     * @param e : error to display with the log message
+     */
+    public static void handleExceptions(String s, Exception e) {
+        Log.d(TAG, "handleExceptions: " + s + "\nException : \n"+e);
     }
 
     /**
@@ -241,15 +251,6 @@ public class Functions {
         if (isNull(convertedObject)) throw new Exception("No type match object");
 
         return convertedObject;
-    }
-
-    /**
-     * Generic function to handle potential catch case or exception
-     * @param s : Message to display in log
-     * @param e : error to display with the log message
-     */
-    public static void handleExceptions(String s, Exception e) {
-        Log.d(TAG, "handleExceptions: " + s + "\nException : \n"+e);
     }
 
     // ACCOUNTS MANAGEMENT

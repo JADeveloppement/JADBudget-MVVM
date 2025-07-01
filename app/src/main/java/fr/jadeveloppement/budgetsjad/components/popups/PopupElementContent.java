@@ -6,18 +6,26 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
+import fr.jadeveloppement.budgetsjad.functions.Functions;
+import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 
 public class PopupElementContent extends LinearLayout {
 
@@ -45,7 +53,8 @@ public class PopupElementContent extends LinearLayout {
     private EditText popupContentElementLabel, popupContentElementAmount;
     private CheckBox popupContentElementIsPaid;
     private Button popupContentElementBtnSave, popupContentElementBtnDelete;
-    private LinearLayout popupContentElementBtnClose, popupContentElementPeriodLayout;
+    private LinearLayout popupContentElementBtnClose, popupContentElementPeriodLayout, popupContentElementCategoryLayout;
+    private Spinner popupContentElementCategorySpinner;
 
     private void initPopupContent() {
         popupContentElementTitle = popupElementContent.findViewById(R.id.popupContentElementTitle);
@@ -57,6 +66,8 @@ public class PopupElementContent extends LinearLayout {
         popupContentElementBtnDelete = popupElementContent.findViewById(R.id.popupContentElementBtnDelete);
         popupContentElementBtnClose = popupElementContent.findViewById(R.id.popupContentElementBtnClose);
         popupContentElementPeriodLayout = popupElementContent.findViewById(R.id.popupContentElementPeriodLayout);
+        popupContentElementCategorySpinner = popupElementContent.findViewById(R.id.popupContentElementCategorySpinner);
+        popupContentElementCategoryLayout = popupElementContent.findViewById(R.id.popupContentElementCategoryLayout);
 
         initVisibility();
     }
@@ -66,6 +77,17 @@ public class PopupElementContent extends LinearLayout {
         if (!isNull(element)){
             popupContentElementIsPaid.setVisibility((element.getType() != Enums.TransactionType.INVOICE) ? View.GONE : View.VISIBLE);
         }
+        String useCategory = (new Functions(context)).getSettingByLabel(Variables.settingCategory).value;
+        List<CategoryTable> categories = (new Functions(context)).getAllCategories();
+        popupContentElementCategoryLayout.setVisibility(useCategory.equalsIgnoreCase("0") || categories.isEmpty() ? View.GONE : View.VISIBLE);
+        if (useCategory.equalsIgnoreCase("1")){
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories.stream().map(category -> category.label).collect(Collectors.toList()));
+            popupContentElementCategorySpinner.setAdapter(arrayAdapter);
+        }
+    }
+
+    public LinearLayout getPopupContentElementCategoryLayout(){
+        return popupContentElementCategoryLayout;
     }
 
     public LinearLayout getPopupContentElementPeriodLayout(){

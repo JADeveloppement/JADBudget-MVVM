@@ -99,15 +99,13 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
 
                 popupElementContent.getPopupContentElementPeriodTv().setText(Functions.convertStdDateToLocale(currentItem.getDate()));
                 String typeStr = "";
-                if (currentItem.getType() == Enums.TransactionType.INVOICE){
-                    typeStr = "un prélèvement";
-                } else if (currentItem.getType() == Enums.TransactionType.INCOME){
-                    typeStr = "un revenu";
-                } else if (currentItem.getType() == Enums.TransactionType.EXPENSE){
-                    typeStr = "une dépense";
-                } else if (currentItem.getType() == Enums.TransactionType.MODELINCOME ||
+                if (currentItem.getType() == Enums.TransactionType.INVOICE) typeStr = "un prélèvement";
+                else if (currentItem.getType() == Enums.TransactionType.INCOME) typeStr = "un revenu";
+                else if (currentItem.getType() == Enums.TransactionType.EXPENSE) typeStr = "une dépense";
+                else if (currentItem.getType() == Enums.TransactionType.MODELINCOME ||
                         currentItem.getType() == Enums.TransactionType.MODELINVOICE){
                     typeStr = "un modèle";
+                    popupElementContent.getPopupContentElementCategoryLayout().setVisibility(View.GONE);
                 }
 
                 popupElementContent.getPopupContentElementTitle().setText("Editer " + typeStr);
