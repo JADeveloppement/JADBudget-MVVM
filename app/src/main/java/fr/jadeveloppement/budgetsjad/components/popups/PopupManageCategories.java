@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -22,7 +23,9 @@ import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.CategoryLayout;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
+import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 
 public class PopupManageCategories extends LinearLayout {
 
@@ -32,6 +35,7 @@ public class PopupManageCategories extends LinearLayout {
     private final View popupLayout;
     private final LinearLayout btnClose;
     private final Button btnAddCategory;
+    private final CheckBox popupManageCategoriesUseCategories;
     private final LinearLayout layoutAddCategory;
     private final EditText layoutAddCategoryLabel;
     private final Button layoutAddCategorySaveBtn;
@@ -49,13 +53,22 @@ public class PopupManageCategories extends LinearLayout {
         this.layoutAddCategoryLabel = popupLayout.findViewById(R.id.popupManageCategoriesAddCategoryLabel);
         this.layoutAddCategorySaveBtn = popupLayout.findViewById(R.id.popupManageCategoriesAddCategoryBtnSave);
         this.popupManageCategoriesListContainer = popupLayout.findViewById(R.id.popupManageCategoriesListContainer);
+        this.popupManageCategoriesUseCategories = popupLayout.findViewById(R.id.popupManageCategoriesUseCategories);
         this.functions = new Functions(context);
+
+        this.popupManageCategoriesUseCategories.setOnClickListener(v -> {
+            SettingsTable settingsTable = functions.getSettingByLabel(Variables.settingCategory);
+            settingsTable.value = this.popupManageCategoriesUseCategories.isChecked() ? "1" : "0";
+            functions.updateSettings(settingsTable);
+        });
 
         initPopup();
     }
 
     public void initPopup(){
         this.listOfCategories = functions.getAllCategories();
+        String useCategory = functions.getSettingByLabel(Variables.settingCategory).value;
+        popupManageCategoriesUseCategories.setChecked(useCategory.equalsIgnoreCase("1"));
         if (!listOfCategories.isEmpty()){
             popupManageCategoriesListContainer.removeAllViews();
             for(CategoryTable c : listOfCategories){

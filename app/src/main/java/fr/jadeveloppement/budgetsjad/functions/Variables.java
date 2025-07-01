@@ -11,6 +11,7 @@ public class Variables {
     public static final String settingsToken = "token_user";
     public static final String settingUsername = "username";
     public static final String settingPassword = "password";
+    public static final String settingCategory = "useCategories";
 
     public static final DecimalFormat decimalFormat = new DecimalFormat("0.00");
 

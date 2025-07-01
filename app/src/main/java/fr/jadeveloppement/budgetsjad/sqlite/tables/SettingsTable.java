@@ -12,4 +12,13 @@ public class SettingsTable {
 
     public String label;
     public String value;
+
+    public SettingsTable(){
+
+    }
+
+    public SettingsTable(String lab, String val) {
+        this.label = lab;
+        this.value = val;
+    }
 }

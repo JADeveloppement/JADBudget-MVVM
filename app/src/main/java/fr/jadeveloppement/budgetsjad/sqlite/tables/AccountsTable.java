@@ -10,4 +10,13 @@ public class AccountsTable {
 
     public String label;
     public String amount;
+
+    public AccountsTable(){
+
+    }
+
+    public AccountsTable(String accountName, String accountAmount) {
+        this.label = accountName;
+        this.amount = accountAmount;
+    }
 }

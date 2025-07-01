@@ -11,4 +11,12 @@ public class PeriodsTable {
     public long period_id;
 
     public String label;
+
+    public PeriodsTable(){
+
+    }
+
+    public PeriodsTable(String todayDate) {
+        this.label = todayDate;
+    }
 }

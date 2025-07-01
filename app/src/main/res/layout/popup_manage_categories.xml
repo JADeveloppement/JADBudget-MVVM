@@ -81,6 +81,21 @@
 
         </ScrollView>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/paddingM">
+
+            <CheckBox
+                android:id="@+id/popupManageCategoriesUseCategories"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Utiliser les catégories" />
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/popupManageCategoriesBtnAdd"
             android:layout_width="wrap_content"
