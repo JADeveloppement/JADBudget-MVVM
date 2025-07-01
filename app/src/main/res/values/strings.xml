@@ -47,5 +47,6 @@
     <string name="add_category">Ajouter une catégorie</string>
     <string name="list_of_categories">Liste des catégories</string>
     <string name="category">Catégorie</string>
+    <string name="categorize">Catégoriser</string>
 
 </resources>

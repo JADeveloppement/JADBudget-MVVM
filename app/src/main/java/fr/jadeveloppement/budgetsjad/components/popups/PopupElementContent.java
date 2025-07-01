@@ -51,7 +51,7 @@ public class PopupElementContent extends LinearLayout {
 
     private TextView popupContentElementTitle, popupContentElementPeriodTv;
     private EditText popupContentElementLabel, popupContentElementAmount;
-    private CheckBox popupContentElementIsPaid;
+    private CheckBox popupContentElementIsPaid, popupContentElementUseCategory;
     private Button popupContentElementBtnSave, popupContentElementBtnDelete;
     private LinearLayout popupContentElementBtnClose, popupContentElementPeriodLayout, popupContentElementCategoryLayout;
     private Spinner popupContentElementCategorySpinner;
@@ -68,26 +68,37 @@ public class PopupElementContent extends LinearLayout {
         popupContentElementPeriodLayout = popupElementContent.findViewById(R.id.popupContentElementPeriodLayout);
         popupContentElementCategorySpinner = popupElementContent.findViewById(R.id.popupContentElementCategorySpinner);
         popupContentElementCategoryLayout = popupElementContent.findViewById(R.id.popupContentElementCategoryLayout);
+        popupContentElementUseCategory = popupElementContent.findViewById(R.id.popupContentElementUseCategory);
 
         initVisibility();
     }
 
     private void initVisibility() {
         popupContentElementBtnDelete.setVisibility(!isNull(element) ? View.VISIBLE : View.GONE);
-        if (!isNull(element)){
-            popupContentElementIsPaid.setVisibility((element.getType() != Enums.TransactionType.INVOICE) ? View.GONE : View.VISIBLE);
-        }
+
+        if (!isNull(element)) popupContentElementIsPaid.setVisibility((element.getType() != Enums.TransactionType.INVOICE) ? View.GONE : View.VISIBLE);
+
         String useCategory = (new Functions(context)).getSettingByLabel(Variables.settingCategory).value;
         List<CategoryTable> categories = (new Functions(context)).getAllCategories();
         popupContentElementCategoryLayout.setVisibility(useCategory.equalsIgnoreCase("0") || categories.isEmpty() ? View.GONE : View.VISIBLE);
+        popupContentElementUseCategory.setChecked(useCategory.equalsIgnoreCase("1"));
+
         if (useCategory.equalsIgnoreCase("1")){
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories.stream().map(category -> category.label).collect(Collectors.toList()));
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, categories.stream().map(category -> category.label).collect(Collectors.toList()));
             popupContentElementCategorySpinner.setAdapter(arrayAdapter);
         }
     }
 
     public LinearLayout getPopupContentElementCategoryLayout(){
         return popupContentElementCategoryLayout;
+    }
+
+    public Spinner getPopupContentElementCategorySpinner(){
+        return popupContentElementCategorySpinner;
+    }
+
+    public CheckBox getPopupContentElementUseCategory(){
+        return popupContentElementUseCategory;
     }
 
     public LinearLayout getPopupContentElementPeriodLayout(){

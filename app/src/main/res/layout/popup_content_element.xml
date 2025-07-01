@@ -114,12 +114,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:background="@drawable/rounded_white_border_gray">
 
-        <TextView
+        <CheckBox
+            android:id="@+id/popupContentElementUseCategory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/category"/>
+            android:text="@string/categorize"/>
 
         <Spinner
             android:id="@+id/popupContentElementCategorySpinner"
@@ -133,7 +135,8 @@
         android:id="@+id/popupContentElementIsPaid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Prélevé ?"/>
+        android:text="Prélevé ?"
+        android:layout_marginTop="@dimen/paddingM"/>
 
     <Button
         android:id="@+id/popupContentElementBtnSave"
