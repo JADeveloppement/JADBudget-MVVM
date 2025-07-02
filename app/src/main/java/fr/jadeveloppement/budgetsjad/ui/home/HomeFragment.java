@@ -368,7 +368,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
                 if (datas.contains("<n>") && datas.contains("<l>")){
                     for(String row : datas.split("<n>")){
                         String[] cols = row.split("<l>");
-                        listOfDatas.add(new Transaction(cols[1], cols[2], cols[3], cols[4], cols[5], Functions.convertStrtypeToTransactionType(cols[6])));
+                        listOfDatas.add(new Transaction(cols[1], cols[2], cols[3], cols[4], cols[5], "", Functions.convertStrtypeToTransactionType(cols[6])));
                     }
                     popupHelper.displayListOfTransaction(new MutableLiveData<>(listOfDatas), type, true);
                 } else Functions.makeSnakebar("Aucune données à afficher.");

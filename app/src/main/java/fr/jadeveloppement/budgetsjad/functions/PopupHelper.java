@@ -132,6 +132,10 @@ public class PopupHelper {
         popupElementContent.getPopupContentElementBtnSave().setOnClickListener(v -> {
             String label = popupElementContent.getPopupContentElementLabel().getText().toString();
             String amount = popupElementContent.getPopupContentElementAmount().getText().toString();
+            String category = "";
+            if (popupElementContent.getPopupContentElementCategoryLayout().getVisibility() == View.VISIBLE && popupElementContent.getPopupContentElementUseCategory().isChecked()){
+                functions.makeToast("élement rajouté, catégorie : " + popupElementContent.getPopupContentElementCategorySpinner().getSelectedItem());
+            }
             if (label.isBlank() || amount.isBlank()) functions.makeToast("Veuillez renseigner tous les champs");
             else {
                 Transaction transaction = new Transaction(
@@ -139,6 +143,7 @@ public class PopupHelper {
                         amount,
                         Functions.convertLocaleDateToStd(popupElementContent.getPopupContentElementPeriodTv().getText().toString()),
                         settingsAccount.value,
+                        category,
                         type == Enums.TransactionType.INVOICE ? (popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0") : "0",
                         type
                 );

@@ -95,6 +95,7 @@ public class ModeleIncomesFragment extends Fragment {
                             "",
                             "",
                             "",
+                            "",
                             Enums.TransactionType.MODELINCOME
                     );
 

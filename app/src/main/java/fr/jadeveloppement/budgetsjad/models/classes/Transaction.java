@@ -12,6 +12,7 @@ public class Transaction {
     private String date;
     private String account;
     private String paid;
+    private String category ;
     private Enums.TransactionType type;
 
     /**
@@ -21,15 +22,17 @@ public class Transaction {
      * @param d : date
      * @param ac : account_id
      * @param pd : paid
+     * @param cat : category
      * @param t : type
      */
-    public Transaction(String l, String a, String d, String ac, String pd, Enums.TransactionType t, String... id){
+    public Transaction(String l, String a, String d, String ac, String pd, String cat, Enums.TransactionType t, String... id){
         this.transaction_id = id.length > 0 ? id[0] : "";
         this.label = l;
         this.amount = a;
         this.date = d;
         this.account = ac;
         this.paid = pd;
+        this.category = cat;
         this.type = t;
     }
 
@@ -57,6 +60,10 @@ public class Transaction {
         return paid.trim();
     }
 
+    public String getCategory(){
+        return category.trim();
+    }
+
     public Enums.TransactionType getType(){
         return type;
     }
@@ -75,6 +82,10 @@ public class Transaction {
 
     public void setPaid(String p){
         paid = p.trim();
+    }
+
+    public void setCategory(String cat){
+        category = cat.trim();
     }
 
     public void setType(Enums.TransactionType t){

@@ -93,6 +93,7 @@ public class ModeleInvoicesFragment extends Fragment {
                             "",
                             "",
                             "",
+                            "",
                             Enums.TransactionType.MODELINVOICE
                     );
 

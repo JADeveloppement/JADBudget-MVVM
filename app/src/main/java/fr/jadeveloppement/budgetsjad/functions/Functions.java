@@ -204,6 +204,7 @@ public class Functions {
                     i.date,
                     String.valueOf(i.account_id),
                     i.paid,
+                    String.valueOf(i.category_id),
                     Enums.TransactionType.INVOICE
             );
         } else if (o instanceof IncomesTable){
@@ -214,6 +215,7 @@ public class Functions {
                     i.date,
                     String.valueOf(i.account_id),
                     i.paid,
+                    String.valueOf(i.category_id),
                     Enums.TransactionType.INCOME
             );
         } else if (o instanceof ExpensesTable){
@@ -224,6 +226,7 @@ public class Functions {
                     i.date,
                     String.valueOf(i.account_id),
                     "0",
+                    String.valueOf(i.category_id),
                     Enums.TransactionType.EXPENSE
             );
         } else if (o instanceof ModeleInvoices){
@@ -234,6 +237,7 @@ public class Functions {
                     i.date,
                     "",
                     "0",
+                    String.valueOf(i.category_id),
                     Enums.TransactionType.MODELINVOICE
             );
         } else if (o instanceof ModeleIncomes){
@@ -244,6 +248,7 @@ public class Functions {
                     i.date,
                     "",
                     "0",
+                    String.valueOf(i.category_id),
                     Enums.TransactionType.MODELINCOME
             );
         }
@@ -289,10 +294,17 @@ public class Functions {
         return sqliteFunctions.getCategoryById(id);
     }
 
+    public CategoryTable getCategoryByLabel(@NonNull String label) {
+        return sqliteFunctions.getCategoryByLabel(label);
+    }
+
     public Long insertCategory(CategoryTable categoryTable){
-        CategoryTable catLabel = sqliteFunctions.getCategoryByLabel(categoryTable.label);
+        CategoryTable catLabel = getCategoryByLabel(categoryTable.label);
         if (isNull(catLabel)) return sqliteFunctions.insertCategory(categoryTable);
-        else return null;
+        else {
+            makeToast("Une catégorie similaire existe déjà.");
+            return null;
+        }
     }
 
     public void updateCategory(CategoryTable categoryTable) {
@@ -361,7 +373,7 @@ public class Functions {
         List<InvoicesTable> listOfInvoices = sqliteFunctions.getAllInvoices();
         List<Transaction> listOfTransactions = new ArrayList<>();
         for (InvoicesTable i : listOfInvoices){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, Enums.TransactionType.INVOICE, String.valueOf(i.invoice_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, String.valueOf(i.category_id), Enums.TransactionType.INVOICE, String.valueOf(i.invoice_id)));
         }
         return listOfTransactions;
     }
@@ -392,7 +404,7 @@ public class Functions {
         List<IncomesTable> listOfIncomes = sqliteFunctions.getAllIncomes();
         List<Transaction> listOfTransactions = new ArrayList<>();
         for (IncomesTable i : listOfIncomes){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, Enums.TransactionType.INCOME, String.valueOf(i.income_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, String.valueOf(i.category_id), Enums.TransactionType.INCOME, String.valueOf(i.income_id)));
         }
         return listOfTransactions;
     }
@@ -423,7 +435,7 @@ public class Functions {
         List<ExpensesTable> listOfExpenses = sqliteFunctions.getAlLExpenses();
         List<Transaction> listOfTransactions = new ArrayList<>();
         for (ExpensesTable i : listOfExpenses){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), "0", Enums.TransactionType.EXPENSE, String.valueOf(i.expense_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), "0", String.valueOf(i.category_id), Enums.TransactionType.EXPENSE, String.valueOf(i.expense_id)));
         }
         return listOfTransactions;
     }
@@ -450,7 +462,7 @@ public class Functions {
         List<ModeleInvoices> listOfModelInvoice = sqliteFunctions.getAllModelInvoice();
         List<Transaction> listOfTransactions = listOfModelInvoice.isEmpty() ? Collections.emptyList() : new ArrayList<>();
         for (ModeleInvoices i : listOfModelInvoice){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", Enums.TransactionType.MODELINVOICE, String.valueOf(i.modeleinvoice_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", String.valueOf(i.category_id), Enums.TransactionType.MODELINVOICE, String.valueOf(i.modeleinvoice_id)));
         }
         return listOfTransactions;
     }
@@ -476,7 +488,7 @@ public class Functions {
         List<ModeleIncomes> listOfModelIncomes = sqliteFunctions.getAllModelIncome();
         List<Transaction> listOfTransactions = listOfModelIncomes.isEmpty() ? Collections.emptyList() : new ArrayList<>();
         for (ModeleIncomes i : listOfModelIncomes){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", Enums.TransactionType.MODELINCOME, String.valueOf(i.modeleincome_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", String.valueOf(i.category_id), Enums.TransactionType.MODELINCOME, String.valueOf(i.modeleincome_id)));
         }
         return listOfTransactions;
     }
