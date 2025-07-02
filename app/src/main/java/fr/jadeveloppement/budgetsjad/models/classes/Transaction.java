@@ -1,5 +1,7 @@
 package fr.jadeveloppement.budgetsjad.models.classes;
 
+import static java.util.Objects.isNull;
+
 import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
@@ -32,7 +34,7 @@ public class Transaction {
         this.date = d;
         this.account = ac;
         this.paid = pd;
-        this.category = cat;
+        this.category = isNull(cat) || cat.isBlank() ? "0" : cat;
         this.type = t;
     }
 
@@ -61,7 +63,9 @@ public class Transaction {
     }
 
     public String getCategory(){
-        return category.trim();
+        if (isNull(category) || category.trim().isBlank() || category.trim().equalsIgnoreCase("null") || category.trim().equalsIgnoreCase("-1"))
+            return "0";
+        else return category.trim();
     }
 
     public Enums.TransactionType getType(){

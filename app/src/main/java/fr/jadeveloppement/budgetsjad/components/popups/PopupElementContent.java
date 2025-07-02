@@ -3,6 +3,7 @@ package fr.jadeveloppement.budgetsjad.components.popups;
 import static java.util.Objects.isNull;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -139,5 +140,13 @@ public class PopupElementContent extends LinearLayout {
 
     public LinearLayout getLayout(){
         return (LinearLayout) popupElementContent;
+    }
+
+    private final String TAG = "JADBudget";
+
+    public String getSelectedCategoryId(){
+        CategoryTable categorySelected = (new Functions(context)).getCategoryByLabel(String.valueOf(popupContentElementCategorySpinner.getSelectedItem()));
+        if (!isNull(categorySelected)) return String.valueOf(categorySelected.category_id);
+        else return "0";
     }
 }
