@@ -48,5 +48,6 @@
     <string name="list_of_categories">Liste des catégories</string>
     <string name="category">Catégorie</string>
     <string name="categorize">Catégoriser</string>
+    <string name="expenses_chart">Graphique des dépenses</string>
 
 </resources>

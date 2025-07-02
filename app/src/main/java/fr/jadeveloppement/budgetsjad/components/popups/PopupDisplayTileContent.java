@@ -49,19 +49,23 @@ public class PopupDisplayTileContent extends LinearLayout {
 
     private ImageView popupDisplayTileContentTitleIcon;
     private TextView popupDisplayTileContentTitleTv, popupDisplayTileContentPeriodTv;
-    private LinearLayout popupDisplayTileContentBtnClose;
+    private LinearLayout popupDisplayTileContentBtnClose, popupDisplayTileContentBtnChart;
 
     private void initPopupDisplayContent() {
-        Log.d(TAG, "initPopupDisplayContent: isExternal ? " + isExternal);
         popupDisplayTileContentTitleIcon = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentTitleIcon);
         popupDisplayTileContentTitleTv = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentTitleTv);
         popupDisplayTileContentPeriodTv = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentPeriodTv);
         popupDisplayTileContentBtnClose = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentBtnClose);
+        popupDisplayTileContentBtnChart = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentBtnChart);
         RecyclerView popupDisplayTileContentListContainer = popupDisplayElementContent.findViewById(R.id.popupDisplayTileContentListContainer);
 
         ElementAdapter elementAdapter = new ElementAdapter(context, elementsToDisplay.getValue(), isExternal ? null : budgetViewModel, null);
         popupDisplayTileContentListContainer.setAdapter(elementAdapter);
         popupDisplayTileContentListContainer.setLayoutManager(new LinearLayoutManager(context));
+    }
+
+    public LinearLayout getPopupDisplayTileContentBtnChart(){
+        return popupDisplayTileContentBtnChart;
     }
 
     public void setPopupDisplayTileContentPeriodTv(String period){

@@ -70,7 +70,6 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         holder.budgetElementLayoutLabel.setText(currentItem.getLabel());
         String amountValueTxt = Variables.decimalFormat.format(parseDouble(currentItem.getAmount())) + " €";
         if (functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") && !isNull(currentItem.getCategory()) && !currentItem.getCategory().equalsIgnoreCase("0")){
-            Log.d(TAG, "onBindViewHolder: currentitem category : " + currentItem.getCategory() );
             amountValueTxt +=  " / " + functions.getCategoryById(parseLong(currentItem.getCategory())).label;
         }
         holder.budgetElementLayoutAmount.setText(amountValueTxt);

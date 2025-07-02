@@ -30,6 +30,8 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 
 public class PopupElementContent extends LinearLayout {
 
+    private final String TAG = "JADBudget";
+
     private Context context;
     private View popupElementContent;
     private View viewParent;
@@ -141,8 +143,6 @@ public class PopupElementContent extends LinearLayout {
     public LinearLayout getLayout(){
         return (LinearLayout) popupElementContent;
     }
-
-    private final String TAG = "JADBudget";
 
     public String getSelectedCategoryId(){
         CategoryTable categorySelected = (new Functions(context)).getCategoryByLabel(String.valueOf(popupContentElementCategorySpinner.getSelectedItem()));

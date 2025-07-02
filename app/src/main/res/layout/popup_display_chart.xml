@@ -22,25 +22,23 @@
             android:layout_marginEnd="@dimen/paddingM">
 
             <ImageView
-                android:id="@+id/popupDisplayTileContentTitleIcon"
                 android:layout_width="@dimen/iconL"
                 android:layout_height="@dimen/iconL"
-                android:background="@drawable/undefined"/>
+                android:background="@drawable/chart"/>
 
         </LinearLayout>
 
         <TextView
-            android:id="@+id/popupDisplayTileContentTitleTv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="8"
-            android:text="@string/add_period"
+            android:text="@string/expenses_chart"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/orange1"
             android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/popupDisplayTileContentBtnClose"
+            android:id="@+id/popupDisplayChartBtnClose"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -91,58 +89,12 @@
                     android:text="@string/period"/>
 
                 <TextView
-                    android:id="@+id/popupDisplayTileContentPeriodTv"
+                    android:id="@+id/popupDisplayChartPeriodTv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="01/01/2025" />
 
             </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/popupDisplayTileContentBtnChart"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="@dimen/iconM"
-                android:layout_height="@dimen/iconM"
-                android:background="@drawable/chart" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="@dimen/paddingM"
-        android:orientation="horizontal"
-        android:weightSum="10"
-        android:gravity="center_vertical"
-        android:visibility="gone">
-
-        <EditText
-            android:id="@+id/popupDisplayTileContentSearchEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="9"
-            android:hint="@string/search_hint"/>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="@dimen/iconM"
-                android:layout_height="@dimen/iconM"
-                android:src="@android:drawable/ic_menu_search" />
 
         </LinearLayout>
 
@@ -153,12 +105,12 @@
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_white_border_gray">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/popupDisplayTileContentListContainer"
+        <LinearLayout
+            android:id="@+id/popupDisplayChartContentListContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/paddingM"/>
-
+            android:padding="@dimen/paddingM"
+            android:orientation="vertical"/>
     </ScrollView>
 
 </LinearLayout>

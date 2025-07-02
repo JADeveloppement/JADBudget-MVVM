@@ -183,7 +183,8 @@ public class Functions {
                         + t.getDate() + "<l>"
                         + t.getAccount() + "<l>"
                         + t.getPaid() + "<l>"
-                        + t.getType());
+                        + t.getType() + "<l>"
+                        + t.getCategory());
             }
         }
         return TextUtils.join("<n>", result);
