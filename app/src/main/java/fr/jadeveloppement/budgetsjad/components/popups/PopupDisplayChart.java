@@ -2,6 +2,7 @@ package fr.jadeveloppement.budgetsjad.components.popups;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Long.parseLong;
+import static java.util.Objects.isNull;
 
 import android.content.Context;
 import android.util.Log;
@@ -9,10 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,21 +45,49 @@ public class PopupDisplayChart extends LinearLayout {
     }
 
     private LinearLayout btnClose, popupDisplayChartContentListContainer;
+    private TextView popupDisplayChartTotalTv;
 
     private void initPopup(){
+        popupDisplayChartTotalTv = popupLayout.findViewById(R.id.popupDisplayChartTotalTv);
         btnClose = popupLayout.findViewById(R.id.popupDisplayChartBtnClose);
         popupDisplayChartContentListContainer = popupLayout.findViewById(R.id.popupDisplayChartContentListContainer);
         List<ExpensesTable> listOfExpenses = functions.getAllExpenses();
         Set<Long> listOfCategory = listOfExpenses.stream().map(expense -> expense.category_id)
-                .filter(category_id -> category_id != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+
+        double totalAmount = 0;
+        for (ExpensesTable e : listOfExpenses)
+            totalAmount += parseDouble(e.amount);
+
+        popupDisplayChartTotalTv.setText("Total : " + Variables.decimalFormat.format(totalAmount) + " €");
 
         popupDisplayChartContentListContainer.removeAllViews();
 
         for (Long cat : listOfCategory){
-            ChartElement chartElement = new ChartElement(context, functions.getCategoryById(cat).label, 10);
+            double amountCat = 0;
+
+            for (ExpensesTable e : listOfExpenses)
+                if (!isNull(e.category_id) && e.category_id.equals(cat)){
+                    amountCat += parseDouble(e.amount);
+                }
+
+            String catLabel = functions.getCategoryById(cat).label;
+
+            ChartElement chartElement = new ChartElement(context, (isNull(catLabel) || catLabel.isBlank() ? "Aucun" : catLabel) + " ("+Variables.decimalFormat.format(amountCat)+" €)", (int) ((amountCat / totalAmount)*100));
             popupDisplayChartContentListContainer.addView(chartElement.getLayout());
         }
+
+        double amountNullCategory = 0;
+        for (ExpensesTable e : listOfExpenses)
+            if (isNull(e.category_id))
+                amountNullCategory += parseDouble(e.amount);
+
+        if (amountNullCategory > 0){
+            ChartElement chartElement = new ChartElement(context, "Non catégorisé ("+Variables.decimalFormat.format(amountNullCategory)+" €)", (int) ((amountNullCategory / totalAmount)*100));
+            popupDisplayChartContentListContainer.addView(chartElement.getLayout());
+        }
+
     }
 
     public LinearLayout btnClose(){
