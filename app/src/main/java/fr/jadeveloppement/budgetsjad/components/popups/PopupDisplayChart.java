@@ -14,7 +14,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import fr.jadeveloppement.budgetsjad.components.ChartElement;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 
 public class PopupDisplayChart extends LinearLayout {
@@ -51,43 +54,56 @@ public class PopupDisplayChart extends LinearLayout {
         popupDisplayChartTotalTv = popupLayout.findViewById(R.id.popupDisplayChartTotalTv);
         btnClose = popupLayout.findViewById(R.id.popupDisplayChartBtnClose);
         popupDisplayChartContentListContainer = popupLayout.findViewById(R.id.popupDisplayChartContentListContainer);
+
         List<ExpensesTable> listOfExpenses = functions.getAllExpenses();
-        Set<Long> listOfCategory = listOfExpenses.stream().map(expense -> expense.category_id)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        List<CategoryTable> allCategories = functions.getAllCategories();
+
+        Map<Long, String> categoryIdToLabelMap = allCategories.stream()
+                .filter(category -> !isNull(category.category_id))
+                .collect(Collectors.toMap(
+                        category -> category.category_id,
+                        category -> category.label,
+                        (existing, replacement) -> existing
+                ));
 
         double totalAmount = 0;
-        for (ExpensesTable e : listOfExpenses)
-            totalAmount += parseDouble(e.amount);
+        Map<Long, Double> aggregatedCategoryAmounts = new HashMap<>();
+
+        for (ExpensesTable expense : listOfExpenses) {
+            double currentAmount = parseDouble(expense.amount);
+            totalAmount += currentAmount;
+            aggregatedCategoryAmounts.merge(expense.category_id, currentAmount, Double::sum);
+        }
 
         popupDisplayChartTotalTv.setText("Total : " + Variables.decimalFormat.format(totalAmount) + " €");
-
         popupDisplayChartContentListContainer.removeAllViews();
 
-        for (Long cat : listOfCategory){
-            double amountCat = 0;
+        for (Map.Entry<Long, Double> entry : aggregatedCategoryAmounts.entrySet()) {
+            Long categoryId = entry.getKey();
+            double amountForCategory = entry.getValue();
 
-            for (ExpensesTable e : listOfExpenses)
-                if (!isNull(e.category_id) && e.category_id.equals(cat)){
-                    amountCat += parseDouble(e.amount);
+            String categoryLabel;
+            if (categoryId == null) {
+                categoryLabel = "Non catégorisé";
+            } else {
+                categoryLabel = categoryIdToLabelMap.get(categoryId);
+                if (categoryLabel == null || categoryLabel.isBlank()) {
+                    categoryLabel = "Catégorie inconnue";
                 }
+            }
 
-            String catLabel = functions.getCategoryById(cat).label;
+            int percentage = 0;
+            if (totalAmount > 0) {
+                percentage = (int) ((amountForCategory / totalAmount) * 100);
+            }
 
-            ChartElement chartElement = new ChartElement(context, (isNull(catLabel) || catLabel.isBlank() ? "Aucun" : catLabel) + " ("+Variables.decimalFormat.format(amountCat)+" €)", (int) ((amountCat / totalAmount)*100));
+            ChartElement chartElement = new ChartElement(
+                    context,
+                    categoryLabel + " (" + Variables.decimalFormat.format(amountForCategory) + " €)",
+                    percentage
+            );
             popupDisplayChartContentListContainer.addView(chartElement.getLayout());
         }
-
-        double amountNullCategory = 0;
-        for (ExpensesTable e : listOfExpenses)
-            if (isNull(e.category_id))
-                amountNullCategory += parseDouble(e.amount);
-
-        if (amountNullCategory > 0){
-            ChartElement chartElement = new ChartElement(context, "Non catégorisé ("+Variables.decimalFormat.format(amountNullCategory)+" €)", (int) ((amountNullCategory / totalAmount)*100));
-            popupDisplayChartContentListContainer.addView(chartElement.getLayout());
-        }
-
     }
 
     public LinearLayout btnClose(){
