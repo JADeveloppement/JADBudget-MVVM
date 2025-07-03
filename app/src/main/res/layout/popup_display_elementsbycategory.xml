@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:gravity="center_vertical">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,16 +28,17 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/popupDisplayElementsByCategoryTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="8"
-            android:text="@string/expenses_chart"
+            android:text="@string/undefined"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/orange1"
             android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/popupDisplayChartBtnClose"
+            android:id="@+id/popupDisplayElementsByCategoryBtnClose"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -54,29 +54,19 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/popupDisplayChartTotalTv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/paddingM"
-        android:paddingVertical="@dimen/paddingS"
-        android:background="@drawable/rounded_box_orange1"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:text="@string/undefined"
-        android:layout_marginBottom="@dimen/paddingM"/>
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_white_border_gray">
+        android:background="@drawable/rounded_white_border_gray"
+        android:padding="@dimen/paddingM">
 
         <LinearLayout
-            android:id="@+id/popupDisplayChartContentListContainer"
+            android:id="@+id/popupDisplayElementsByCategoryListContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/paddingM"
-            android:orientation="vertical"/>
+            android:orientation="vertical"
+            android:gravity="center_vertical" />
+
     </ScrollView>
 
 </LinearLayout>

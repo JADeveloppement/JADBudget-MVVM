@@ -49,5 +49,6 @@
     <string name="category">Catégorie</string>
     <string name="categorize">Catégoriser</string>
     <string name="expenses_chart">Graphique des dépenses</string>
+    <string name="undefined">Non défini</string>
 
 </resources>

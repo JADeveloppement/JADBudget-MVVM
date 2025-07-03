@@ -100,7 +100,8 @@ public class PopupDisplayChart extends LinearLayout {
             ChartElement chartElement = new ChartElement(
                     context,
                     categoryLabel + " (" + Variables.decimalFormat.format(amountForCategory) + " €)",
-                    percentage
+                    percentage,
+                    isNull(categoryId) ? null : categoryId
             );
             popupDisplayChartContentListContainer.addView(chartElement.getLayout());
         }

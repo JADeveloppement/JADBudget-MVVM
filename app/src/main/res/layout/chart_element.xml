@@ -5,11 +5,36 @@
     android:orientation="vertical"
     android:padding="@dimen/paddingM">
 
-    <TextView
-        android:id="@+id/chartElementTitle"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Élément graphique"/>
+        android:weightSum="10"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/chartElementTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="9"/>
+
+        <LinearLayout
+            android:id="@+id/chartElementPreviewCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="@dimen/paddingM">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/preview" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 
     <ProgressBar
         android:id="@+id/chartElementProgressbar"
