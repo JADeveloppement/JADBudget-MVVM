@@ -195,70 +195,6 @@ public class Functions {
         return label.replaceAll(regex, "");
     }
 
-    public Transaction convertObjectToTransaction(Object o) throws Exception {
-        Transaction convertedObject = null;
-        if (o instanceof InvoicesTable){
-            InvoicesTable i = (InvoicesTable) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    String.valueOf(i.account_id),
-                    i.paid,
-                    String.valueOf(i.category_id),
-                    Enums.TransactionType.INVOICE
-            );
-        } else if (o instanceof IncomesTable){
-            IncomesTable i = (IncomesTable) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    String.valueOf(i.account_id),
-                    i.paid,
-                    String.valueOf(i.category_id),
-                    Enums.TransactionType.INCOME
-            );
-        } else if (o instanceof ExpensesTable){
-            ExpensesTable i = (ExpensesTable) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    String.valueOf(i.account_id),
-                    "0",
-                    String.valueOf(i.category_id),
-                    Enums.TransactionType.EXPENSE
-            );
-        } else if (o instanceof ModeleInvoices){
-            ModeleInvoices i = (ModeleInvoices) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    "",
-                    "0",
-                    String.valueOf(i.category_id),
-                    Enums.TransactionType.MODELINVOICE
-            );
-        } else if (o instanceof ModeleIncomes){
-            ModeleIncomes i = (ModeleIncomes) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    "",
-                    "0",
-                    String.valueOf(i.category_id),
-                    Enums.TransactionType.MODELINCOME
-            );
-        }
-
-        if (isNull(convertedObject)) throw new Exception("No type match object");
-
-        return convertedObject;
-    }
-
     // ACCOUNTS MANAGEMENT
     public List<AccountsTable> getAllAccounts(){
         return sqliteFunctions.getAllAccounts();
@@ -522,6 +458,105 @@ public class Functions {
         updateSettings(settingUser);
         updateSettings(settingPassword);
         updateSettings(settingToken);
+    }
+    //
+
+    // Transaction Management
+
+    /**
+     * Convert an Expense/Invoice/Income/ModelInvoice/ModelIncome to a Transaction
+     * @param o : object to convert
+     * @return : object converted to a Transaction
+     * @throws Exception : if unable to convert object to Transaction because object is neither of type ExpensesTable/IncomesTable/InvoicesTable/ModelInvoicesTable/ModelIncomesTable
+     */
+    public Transaction convertObjectToTransaction(Object o) throws Exception {
+        Transaction convertedObject = null;
+        if (o instanceof InvoicesTable){
+            InvoicesTable i = (InvoicesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    i.paid,
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.INVOICE
+            );
+        } else if (o instanceof IncomesTable){
+            IncomesTable i = (IncomesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    i.paid,
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.INCOME
+            );
+        } else if (o instanceof ExpensesTable){
+            ExpensesTable i = (ExpensesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    "0",
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.EXPENSE
+            );
+        } else if (o instanceof ModeleInvoices){
+            ModeleInvoices i = (ModeleInvoices) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    "",
+                    "0",
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.MODELINVOICE
+            );
+        } else if (o instanceof ModeleIncomes){
+            ModeleIncomes i = (ModeleIncomes) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    "",
+                    "0",
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.MODELINCOME
+            );
+        }
+
+        if (isNull(convertedObject)) throw new Exception("No type match object");
+
+        return convertedObject;
+    }
+
+    /**
+     * Function to get a List of transaction of a given type
+     * @param type : type to retrieve
+     * @return : List of transaction of a given type
+     */
+    public List<Transaction> getAllTransactionByType(@NonNull Enums.TransactionType type){
+        List<Transaction> result = new ArrayList<>();
+        List<?> objects = Collections.emptyList();
+
+        if (type == Enums.TransactionType.EXPENSE) objects = getAllExpenses();
+        else if (type == Enums.TransactionType.INVOICE) objects = getAllInvoices();
+        else if (type == Enums.TransactionType.INCOME) objects = getAllIncomes();
+
+        try {
+            for (Object o : objects){
+                Log.d(TAG, "ICI : getAllTransactionByType: " + convertObjectToTransaction(o).getLabel());
+                result.add(convertObjectToTransaction(o));
+            }
+        } catch(Exception e){
+            makeToast("Une erreur est survenue");
+            Log.d(TAG, "Functions > getAllTransactionByType: " + e.getMessage());
+        }
+
+        return result;
     }
     //
 }

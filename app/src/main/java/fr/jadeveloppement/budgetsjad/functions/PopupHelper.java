@@ -391,10 +391,10 @@ public class PopupHelper {
         popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
 
         popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
-        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setVisibility(type == Enums.TransactionType.EXPENSE && functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") ? View.VISIBLE : View.GONE);
+        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setVisibility(functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") ? View.VISIBLE : View.GONE);
         popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setOnClickListener(v2 -> {
             PopupContainer popupChartContainer = new PopupContainer(context, MainActivity.getViewRoot());
-            PopupDisplayChart popupDisplayChart = new PopupDisplayChart(context);
+            PopupDisplayChart popupDisplayChart = new PopupDisplayChart(context, type);
             popupChartContainer.addContent(popupDisplayChart.getLayout());
 
             popupDisplayChart.btnClose().setOnClickListener(v3 -> {
