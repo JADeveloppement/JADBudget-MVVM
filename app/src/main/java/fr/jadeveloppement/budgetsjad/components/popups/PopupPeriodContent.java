@@ -3,11 +3,11 @@ package fr.jadeveloppement.budgetsjad.components.popups;
 import static java.util.Objects.isNull;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,6 +15,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.components.CustomCalendar;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 
 public class PopupPeriodContent extends LinearLayout {
@@ -23,7 +24,6 @@ public class PopupPeriodContent extends LinearLayout {
     private View viewParent, popupPeriodContent;
     private TextView popupContentPeriodPeriodPreview, popupContentPeriodPeriodExistsError;
     private Button popupContentPeriodSaveBtn;
-    private CalendarView popupContentPeriodCalendar;
     private LinearLayout popupContentElementBtnClose;
     private Functions functions;
 
@@ -45,12 +45,12 @@ public class PopupPeriodContent extends LinearLayout {
         initPopupContent();
     }
 
+    CustomCalendar customCalendar;
+
     private void initPopupContent(){
         popupContentPeriodPeriodPreview = popupPeriodContent.findViewById(R.id.popupContentPeriodPeriodPreview);
         popupContentPeriodSaveBtn = popupPeriodContent.findViewById(R.id.popupContentPeriodSaveBtn);
-        popupContentPeriodCalendar = popupPeriodContent.findViewById(R.id.popupContentPeriodCalendar);
         popupContentElementBtnClose = popupPeriodContent.findViewById(R.id.popupContentElementBtnClose);
-        popupContentPeriodCalendar = popupPeriodContent.findViewById(R.id.popupContentPeriodCalendar);
         popupContentPeriodUseModelInvoice = popupPeriodContent.findViewById(R.id.popupContentPeriodUseModelInvoice);
         popupContentPeriodUseModelIncome = popupPeriodContent.findViewById(R.id.popupContentPeriodUseModelIncome);
         popupContentPeriodPreviewModelInvoice = popupPeriodContent.findViewById(R.id.popupContentPeriodPreviewModelInvoice);
@@ -59,11 +59,17 @@ public class PopupPeriodContent extends LinearLayout {
         popupContentPeriodPeriodExistsError = popupPeriodContent.findViewById(R.id.popupContentPeriodPeriodExistsError);
         popupContentPeriodPeriodExistsError.setVisibility(View.GONE);
 
-        String selectedDate = functions.convertStdDateToLocale(Functions.getTodayDate());
+        LinearLayout popupContentPeriodCustomCalendar = popupPeriodContent.findViewById(R.id.popupContentPeriodCustomCalendar);
+        customCalendar = new CustomCalendar(context, this::customCalendarDayClicked);
+        customCalendar.setSelectionDayColor(context.getColor(R.color.orange2));
+        popupContentPeriodCustomCalendar.addView(customCalendar.getMonthLayout());
+        popupContentPeriodCustomCalendar.addView(customCalendar.getDaysLayout());
+
+        String selectedDate = Functions.convertStdDateToLocale(Functions.getTodayDate());
 
         popupContentPeriodPeriodPreview.setText(selectedDate);
 
-        if (!isNull(functions.getPeriodByLabel(functions.convertLocaleDateToStd(selectedDate)))){
+        if (!isNull(functions.getPeriodByLabel(Functions.convertLocaleDateToStd(selectedDate)))){
             popupContentPeriodPeriodExistsError.setVisibility(View.VISIBLE);
             popupContentPeriodSaveBtn.setAlpha(0.5f);
             popupContentPeriodSaveBtn.setVisibility(View.GONE);
@@ -73,18 +79,11 @@ public class PopupPeriodContent extends LinearLayout {
             popupContentPeriodSaveBtn.setVisibility(View.VISIBLE);
         }
 
-        setPopupPeriodEvent();
     }
 
-    private void setPopupPeriodEvent() {
-        popupContentPeriodCalendar.setOnDateChangeListener((@NonNull CalendarView view, int y, int monthOfYear, int dayOfMonth) -> {
-            monthOfYear++;
-            String day = dayOfMonth < 10 ? "0" + dayOfMonth : String.valueOf(dayOfMonth);
-            String month = monthOfYear < 10 ? "0" + monthOfYear : String.valueOf(monthOfYear);
-            String year = String.valueOf(y);
-
-            String selectedDate = day + "/" + month + "/" + year;
-            if (!isNull(functions.getPeriodByLabel(functions.convertLocaleDateToStd(selectedDate)))){
+    private void customCalendarDayClicked(){
+        if (!isNull(customCalendar)){
+            if (!isNull(functions.getPeriodByLabel(Functions.convertLocaleDateToStd(customCalendar.getDaySelected())))){
                 popupContentPeriodPeriodExistsError.setVisibility(View.VISIBLE);
                 popupContentPeriodSaveBtn.setAlpha(0.5f);
                 popupContentPeriodSaveBtn.setVisibility(View.GONE);
@@ -93,8 +92,8 @@ public class PopupPeriodContent extends LinearLayout {
                 popupContentPeriodSaveBtn.setAlpha(1f);
                 popupContentPeriodSaveBtn.setVisibility(View.VISIBLE);
             }
-            popupContentPeriodPeriodPreview.setText(selectedDate);
-        });
+            popupContentPeriodPeriodPreview.setText(Functions.convertStdDateToLocale(customCalendar.getDaySelected()));
+        }
     }
 
     public CheckBox getPopupContentPeriodUseModelInvoice(){
@@ -125,8 +124,8 @@ public class PopupPeriodContent extends LinearLayout {
         return popupContentPeriodSaveBtn;
     }
 
-    public CalendarView getPopupContentPeriodCalendar(){
-        return popupContentPeriodCalendar;
+    public CustomCalendar getPopupContentPeriodCalendar(){
+        return customCalendar;
     }
 
     public LinearLayout getLayout(){

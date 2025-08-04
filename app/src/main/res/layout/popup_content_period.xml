@@ -73,11 +73,12 @@
                 android:id="@+id/popupPeriodContentCalendarCustomContainer"
                 android:orientation="vertical"/>
 
-            <CalendarView
-                android:id="@+id/popupContentPeriodCalendar"
+            <LinearLayout
+                android:id="@+id/popupContentPeriodCustomCalendar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:firstDayOfWeek="2"/>
+                android:orientation="vertical"
+                android:padding="@dimen/paddingM" />
 
             <LinearLayout
                 android:layout_width="match_parent"
