@@ -63,6 +63,7 @@ public class PopupPeriodContent extends LinearLayout {
         customCalendar = new CustomCalendar(context, this::customCalendarDayClicked);
         customCalendar.setSelectionDayColor(context.getColor(R.color.orange2));
         popupContentPeriodCustomCalendar.addView(customCalendar.getMonthLayout());
+        popupContentPeriodCustomCalendar.addView(customCalendar.getFirstLine());
         popupContentPeriodCustomCalendar.addView(customCalendar.getDaysLayout());
 
         String selectedDate = Functions.convertStdDateToLocale(Functions.getTodayDate());

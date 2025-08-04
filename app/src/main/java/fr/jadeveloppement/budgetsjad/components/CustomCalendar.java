@@ -78,10 +78,13 @@ public class CustomCalendar extends LinearLayout {
 
     private Runnable dayTvClicked;
 
-
+    /**
+     * Initializes calendar : no action available with this public constructor
+     * @param c : context of the application
+     */
     public CustomCalendar(Context c){
         super(c);
-        this.context = c;
+        this.context = c.getApplicationContext();
         this.calendarFirstLine = new LinearLayout(context);
         this.calendarDaysLayout = new LinearLayout(context);
         this.monthLayout = new LinearLayout(context);
@@ -89,6 +92,11 @@ public class CustomCalendar extends LinearLayout {
         initVariables();
     }
 
+    /**
+     * Initializes calendar with a callback function when you click on a day
+     * @param c : context of the application
+     * @param r : callback to run when day is clicked
+     */
     public CustomCalendar(Context c, Runnable r){
         super(c);
         this.context = c;
@@ -128,6 +136,10 @@ public class CustomCalendar extends LinearLayout {
         return calendarYear;
     }
 
+    /**
+     *
+     * @return : LinearLayout with the month name and the button to select month
+     */
     public LinearLayout getMonthLayout(){
         monthLayout.removeAllViews();
         ViewGroup.LayoutParams monthLayoutParams = new LinearLayout.LayoutParams(
@@ -206,6 +218,10 @@ public class CustomCalendar extends LinearLayout {
         return monthLayout;
     }
 
+    /**
+     * Layout of days diminished name
+     * @return LinearLayout with 7 textView that has the name of the days of a week
+     */
     public LinearLayout getFirstLine(){
         LinearLayout.LayoutParams calendarFirstLineParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -233,6 +249,10 @@ public class CustomCalendar extends LinearLayout {
         return calendarFirstLine;
     }
 
+    /**
+     * Layout of the days composing a month
+     * @return : LinearLayout of the 28-31 days of the monthes of the year
+     */
     public LinearLayout getDaysLayout(){
         int daysOfMonth = getDaysInMonth(calendarYear + "-" + calendarMonth + "-01");
         int firstDayOfWeek = getDayOfWeekIndex(calendarYear + "-" + calendarMonth + "-01");
@@ -311,6 +331,10 @@ public class CustomCalendar extends LinearLayout {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, c.getResources().getDisplayMetrics());
     }
 
+    /**
+     * Return a clickable textview to select the today date
+     * @return : clickable textview
+     */
     public TextView getButtonTodayLayout(){
         TextView btnSetToday = new TextView(context);
         btnSetToday.setPadding(
@@ -324,7 +348,6 @@ public class CustomCalendar extends LinearLayout {
                 LayoutParams.WRAP_CONTENT
         );
         btnSetToday.setLayoutParams(btnSetTodayParams);
-//        btnSetToday.setBackgroundResource(R.drawable.rounded_box_orange);
         btnSetToday.setBackgroundColor(CALENDAR_ACTIVE_COLOR);
         btnSetToday.setTextColor(context.getColor(R.color.white));
         btnSetToday.setTypeface(Typeface.DEFAULT_BOLD);
@@ -342,6 +365,10 @@ public class CustomCalendar extends LinearLayout {
         return btnSetToday;
     }
 
+    /**
+     * return today's date in a YYYY-MM-DD format
+     * @return
+     */
     private String getTodayDate(){
         Calendar cal = Calendar.getInstance();
         int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
@@ -354,13 +381,17 @@ public class CustomCalendar extends LinearLayout {
         return year + "-" + month + "-" + day;
     }
 
+    /**
+     * Get the extremes of the week selected
+     * @return : array with date of first day and last day of the selected week
+     */
     public String[] getWeekRange(){
         WeekFields weekFields = WeekFields.of(Locale.FRANCE);
         LocalDate startDate = LocalDate.of(parseInt(calendarYear), 1, 1)
                 .with(weekFields.weekOfYear(), calendarWeekNumber)
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)); // Or SUNDAY for US
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
-        LocalDate endDate = startDate.plusDays(6); // Assuming 7 days in a week
+        LocalDate endDate = startDate.plusDays(6);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return new String[]{startDate.format(formatter), endDate.format(formatter)};
