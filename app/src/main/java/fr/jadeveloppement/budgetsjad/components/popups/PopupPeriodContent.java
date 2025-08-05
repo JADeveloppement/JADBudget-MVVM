@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 
 import android.content.Context;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,7 +62,7 @@ public class PopupPeriodContent extends LinearLayout {
 
         LinearLayout popupContentPeriodCustomCalendar = popupPeriodContent.findViewById(R.id.popupContentPeriodCustomCalendar);
         customCalendar = new CustomCalendar(context, this::customCalendarDayClicked);
-        customCalendar.setSelectionDayColor(context.getColor(R.color.orange2));
+        customCalendar.setSelectionDayLayoutColor(context.getColor(R.color.orange2));
         popupContentPeriodCustomCalendar.addView(customCalendar.getMonthLayout());
         popupContentPeriodCustomCalendar.addView(customCalendar.getFirstLine());
         popupContentPeriodCustomCalendar.addView(customCalendar.getDaysLayout());
