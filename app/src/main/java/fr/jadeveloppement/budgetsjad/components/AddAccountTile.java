@@ -43,7 +43,7 @@ public class AddAccountTile extends LinearLayout {
         layout.setGravity(Gravity.CENTER);
 
         ImageView iconAdd = new ImageView(context);
-        iconAdd.setBackgroundResource(R.drawable.plus);
+        iconAdd.setBackgroundResource(R.drawable.add_icon);
         LinearLayout.LayoutParams iconParams = new LinearLayoutCompat.LayoutParams(
                 functions.getDpInPx(32),
                 functions.getDpInPx(32)

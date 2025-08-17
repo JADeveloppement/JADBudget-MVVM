@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/orange1"
+            android:textColor="@color/orange2"
             android:textStyle="bold"
             android:text="@string/period"
             android:layout_marginBottom="@dimen/paddingM"/>

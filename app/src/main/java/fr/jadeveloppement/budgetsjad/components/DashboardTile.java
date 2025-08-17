@@ -121,6 +121,10 @@ public class DashboardTile extends LinearLayout {
         dashboardTileAmountTv.setText(amount);
     }
 
+    public void setTileAmountColor(int color){
+        dashboardTileAmountTv.setTextColor(color);
+    }
+
     public View getLayout(){
         return layout;
     }

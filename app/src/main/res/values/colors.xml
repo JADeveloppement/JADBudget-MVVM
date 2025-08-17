@@ -2,15 +2,25 @@
 <resources>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="orange1">#023e8a</color>
-    <color name="orange150">#50023e8a</color>
-    <color name="orange2">#0077b6</color>
-    <color name="orange250">#500077b6</color>
-    <color name="orange3">#0096c7</color>
-    <color name="orange350">#500096c7</color>
-    <color name="orange4">#00b4d8</color>
-    <color name="orange450">#5000b4d8</color>
-    <color name="orange410">#1000b4d8</color>
+<!--    <color name="orange1">#023e8a</color>-->
+<!--    <color name="orange150">#50023e8a</color>-->
+<!--    <color name="orange2">#0077b6</color>-->
+<!--    <color name="orange250">#500077b6</color>-->
+<!--    <color name="orange3">#0096c7</color>-->
+<!--    <color name="orange350">#500096c7</color>-->
+<!--    <color name="orange4">#00b4d8</color>-->
+<!--    <color name="orange450">#5000b4d8</color>-->
+<!--    <color name="orange410">#1000b4d8</color>-->
+
+    <color name="orange1">#ff7b00</color>
+    <color name="orange150">#50ff7b00</color>
+    <color name="orange2">#ff7b00</color>
+    <color name="orange250">#50ff7b00</color>
+    <color name="orange3">#ff9500</color>
+    <color name="orange350">#50ff9500</color>
+    <color name="orange4">#ffa200</color>
+    <color name="orange450">#50ffa200</color>
+    <color name="orange410">#10ffa200</color>
 
     <color name="background">#f8edeb</color>
 

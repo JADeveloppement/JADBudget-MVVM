@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:layout_marginEnd="@dimen/paddingM">
 
             <ImageView
@@ -32,7 +32,7 @@
             android:id="@+id/popupContentElementTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="8"
+            android:layout_weight="7"
             android:text="@string/categories"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textColor="@color/orange1"
@@ -64,7 +64,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/list_of_categories"/>
+            android:text="@string/list_of_categories"
+            android:textColor="@color/black"/>
 
         <ScrollView
             android:layout_width="match_parent"
