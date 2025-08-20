@@ -33,14 +33,20 @@ public class AddAccountTile extends LinearLayout {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
+        layout.setPadding(
+                functions.getDpInPx(8),
+                functions.getDpInPx(8),
+                functions.getDpInPx(8),
+                functions.getDpInPx(8)
+        );
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
 
         ImageView iconAdd = new ImageView(context);
-        iconAdd.setBackgroundResource(R.drawable.add_account);
+        iconAdd.setBackgroundResource(R.drawable.add_icon);
         LinearLayout.LayoutParams iconParams = new LinearLayoutCompat.LayoutParams(
-                functions.getDpInPx((int) context.getResources().getDimension(R.dimen.iconS)),
-                functions.getDpInPx((int) context.getResources().getDimension(R.dimen.iconS))
+                functions.getDpInPx(32),
+                functions.getDpInPx(32)
         );
         iconAdd.setLayoutParams(iconParams);
         iconAdd.setClickable(false);

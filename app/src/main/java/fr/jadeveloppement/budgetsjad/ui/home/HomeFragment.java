@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -51,7 +52,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     private final String TAG = "JadBudget";
 
     private MenuIcon
-            menuAddInvoice, menuAddIncome, menuAddExpense,
+            menuAddInvoice, menuAddIncome, menuAddExpense, menuManageCategory,
             menuModelIncome, menuModelInvoice,
             menuManageAccounts, menuManagePeriods,
             menuLogin, menuLogout, menuManageExternalDatas, menuDownload, menuUpload;
@@ -65,6 +66,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
     private LinearLayout menuManageImportExportLoadingScreen;
 
     private PopupHelper popupHelper;
+
+    private LinearLayout menuManageImportExportLoginStatus;
+    private TextView menuManageImportExportLoginTv;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -90,16 +94,21 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         FlexboxLayout menuManageDatasContainer = binding.menuManageDatasContainer;
         FlexboxLayout menuManageImportExportContainer = binding.menuManageImportExportContainer;
 
+        menuManageImportExportLoginTv = binding.menuManageImportExportLoginTv;
+        menuManageImportExportLoginStatus = binding.menuManageImportExportLoginStatus;
+
         menuManageImportExportLoadingScreen = binding.menuManageImportExportLoadingScreen;
 
         // Add Element MENU
         menuAddInvoice = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nprélèvement", R.drawable.invoice);
         menuAddIncome = new MenuIcon(requireContext(), menuAddElementContainer, "Nouveau\nrevenu", R.drawable.income);
         menuAddExpense = new MenuIcon(requireContext(), menuAddElementContainer, "Nouvelle\ndépense", R.drawable.expense);
+        menuManageCategory = new MenuIcon(requireContext(), menuAddElementContainer, "Catégories", R.drawable.categorie);
 
         menuAddElementContainer.addView(menuAddInvoice.getLayout());
         menuAddElementContainer.addView(menuAddIncome.getLayout());
         menuAddElementContainer.addView(menuAddExpense.getLayout());
+        menuAddElementContainer.addView(menuManageCategory.getLayout());
         //
 
         // Models MENU
@@ -144,6 +153,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
         });
         menuAddExpense.getLayout().setOnClickListener(v -> {
             popupHelper.popupAddElement(Enums.TransactionType.INVOICE);
+        });
+        menuManageCategory.getLayout().setOnClickListener(v -> {
+            popupHelper.popupManageCategories();
         });
         //
 
@@ -220,6 +232,9 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
 
     private void handleLoginMenuVisibility(boolean isLogged) {
         menuManageImportExportLoadingScreen.setVisibility(View.GONE);
+
+        menuManageImportExportLoginStatus.setVisibility(isLogged ? View.VISIBLE : View.GONE);
+        menuManageImportExportLoginTv.setText(isLogged ? "Connecté.e en tant que " + functions.getSettingByLabel(Variables.settingUsername).value : "");
 
         menuLogin.getLayout().setVisibility(isLogged ? View.GONE : View.VISIBLE);
         menuLogout.getLayout().setVisibility(isLogged ? View.VISIBLE : View.GONE);
@@ -353,7 +368,7 @@ public class HomeFragment extends Fragment implements BudgetRequestsInterface {
                 if (datas.contains("<n>") && datas.contains("<l>")){
                     for(String row : datas.split("<n>")){
                         String[] cols = row.split("<l>");
-                        listOfDatas.add(new Transaction(cols[1], cols[2], cols[3], cols[4], cols[5], Functions.convertStrtypeToTransactionType(cols[6])));
+                        listOfDatas.add(new Transaction(cols[1], cols[2], cols[3], cols[4], cols[5], "", Functions.convertStrtypeToTransactionType(cols[6])));
                     }
                     popupHelper.displayListOfTransaction(new MutableLiveData<>(listOfDatas), type, true);
                 } else Functions.makeSnakebar("Aucune données à afficher.");

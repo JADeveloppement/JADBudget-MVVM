@@ -1,6 +1,7 @@
 package fr.jadeveloppement.budgetsjad.components.adapters;
 
 import static java.lang.Double.parseDouble;
+import static java.lang.Long.parseLong;
 import static java.util.Objects.isNull;
 
 import android.content.Context;
@@ -67,7 +68,11 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         Transaction currentItem = itemList.get(position);
 
         holder.budgetElementLayoutLabel.setText(currentItem.getLabel());
-        holder.budgetElementLayoutAmount.setText(Variables.decimalFormat.format(parseDouble(currentItem.getAmount())) + " €");
+        String amountValueTxt = Variables.decimalFormat.format(parseDouble(currentItem.getAmount())) + " €";
+        if (functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") && !isNull(currentItem.getCategory()) && !currentItem.getCategory().equalsIgnoreCase("0")){
+            amountValueTxt +=  " / " + functions.getCategoryById(parseLong(currentItem.getCategory())).label;
+        }
+        holder.budgetElementLayoutAmount.setText(amountValueTxt);
         holder.budgetElementLayoutPaid.setBackgroundResource(currentItem.getPaid().equalsIgnoreCase("1") ? R.drawable.check : R.drawable.wait);
         holder.budgetElementLayoutPaid.setVisibility(currentItem.getType() == Enums.TransactionType.INVOICE ? View.VISIBLE : View.GONE);
         holder.label = currentItem.getLabel();
@@ -99,15 +104,13 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
 
                 popupElementContent.getPopupContentElementPeriodTv().setText(Functions.convertStdDateToLocale(currentItem.getDate()));
                 String typeStr = "";
-                if (currentItem.getType() == Enums.TransactionType.INVOICE){
-                    typeStr = "un prélèvement";
-                } else if (currentItem.getType() == Enums.TransactionType.INCOME){
-                    typeStr = "un revenu";
-                } else if (currentItem.getType() == Enums.TransactionType.EXPENSE){
-                    typeStr = "une dépense";
-                } else if (currentItem.getType() == Enums.TransactionType.MODELINCOME ||
+                if (currentItem.getType() == Enums.TransactionType.INVOICE) typeStr = "un prélèvement";
+                else if (currentItem.getType() == Enums.TransactionType.INCOME) typeStr = "un revenu";
+                else if (currentItem.getType() == Enums.TransactionType.EXPENSE) typeStr = "une dépense";
+                else if (currentItem.getType() == Enums.TransactionType.MODELINCOME ||
                         currentItem.getType() == Enums.TransactionType.MODELINVOICE){
                     typeStr = "un modèle";
+                    popupElementContent.getPopupContentElementCategoryLayout().setVisibility(View.GONE);
                 }
 
                 popupElementContent.getPopupContentElementTitle().setText("Editer " + typeStr);
@@ -130,6 +133,13 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
                         currentItem.setLabel(editedLabel);
                         currentItem.setAmount(editedAmount);
                         currentItem.setPaid(editedPaid);
+
+                        if (functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") && popupElementContent.getPopupContentElementUseCategory().isChecked()){
+                            currentItem.setCategory(popupElementContent.getSelectedCategoryId());
+                        } else if (!popupElementContent.getPopupContentElementUseCategory().isChecked()) {
+                            currentItem.setCategory("0");
+                        }
+
                         budgetViewModel.updateTransaction(currentItem);
                         notifyItemChanged(finalPosition);
                         popupContainer.closePopup();

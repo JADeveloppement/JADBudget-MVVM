@@ -1,9 +1,11 @@
 package fr.jadeveloppement.budgetsjad.ui.dashboard;
 
 import static java.lang.Double.parseDouble;
+import static java.lang.Float.parseFloat;
 import static java.lang.Long.parseLong;
 import static java.util.Objects.isNull;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,12 +27,6 @@ import fr.jadeveloppement.budgetsjad.components.AccountTile;
 import fr.jadeveloppement.budgetsjad.components.AddAccountTile;
 import fr.jadeveloppement.budgetsjad.components.DashboardTile;
 import fr.jadeveloppement.budgetsjad.components.PeriodLayout;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupDisplayTileContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodContent;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentDashboardBinding;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
@@ -302,6 +298,11 @@ public class DashboardFragment extends Fragment
         budgetViewModel.getForecastEncours().observe(getViewLifecycleOwner(), (Double forecastEncours) ->  {
             if (!isNull(forecastEncoursTile)) {
                 forecastEncoursTile.setTileAmount(Variables.decimalFormat.format(forecastEncours) + " €");
+                double forecastFinal = isNull(budgetViewModel.getForecastFinal().getValue()) ? 0 : budgetViewModel.getForecastFinal().getValue();
+                if (forecastEncours < 0 || (forecastEncours / forecastFinal) < 0.2 ) forecastEncoursTile.setTileAmountColor(Color.parseColor("#B22222"));
+                else if ((forecastEncours / forecastFinal) < 0.4) forecastEncoursTile.setTileAmountColor(Color.parseColor("#FFA500"));
+                else forecastEncoursTile.setTileAmountColor(Color.parseColor("#06a77d"));
+
                 updateExpenseTileProgressbar();
                 if (!isNull(forecastEncoursTile.getDashboardTileLoading()) && forecastEncoursTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
                     forecastEncoursTile.getDashboardTileLoading().setVisibility(View.GONE);
@@ -333,8 +334,10 @@ public class DashboardFragment extends Fragment
         for (Transaction t : listOfExpenses)
             amountExpenses += parseDouble(t.getAmount());
 
-        if (amountExpenses > amountForecastFinal)
-            progress = 1;
+        if (amountExpenses > amountForecastFinal){
+            progress = 100;
+            Log.d(TAG, "updateExpenseTileProgressbar: amount > forecastfinal");
+        }
         else progress = (int) Math.ceil(100 * (amountExpenses / amountForecastFinal));
         expenseTile.setDashboardTileProgressbarProgress(progress);
         expenseTile.setProgressBarText(Variables.decimalFormat.format(amountExpenses) + " € / " + Variables.decimalFormat.format(amountForecastFinal) + " €");

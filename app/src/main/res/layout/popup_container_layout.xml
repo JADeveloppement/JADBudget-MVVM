@@ -6,12 +6,19 @@
     android:gravity="center"
     android:padding="@dimen/paddingM">
 
-    <LinearLayout
-        android:id="@+id/popupContainerContentContainer"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/paddingM"
         android:background="@drawable/rounded_box"
-        android:orientation="vertical"/>
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/popupContainerContentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>

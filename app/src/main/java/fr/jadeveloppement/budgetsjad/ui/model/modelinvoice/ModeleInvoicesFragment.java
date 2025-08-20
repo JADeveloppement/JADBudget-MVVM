@@ -77,6 +77,7 @@ public class ModeleInvoicesFragment extends Fragment {
             popupElementContent.getPopupContentElementBtnDelete().setVisibility(View.GONE);
             popupElementContent.getPopupContentElementPeriodLayout().setVisibility(View.GONE);
             popupElementContent.getPopupContentElementTitle().setText("Ajouter un modèle de revenu");
+            popupElementContent.getPopupContentElementCategoryLayout().setVisibility(View.GONE);
 
             popupContainer.addContent(popupElementContent.getLayout());
 
@@ -89,6 +90,7 @@ public class ModeleInvoicesFragment extends Fragment {
                     Transaction newModelInvoice = new Transaction(
                             label,
                             amount,
+                            "",
                             "",
                             "",
                             "",

@@ -62,6 +62,7 @@ public class BudgetData {
         newInvoice.account_id = parseLong(t.getAccount());
         newInvoice.paid = "0";
         newInvoice.date = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+        newInvoice.category_id = parseLong(t.getCategory());
         functions.insertInvoice(newInvoice);
     }
 
@@ -72,6 +73,7 @@ public class BudgetData {
         newIncome.account_id = parseLong(functions.getSettingByLabel(Variables.settingAccount).value);
         newIncome.paid = "0";
         newIncome.date = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+        newIncome.category_id = parseLong(t.getCategory());
         functions.insertIncome(newIncome);
     }
 
@@ -81,6 +83,7 @@ public class BudgetData {
         newExpense.amount = t.getAmount();
         newExpense.account_id = parseLong(functions.getSettingByLabel(Variables.settingAccount).value);
         newExpense.date = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label;
+        newExpense.category_id = parseLong(t.getCategory());
         functions.insertExpense(newExpense);
     }
 
@@ -133,18 +136,20 @@ public class BudgetData {
                 i.label = transaction.getLabel();
                 i.amount = transaction.getAmount();
                 i.paid = transaction.getPaid();
-                Log.d(TAG, "BudgetData > updateTransaction: " + i.label + " / " + i.amount + " / ID : " + i.invoice_id);
+                i.category_id = parseLong(transaction.getCategory());
                 functions.updateInvoice(i);
             } else if (transaction.getType() == Enums.TransactionType.INCOME){
                 IncomesTable i = functions.getIncomeById(parseLong(transaction.getId()));
                 i.label = transaction.getLabel();
                 i.amount = transaction.getAmount();
                 i.paid = transaction.getPaid();
+                i.category_id = parseLong(transaction.getCategory());
                 functions.updateIncome(i);
             } else if (transaction.getType() == Enums.TransactionType.EXPENSE){
                 ExpensesTable e = functions.getExpenseById(parseLong(transaction.getId()));
                 e.label = transaction.getLabel();
                 e.amount = transaction.getAmount();
+                e.category_id = parseLong(transaction.getCategory());
                 functions.updateExpense(e);
             } else if (transaction.getType() == Enums.TransactionType.MODELINCOME){
                 ModeleIncomes modeleIncomes = functions.getModeleIncomeById(parseLong(transaction.getId()));

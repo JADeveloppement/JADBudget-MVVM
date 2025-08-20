@@ -109,11 +109,34 @@
         android:inputType="numberSigned|numberDecimal"
         android:singleLine="true"/>
 
+    <LinearLayout
+        android:id="@+id/popupContentElementCategoryLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:background="@drawable/rounded_white_border_gray">
+
+        <CheckBox
+            android:id="@+id/popupContentElementUseCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/categorize"/>
+
+        <Spinner
+            android:id="@+id/popupContentElementCategorySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/paddingM"/>
+
+    </LinearLayout>
+
     <CheckBox
         android:id="@+id/popupContentElementIsPaid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Prélevé ?"/>
+        android:text="Prélevé ?"
+        android:layout_marginTop="@dimen/paddingM"/>
 
     <Button
         android:id="@+id/popupContentElementBtnSave"

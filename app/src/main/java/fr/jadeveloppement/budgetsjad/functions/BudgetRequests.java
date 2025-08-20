@@ -33,6 +33,8 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.jadeveloppement.budgetsjad.functions.api.ApiURLBuilder;
+import fr.jadeveloppement.budgetsjad.functions.api.DefaultApiErrorHandler;
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
@@ -46,6 +48,8 @@ public class BudgetRequests {
     private Functions functions;
     private String login, password;
     private String token;
+    private DefaultApiErrorHandler defaultApiErrorHandler;
+    private ApiURLBuilder apiURLBuilder;
 
     /**
      * Do not use this constructor
@@ -70,6 +74,8 @@ public class BudgetRequests {
         this.password = p;
         this.functions = new Functions(context);
         this.callback = call;
+        this.defaultApiErrorHandler = new DefaultApiErrorHandler(context, callback);
+        this.apiURLBuilder = new ApiURLBuilder();
     }
 
     /**
@@ -108,15 +114,15 @@ public class BudgetRequests {
      * Check validity of token
      */
     public void checkToken(@NonNull String login, @NonNull String token) {
-        String URL = URL_CHECKTOKEN.replace(loginUrlField, login).replace(tokenUrlField, token);
+        String URL = apiURLBuilder.build(URL_CHECKTOKEN, loginUrlField, login, tokenUrlField, token);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
                     callback.tokenOk();
                 },
                 error -> {
-                    Functions.handleExceptions("BudgetRequests > makeSaveDatas : ", error);
-                    volleyErrorHandler(error, Enums.ErrorRequest.TOKEN_NON_OK);
+                    Functions.handleExceptions("BudgetRequests > checkToken : ", error);
+                    defaultApiErrorHandler.handleError(error, Enums.ErrorRequest.TOKEN_NON_OK);
                 }
         );
 
@@ -128,7 +134,7 @@ public class BudgetRequests {
      * To call just after the declaration of BudgetRequests(Context, Login, Password, Callback)
      */
     public void handleLogin(){
-        String URL = URL_LOGIN.replace(loginUrlField, login).replace(passwordUrlField, password);
+        String URL = apiURLBuilder.build(URL_LOGIN, loginUrlField, login, passwordUrlField, password);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -158,7 +164,7 @@ public class BudgetRequests {
                 },
                 error -> {
                     Functions.handleExceptions("BudgetRequests > handleLogin : ", error);
-                    volleyErrorHandler(error, Enums.ErrorRequest.LOGIN_NON_OK);
+                    defaultApiErrorHandler.handleError(error, Enums.ErrorRequest.LOGIN_NON_OK);
                 }
         );
 
@@ -169,12 +175,12 @@ public class BudgetRequests {
     /**
      * Save data into database, linked to user credentials
      * @param t : token sent by the handleLogin
-     * @param d : datas to send to be parsed by API
+     * @param datas : datas to send to be parsed by API
      */
-    public void makeExportDatas(@NonNull String t, @NonNull String d){
-        String URL = URL_EXPORTDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(datasUrlField, d);
+    public void makeExportDatas(@NonNull String t, @NonNull String datas){
+        String URL = apiURLBuilder.build(URL_EXPORTDATA, loginUrlField, login, passwordUrlField, password, tokenUrlField, t, datasUrlField, datas);
 
-        Log.d(TAG, "makeSaveDatas: URL > " + URL);
+        Log.d(TAG, "BudgetRequests > makeSaveDatas: URL > " + URL);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null,
                 response -> {
@@ -192,13 +198,13 @@ public class BudgetRequests {
 
     /**
      * Allow to import datas given their datatype
-     * @param d : datatype to request
+     * @param dataToRequest : datatype to request
      * @param t : token
      * @param totalRequests : total of datatype to retrieve
      * @param indexRequest : index of current datatype being retrieved
      */
-    private void importDataType(@NonNull Enums.DataToRequest d, String t, int totalRequests, int indexRequest){
-        String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, t).replace(typeUrlField, String.valueOf(d));
+    private void importDataType(@NonNull Enums.DataToRequest dataToRequest, String t, int totalRequests, int indexRequest){
+        String URL = apiURLBuilder.build(URL_RETRIEVEDATA, loginUrlField, login, passwordUrlField, password, tokenUrlField, t, typeUrlField, String.valueOf(dataToRequest));
 
         Log.d(TAG, "makeImportDatas: URL > " + URL);
 
@@ -227,11 +233,6 @@ public class BudgetRequests {
      * @param t : token sent by the handleLogin
      */
     public void makeImportDatas(@NonNull String t, @NonNull List<Enums.DataToRequest> datas){
-        if (t.isBlank()){
-            functions.makeToast("Les données n'ont pas permis de vous identifier.");
-            return;
-        }
-
         int index = 0;
         for (Enums.DataToRequest d : datas){
             importDataType(d, t, datas.size(), index);
@@ -244,7 +245,8 @@ public class BudgetRequests {
      * @param token : token of the user connected
      */
     public void retrieveAllTransactions(String token) {
-        String URL = URL_RETRIEVEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(typeUrlField, String.valueOf(Enums.DataToRequest.ALL_DATAS));
+        String URL = apiURLBuilder.build(URL_RETRIEVEDATA, loginUrlField, login, passwordUrlField, password, tokenUrlField, token, typeUrlField, String.valueOf(Enums.DataToRequest.ALL_DATAS));
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
                 try {
                     String datasResponse = response.getString("datas");
@@ -259,6 +261,7 @@ public class BudgetRequests {
                                     cols[3],
                                     cols[4],
                                     cols[5],
+                                    "",
                                     Functions.convertStrtypeToTransactionType(cols[6]),
                                     cols[7]
                             ));
@@ -284,7 +287,12 @@ public class BudgetRequests {
      * @param id : distant transaction_id to delete
      */
     public void deleteTransaction(String id) {
-        String URL = URL_DELETEDATA.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(transactionIdField, id);
+        if (isNull(token) || token.isBlank()) {
+            Functions.makeSnakebar("Une erreur est survenue : token vide");
+            Log.d(TAG, "BudgetRequests > deleteTransaction: empty token");
+        }
+
+        String URL = apiURLBuilder.build(URL_DELETEDATA, loginUrlField, login, passwordUrlField, password, tokenUrlField, token, transactionIdField, id);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
             try {
                 callback.requestsFinished();
@@ -307,8 +315,11 @@ public class BudgetRequests {
      * @param type : type of transaction
      */
     public void addTransaction(String label, String amount, String type) {
-        String URL = URL_ADD_TRANSACTION.replace(loginUrlField, login).replace(passwordUrlField, password).replace(tokenUrlField, token).replace(labelUrlField, label)
-                .replace(amountUrlField, amount).replace(typeUrlField, type);
+        if (type.isBlank()) type = String.valueOf(Enums.TransactionType.UNDEFINED);
+        if (amount.isBlank()) amount = "0";
+        if (label.isBlank()) label = "pas de label";
+
+        String URL = apiURLBuilder.build(URL_ADD_TRANSACTION, loginUrlField, login, passwordUrlField, password, tokenUrlField, token, labelUrlField, label, amountUrlField, amount, typeUrlField, type);
         Log.d(TAG, "addTransaction: " + URL);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, URL, null, response -> {
             try {

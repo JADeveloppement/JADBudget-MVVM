@@ -7,7 +7,6 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,13 +18,16 @@ import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
+import fr.jadeveloppement.budgetsjad.components.CategoryLayout;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountsContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContentLogin;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContentSynchronize;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupDisplayChart;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupDisplayTileContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
+import fr.jadeveloppement.budgetsjad.components.popups.PopupManageCategories;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
@@ -33,9 +35,9 @@ import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterfac
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
-import fr.jadeveloppement.budgetsjad.ui.home.HomeFragment;
 
 public class PopupHelper {
 
@@ -54,6 +56,10 @@ public class PopupHelper {
         void popupAddElementBtnSaveClicked(String label, String amount, Enums.TransactionType type);
     }
 
+    public interface PopupHelperCategoryAdded{
+        void categoryAdded();
+    }
+
     public PopupHelper(@NonNull Context c, @Nullable PopupHelperAddElementBtnClicked call){
         this.context = c.getApplicationContext();
         this.budgetViewModel = null;
@@ -66,6 +72,35 @@ public class PopupHelper {
         this.budgetViewModel = bModel;
         this.functions = new Functions(context);
         this.callback = null;
+    }
+
+    public void popupManageCategories(){
+        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+        PopupManageCategories popupManageCategories = new PopupManageCategories(context);
+
+        popupContainer.addContent(popupManageCategories.getLayout());
+        popupManageCategories.getBtnClose().setOnClickListener(v -> {
+            popupContainer.closePopup();
+        });
+
+        popupManageCategories.getBtnAddCategory().setOnClickListener(v -> {
+            popupManageCategories.toggleLayoutAddCategory();
+        });
+
+        popupManageCategories.getLayoutAddCategorySaveBtn().setOnClickListener(v -> {
+            String label = popupManageCategories.getLayoutAddCategoryLabel().getText().toString();
+            if (label.isBlank()){
+                functions.makeToast("Veuillez remplir tous les champs svp");
+                return;
+            }
+
+            popupManageCategories.getLayoutAddCategoryLabel().setText("");
+            CategoryTable categoryTable = new CategoryTable(label);
+            functions.insertCategory(categoryTable);
+            functions.makeToast("Catégorie '"+label+"' créée avec succès.");
+
+            if (!isNull(popupManageCategories)) popupManageCategories.initPopup();
+        });
     }
 
     public void popupAddElement(Enums.TransactionType type, boolean... isEx){
@@ -98,6 +133,10 @@ public class PopupHelper {
         popupElementContent.getPopupContentElementBtnSave().setOnClickListener(v -> {
             String label = popupElementContent.getPopupContentElementLabel().getText().toString();
             String amount = popupElementContent.getPopupContentElementAmount().getText().toString();
+            String category = "";
+            if (functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") && popupElementContent.getPopupContentElementUseCategory().isChecked()){
+                category = popupElementContent.getSelectedCategoryId();
+            }
             if (label.isBlank() || amount.isBlank()) functions.makeToast("Veuillez renseigner tous les champs");
             else {
                 Transaction transaction = new Transaction(
@@ -106,6 +145,7 @@ public class PopupHelper {
                         Functions.convertLocaleDateToStd(popupElementContent.getPopupContentElementPeriodTv().getText().toString()),
                         settingsAccount.value,
                         type == Enums.TransactionType.INVOICE ? (popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0") : "0",
+                        category,
                         type
                 );
 
@@ -118,10 +158,6 @@ public class PopupHelper {
                 popupContainer.closePopup();
             }
         });
-    }
-
-    public void popupAddExternal(Enums.TransactionType type){
-
     }
 
     public void popupManageAccounts(){
@@ -355,6 +391,16 @@ public class PopupHelper {
         popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
 
         popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setVisibility(functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") ? View.VISIBLE : View.GONE);
+        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setOnClickListener(v2 -> {
+            PopupContainer popupChartContainer = new PopupContainer(context, MainActivity.getViewRoot());
+            PopupDisplayChart popupDisplayChart = new PopupDisplayChart(context, type);
+            popupChartContainer.addContent(popupDisplayChart.getLayout());
+
+            popupDisplayChart.btnClose().setOnClickListener(v3 -> {
+                popupChartContainer.closePopup();
+            });
+        });
     }
 
     public void popupCreatePeriod() {

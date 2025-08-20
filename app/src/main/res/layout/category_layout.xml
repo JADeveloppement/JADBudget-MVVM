@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:weightSum="10"
+    android:gravity="center_vertical"
+    android:padding="@dimen/paddingM">
+
+    <TextView
+        android:id="@+id/categoryLayoutLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="8"
+        android:textColor="@color/black"
+        android:text="@string/app_name"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_weight="2"
+        android:gravity="center|end">
+
+        <ImageButton
+            android:id="@+id/categoryLayoutBtnDelete"
+            android:layout_width="@dimen/iconM"
+            android:layout_height="@dimen/iconM"
+            android:layout_marginEnd="@dimen/paddingM"
+            android:background="@drawable/trash"/>
+
+        <ImageButton
+            android:id="@+id/categoryLayoutBtnEdit"
+            android:layout_width="@dimen/iconM"
+            android:layout_height="@dimen/iconM"
+            android:background="@drawable/edit"/>
+
+    </LinearLayout>
+
+</LinearLayout>

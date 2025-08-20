@@ -8,6 +8,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -24,6 +25,7 @@ import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.SQLiteFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.IncomesTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.InvoicesTable;
@@ -116,6 +118,15 @@ public class Functions {
     }
 
     /**
+     * Generic function to handle potential catch case or exception
+     * @param s : Message to display in log
+     * @param e : error to display with the log message
+     */
+    public static void handleExceptions(String s, Exception e) {
+        Log.d(TAG, "handleExceptions: " + s + "\nException : \n"+e);
+    }
+
+    /**
      *
      * @return layoutParams that's WRAP_CONTENT / WRAP_CONTENT
      */
@@ -167,83 +178,21 @@ public class Functions {
         else {
             for (Transaction t : listOfTransaction) {
                 result.add(t.getId() + "<l>"
-                        + t.getLabel() + "<l>"
+                        + sanitizeDatas(t.getLabel()) + "<l>"
                         + t.getAmount() + "<l>"
                         + t.getDate() + "<l>"
                         + t.getAccount() + "<l>"
                         + t.getPaid() + "<l>"
-                        + t.getType());
+                        + t.getType() + "<l>"
+                        + t.getCategory());
             }
         }
         return TextUtils.join("<n>", result);
     }
 
-    public Transaction convertObjectToTransaction(Object o) throws Exception {
-        Transaction convertedObject = null;
-        if (o instanceof InvoicesTable){
-            InvoicesTable i = (InvoicesTable) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    String.valueOf(i.account_id),
-                    i.paid,
-                    Enums.TransactionType.INVOICE
-            );
-        } else if (o instanceof IncomesTable){
-            IncomesTable i = (IncomesTable) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    String.valueOf(i.account_id),
-                    i.paid,
-                    Enums.TransactionType.INCOME
-            );
-        } else if (o instanceof ExpensesTable){
-            ExpensesTable i = (ExpensesTable) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    String.valueOf(i.account_id),
-                    "0",
-                    Enums.TransactionType.EXPENSE
-            );
-        } else if (o instanceof ModeleInvoices){
-            ModeleInvoices i = (ModeleInvoices) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    "",
-                    "0",
-                    Enums.TransactionType.MODELINVOICE
-            );
-        } else if (o instanceof ModeleIncomes){
-            ModeleIncomes i = (ModeleIncomes) o;
-            convertedObject = new Transaction(
-                    i.label,
-                    i.amount,
-                    i.date,
-                    "",
-                    "0",
-                    Enums.TransactionType.MODELINCOME
-            );
-        }
-
-        if (isNull(convertedObject)) throw new Exception("No type match object");
-
-        return convertedObject;
-    }
-
-    /**
-     * Generic function to handle potential catch case or exception
-     * @param s : Message to display in log
-     * @param e : error to display with the log message
-     */
-    public static void handleExceptions(String s, Exception e) {
-        Log.d(TAG, "handleExceptions: " + s + "\nException : \n"+e);
+    private String sanitizeDatas(String label) {
+        String regex = "[&=;%+#/?<>\\\\\\[\\]{}|^`\\s'\"]";
+        return label.replaceAll(regex, "");
     }
 
     // ACCOUNTS MANAGEMENT
@@ -270,6 +219,37 @@ public class Functions {
             settingAccount.value = String.valueOf(getAllAccounts().get(0).account_id);
             updateSettings(settingAccount);
         }
+    }
+    //
+
+    // CATEGORY MANAGEMENT
+    public List<CategoryTable> getAllCategories(){
+        return sqliteFunctions.getAllCategories();
+    }
+
+    public CategoryTable getCategoryById(long id) {
+        return sqliteFunctions.getCategoryById(id);
+    }
+
+    public CategoryTable getCategoryByLabel(@NonNull String label) {
+        return sqliteFunctions.getCategoryByLabel(label);
+    }
+
+    public Long insertCategory(CategoryTable categoryTable){
+        CategoryTable catLabel = getCategoryByLabel(categoryTable.label);
+        if (isNull(catLabel)) return sqliteFunctions.insertCategory(categoryTable);
+        else {
+            makeToast("Une catégorie similaire existe déjà.");
+            return null;
+        }
+    }
+
+    public void updateCategory(CategoryTable categoryTable) {
+        sqliteFunctions.updateCategory(categoryTable);
+    }
+
+    public void deleteCategory(CategoryTable categoryTable){
+        sqliteFunctions.deleteCategory(categoryTable);
     }
     //
 
@@ -330,7 +310,7 @@ public class Functions {
         List<InvoicesTable> listOfInvoices = sqliteFunctions.getAllInvoices();
         List<Transaction> listOfTransactions = new ArrayList<>();
         for (InvoicesTable i : listOfInvoices){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, Enums.TransactionType.INVOICE, String.valueOf(i.invoice_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, String.valueOf(i.category_id), Enums.TransactionType.INVOICE, String.valueOf(i.invoice_id)));
         }
         return listOfTransactions;
     }
@@ -361,7 +341,7 @@ public class Functions {
         List<IncomesTable> listOfIncomes = sqliteFunctions.getAllIncomes();
         List<Transaction> listOfTransactions = new ArrayList<>();
         for (IncomesTable i : listOfIncomes){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, Enums.TransactionType.INCOME, String.valueOf(i.income_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), i.paid, String.valueOf(i.category_id), Enums.TransactionType.INCOME, String.valueOf(i.income_id)));
         }
         return listOfTransactions;
     }
@@ -392,7 +372,7 @@ public class Functions {
         List<ExpensesTable> listOfExpenses = sqliteFunctions.getAlLExpenses();
         List<Transaction> listOfTransactions = new ArrayList<>();
         for (ExpensesTable i : listOfExpenses){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), "0", Enums.TransactionType.EXPENSE, String.valueOf(i.expense_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, String.valueOf(i.account_id), "0", String.valueOf(i.category_id), Enums.TransactionType.EXPENSE, String.valueOf(i.expense_id)));
         }
         return listOfTransactions;
     }
@@ -419,7 +399,7 @@ public class Functions {
         List<ModeleInvoices> listOfModelInvoice = sqliteFunctions.getAllModelInvoice();
         List<Transaction> listOfTransactions = listOfModelInvoice.isEmpty() ? Collections.emptyList() : new ArrayList<>();
         for (ModeleInvoices i : listOfModelInvoice){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", Enums.TransactionType.MODELINVOICE, String.valueOf(i.modeleinvoice_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", String.valueOf(i.category_id), Enums.TransactionType.MODELINVOICE, String.valueOf(i.modeleinvoice_id)));
         }
         return listOfTransactions;
     }
@@ -445,7 +425,7 @@ public class Functions {
         List<ModeleIncomes> listOfModelIncomes = sqliteFunctions.getAllModelIncome();
         List<Transaction> listOfTransactions = listOfModelIncomes.isEmpty() ? Collections.emptyList() : new ArrayList<>();
         for (ModeleIncomes i : listOfModelIncomes){
-            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", Enums.TransactionType.MODELINCOME, String.valueOf(i.modeleincome_id)));
+            listOfTransactions.add(new Transaction(i.label, i.amount, i.date, "", "0", String.valueOf(i.category_id), Enums.TransactionType.MODELINCOME, String.valueOf(i.modeleincome_id)));
         }
         return listOfTransactions;
     }
@@ -478,6 +458,105 @@ public class Functions {
         updateSettings(settingUser);
         updateSettings(settingPassword);
         updateSettings(settingToken);
+    }
+    //
+
+    // Transaction Management
+
+    /**
+     * Convert an Expense/Invoice/Income/ModelInvoice/ModelIncome to a Transaction
+     * @param o : object to convert
+     * @return : object converted to a Transaction
+     * @throws Exception : if unable to convert object to Transaction because object is neither of type ExpensesTable/IncomesTable/InvoicesTable/ModelInvoicesTable/ModelIncomesTable
+     */
+    public Transaction convertObjectToTransaction(Object o) throws Exception {
+        Transaction convertedObject = null;
+        if (o instanceof InvoicesTable){
+            InvoicesTable i = (InvoicesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    i.paid,
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.INVOICE
+            );
+        } else if (o instanceof IncomesTable){
+            IncomesTable i = (IncomesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    i.paid,
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.INCOME
+            );
+        } else if (o instanceof ExpensesTable){
+            ExpensesTable i = (ExpensesTable) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    String.valueOf(i.account_id),
+                    "0",
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.EXPENSE
+            );
+        } else if (o instanceof ModeleInvoices){
+            ModeleInvoices i = (ModeleInvoices) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    "",
+                    "0",
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.MODELINVOICE
+            );
+        } else if (o instanceof ModeleIncomes){
+            ModeleIncomes i = (ModeleIncomes) o;
+            convertedObject = new Transaction(
+                    i.label,
+                    i.amount,
+                    i.date,
+                    "",
+                    "0",
+                    String.valueOf(i.category_id),
+                    Enums.TransactionType.MODELINCOME
+            );
+        }
+
+        if (isNull(convertedObject)) throw new Exception("No type match object");
+
+        return convertedObject;
+    }
+
+    /**
+     * Function to get a List of transaction of a given type
+     * @param type : type to retrieve
+     * @return : List of transaction of a given type
+     */
+    public List<Transaction> getAllTransactionByType(@NonNull Enums.TransactionType type){
+        List<Transaction> result = new ArrayList<>();
+        List<?> objects = Collections.emptyList();
+
+        if (type == Enums.TransactionType.EXPENSE) objects = getAllExpenses();
+        else if (type == Enums.TransactionType.INVOICE) objects = getAllInvoices();
+        else if (type == Enums.TransactionType.INCOME) objects = getAllIncomes();
+
+        try {
+            for (Object o : objects){
+                Log.d(TAG, "ICI : getAllTransactionByType: " + convertObjectToTransaction(o).getLabel());
+                result.add(convertObjectToTransaction(o));
+            }
+        } catch(Exception e){
+            makeToast("Une erreur est survenue");
+            Log.d(TAG, "Functions > getAllTransactionByType: " + e.getMessage());
+        }
+
+        return result;
     }
     //
 }

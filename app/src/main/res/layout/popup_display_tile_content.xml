@@ -61,32 +61,88 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="@dimen/paddingL">
-
-        <ImageView
-            android:layout_width="@dimen/iconM"
-            android:layout_height="@dimen/iconM"
-            android:background="@drawable/schedule"
-            android:layout_marginEnd="@dimen/paddingM"/>
+        android:weightSum="10"
+        android:layout_marginBottom="@dimen/paddingM">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_weight="9">
 
-            <TextView
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/schedule"
+                android:layout_marginEnd="@dimen/paddingM"/>
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textColor="@color/orange1"
-                android:text="@string/period"/>
+                android:orientation="vertical"
+                android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/popupDisplayTileContentPeriodTv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="01/01/2025" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:textColor="@color/orange1"
+                    android:text="@string/period"/>
+
+                <TextView
+                    android:id="@+id/popupDisplayTileContentPeriodTv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="01/01/2025" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/popupDisplayTileContentBtnChart"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:background="@drawable/chart" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/paddingM"
+        android:orientation="horizontal"
+        android:weightSum="10"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/popupDisplayTileContentSearchEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="9"
+            android:hint="@string/search_hint"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/iconM"
+                android:layout_height="@dimen/iconM"
+                android:src="@android:drawable/ic_menu_search" />
 
         </LinearLayout>
 

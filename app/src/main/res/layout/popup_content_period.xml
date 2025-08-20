@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:gravity="center_vertical"
     android:background="@color/white">
@@ -70,14 +71,14 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/popupPeriodContentCalendarCustomContainer"
                 android:orientation="vertical"/>
 
-            <CalendarView
-                android:id="@+id/popupContentPeriodCalendar"
+            <fr.jadeveloppement.jadcustomcalendar.CustomCalendar
+                android:id="@+id/popupPeriodContentCalendarCustomContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:firstDayOfWeek="2"/>
+                android:padding="@dimen/paddingM"
+                app:calendarDaySelectedBackground="@drawable/rounded_box_orange1"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

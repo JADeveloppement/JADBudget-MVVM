@@ -40,5 +40,15 @@
     <string name="expenses">Dépenses</string>
     <string name="data_type">Type de donnée</string>
     <string name="external_datas">Données externes</string>
+    <string name="search_hint">Rechercher...</string>
+    <string name="categories">Catégories</string>
+    <string name="label_category">Label catégorie</string>
+    <string name="add">Ajouter</string>
+    <string name="add_category">Ajouter une catégorie</string>
+    <string name="list_of_categories">Liste des catégories</string>
+    <string name="category">Catégorie</string>
+    <string name="categorize">Catégoriser</string>
+    <string name="expenses_chart">Graphique des dépenses</string>
+    <string name="undefined">Non défini</string>
 
 </resources>
