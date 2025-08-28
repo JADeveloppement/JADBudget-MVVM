@@ -3,9 +3,12 @@ package fr.jadeveloppement.budgetsjad.functions;
 import java.text.DecimalFormat;
 
 public class Variables {
-    public static final String strTypeInvoice = "invoice";
-    public static final String strTypeIncome = "income";
-    public static final String strTypeExpense = "expense";
+    public static final String strTypeInvoice = "INVOICE";
+    public static final String strTypeIncome = "INCOME";
+    public static final String strTypeExpense = "EXPENSE";
+    public static final String strTypeModelInvoice = "MODELINVOICE";
+    public static final String strTypeModelIncome = "MODELINCOME";
+
     public static final String settingPeriod = "period_id";
     public static final String settingAccount = "account_id";
     public static final String settingsToken = "token_user";

@@ -16,7 +16,9 @@ import fr.jadeveloppement.budgetsjad.sqlite.dao.ModeleIncomesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.ModeleInvoicesDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.PeriodsDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.dao.SettingsDAO;
+import fr.jadeveloppement.budgetsjad.sqlite.dao.TransactionsDAO;
 import fr.jadeveloppement.budgetsjad.sqlite.migrations.Migration_1_2;
+import fr.jadeveloppement.budgetsjad.sqlite.migrations.Migration_2_3;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
@@ -26,6 +28,7 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 
 @Database(
         entities = {
@@ -37,9 +40,10 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
                 AccountsTable.class,
                 SettingsTable.class,
                 PeriodsTable.class,
-                CategoryTable.class
+                CategoryTable.class,
+                TransactionsTable.class
         },
-        version = 2
+        version = 3
 )
 public abstract class DatabaseInstance extends RoomDatabase {
     private static volatile DatabaseInstance INSTANCE;
@@ -53,6 +57,8 @@ public abstract class DatabaseInstance extends RoomDatabase {
     public abstract SettingsDAO settingsDAO();
     public abstract PeriodsDAO periodsDAO();
 
+    public abstract TransactionsDAO transactionsDAO();
+
     public abstract CategoryDAO categoryDAO();
 
     public static DatabaseInstance getInstance(Context c){
@@ -65,6 +71,7 @@ public abstract class DatabaseInstance extends RoomDatabase {
                                     "BudgetsJAD.db"
                             )
                             .addMigrations(new Migration_1_2())
+                            .addMigrations(new Migration_2_3())
                             .build();
                 }
             }

@@ -1,5 +1,6 @@
 package fr.jadeveloppement.budgetsjad;
 
+import static java.lang.Long.parseLong;
 import static java.util.Objects.isNull;
 
 import android.os.Bundle;
@@ -17,9 +18,11 @@ import java.util.List;
 import fr.jadeveloppement.budgetsjad.databinding.ActivityMainBinding;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
+import fr.jadeveloppement.budgetsjad.sqlite.SQLiteFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 
 public class MainActivity extends AppCompatActivity {
 

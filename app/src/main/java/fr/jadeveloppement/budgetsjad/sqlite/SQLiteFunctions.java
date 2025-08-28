@@ -22,6 +22,7 @@ import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteModeleIncomeFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteModeleInvoiceFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLitePeriodsFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteSettingsFunctions;
+import fr.jadeveloppement.budgetsjad.sqlite.helper.SQLiteTransactionsFunctions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ExpensesTable;
@@ -31,6 +32,7 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleIncomes;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.ModeleInvoices;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 
 public class SQLiteFunctions {
     private final String TAG = "BudgetJAD";
@@ -43,8 +45,8 @@ public class SQLiteFunctions {
     private final SQLiteExpensesFunctions sqLiteExpensesFunctions;
     private final SQLiteModeleInvoiceFunctions sqLiteModeleInvoiceFunctions;
     private final SQLiteModeleIncomeFunctions sqLiteModeleIncomeFunctions;
-
     private final SQLiteCategoryFunctions sqLiteCategoryFunctions;
+    private final SQLiteTransactionsFunctions sqLiteTransactionsFunctions;
 
 
     public SQLiteFunctions(@NonNull Context c){
@@ -58,7 +60,15 @@ public class SQLiteFunctions {
         this.sqLiteModeleInvoiceFunctions = new SQLiteModeleInvoiceFunctions(context);
         this.sqLiteModeleIncomeFunctions = new SQLiteModeleIncomeFunctions(context);
         this.sqLiteCategoryFunctions = new SQLiteCategoryFunctions(context);
+        this.sqLiteTransactionsFunctions = new SQLiteTransactionsFunctions(context);
     }
+    public List<TransactionsTable> getTransactionsByType(String type){
+        return sqLiteTransactionsFunctions.getTransactionsByType(type);
+    }
+    public List<TransactionsTable> getAllTransactions(){
+        return sqLiteTransactionsFunctions.getAllTransactions();
+    }
+
     public List<AccountsTable> getAllAccounts() {
         return sqLiteAccountsFunctions.getAllAccounts();
     }
