@@ -32,6 +32,8 @@ import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.functions.PopupHelper;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
+import fr.jadeveloppement.budgetsjad.models.AccountsViewModel;
+import fr.jadeveloppement.budgetsjad.models.AccountsViewModelFactory;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
 import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
@@ -42,6 +44,7 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
 public class DashboardFragment extends Fragment
         implements DashboardTile.DashboardTileAddElementClickedInterface,
         PeriodLayout.PeriodLayoutSelectionChanged {
+        PopupHelper.PopupHelperAccountsTableInterface {
 
     private final String TAG = "JADBudget";
 
@@ -56,6 +59,7 @@ public class DashboardFragment extends Fragment
     private PeriodLayout periodLayout;
 
     private BudgetViewModel budgetViewModel;
+    private AccountsViewModel accountsViewModel;
 
     private List<AccountsTable> listOfAccounts;
     private PeriodsTable periodSelected;
@@ -75,7 +79,9 @@ public class DashboardFragment extends Fragment
         budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
         listOfAccounts = functions.getAllAccounts();
         periodSelected = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value));
-        popupHelper = new PopupHelper(requireActivity(), budgetViewModel);
+        popupHelper = new PopupHelper(requireActivity(), this, this, this);
+
+        accountsViewModel = new ViewModelProvider(requireActivity(), new AccountsViewModelFactory(requireActivity().getApplication())).get(AccountsViewModel.class);
 
         setDashboardAccountsObserver();
         setPeriodObserver();
@@ -86,21 +92,18 @@ public class DashboardFragment extends Fragment
 
     // ACCOUNTS
     private void setDashboardAccountsObserver() {
-        budgetViewModel.getListOfAccounts().observe(getViewLifecycleOwner(), (List<AccountsTable> accounts) -> {
-            listOfAccounts = accounts;
-            setAccountsLayout();
-            // TODO - Update dashboard tiles layouts
-        });
+        accountsViewModel.getListOfAccountsTable().observe(getViewLifecycleOwner(), this::setAccountsLayout);
+        accountsViewModel.updateListAccounts();
     }
 
-    private void setAccountsLayout() {
+    private void setAccountsLayout(List<AccountsTable> listOfAccounts) {
         dashboardAccountsContainer.removeAllViews();
 
         SettingsTable settingsActiveAccount = functions.getSettingByLabel(Variables.settingAccount);
 
         accountsTilesList = new ArrayList<>();
 
-        for (AccountsTable a : functions.getAllAccounts()){
+        for (AccountsTable a : listOfAccounts){
             AccountTile accountTile = new AccountTile(requireContext(), a);
 
             accountTile.getLayout().setOnLongClickListener(v -> {
@@ -128,15 +131,25 @@ public class DashboardFragment extends Fragment
             if (tile != accountTile) tile.setInactive();
             else {
                 tile.setActive();
-                budgetViewModel.updateSettingsAccount(String.valueOf(tile.getAccount().account_id));
+                accountsViewModel.updateSettingsAccount(String.valueOf(tile.getAccount().account_id));
             }
         }
-        budgetViewModel.accountChanged();
+        accountsViewModel.accountActiveChanged();
     }
 
-    private void editAccount(AccountsTable a) {
-
+    @Override
+    public void popupHelperAccountsTableAdded(AccountsTable a){
+        accountsViewModel.insertAccount(a);
     }
+    @Override
+    public void popupHelperAccountsTableEdited(AccountsTable a){
+        accountsViewModel.updateAccount(a);
+    }
+    @Override
+    public void popupHelperAccountsTableDeleted(AccountsTable a){
+        accountsViewModel.deleteAccount(a);
+    }
+
     //
 
     // PERIOD

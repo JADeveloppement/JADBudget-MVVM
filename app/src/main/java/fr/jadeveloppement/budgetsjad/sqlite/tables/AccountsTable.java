@@ -1,5 +1,6 @@
 package fr.jadeveloppement.budgetsjad.sqlite.tables;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -18,5 +19,11 @@ public class AccountsTable {
     public AccountsTable(String accountName, String accountAmount) {
         this.label = accountName;
         this.amount = accountAmount;
+    }
+
+    @NonNull
+    @Override
+    public String toString(){
+        return "Account : " + this.account_id + " / label : " + this.label + " / amount : " + this.amount;
     }
 }
