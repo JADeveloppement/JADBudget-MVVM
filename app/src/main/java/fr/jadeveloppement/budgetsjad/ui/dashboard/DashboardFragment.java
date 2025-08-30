@@ -1,7 +1,5 @@
 package fr.jadeveloppement.budgetsjad.ui.dashboard;
 
-import static java.lang.Double.parseDouble;
-import static java.lang.Float.parseFloat;
 import static java.lang.Long.parseLong;
 import static java.util.Objects.isNull;
 
@@ -12,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -36,34 +33,33 @@ import fr.jadeveloppement.budgetsjad.models.AccountsViewModel;
 import fr.jadeveloppement.budgetsjad.models.AccountsViewModelFactory;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
 import fr.jadeveloppement.budgetsjad.models.BudgetViewModelFactory;
-import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
+import fr.jadeveloppement.budgetsjad.models.PeriodsViewModel;
+import fr.jadeveloppement.budgetsjad.models.PeriodsViewModelFactory;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 
 public class DashboardFragment extends Fragment
         implements DashboardTile.DashboardTileAddElementClickedInterface,
-        PeriodLayout.PeriodLayoutSelectionChanged {
-        PopupHelper.PopupHelperAccountsTableInterface {
+        PeriodLayout.PeriodLayoutSelectionChanged,
+        PopupHelper.PopupHelperAddElementBtnClicked,
+        PopupHelper.PopupHelperDeleteElementBtnClicked,
+        PopupHelper.PopupHelperAccountsTableInterface,
+        PopupHelper.PopupHelperPeriodsTableAdded {
 
-    private final String TAG = "JADBudget";
+    private final String TAG = "JADBudget > DashboardFragment";
 
     private FragmentDashboardBinding binding;
-
-    private LinearLayout dashboardAccountsContainer, dashboardTilesContainer, dashboardPeriodContainer;
-    private Functions functions;
-    private View root;
-    private DashboardTile incomeTile, invoiceTile, expenseTile, forecastFinalTile, forecastEncoursTile;
-
-    private List<AccountTile> accountsTilesList;
-    private PeriodLayout periodLayout;
-
+    private PopupHelper popupHelper;
     private BudgetViewModel budgetViewModel;
     private AccountsViewModel accountsViewModel;
-
-    private List<AccountsTable> listOfAccounts;
-    private PeriodsTable periodSelected;
-    private PopupHelper popupHelper;
+    private PeriodsViewModel periodsViewModel;
+    private DashboardTile incomeTile, invoiceTile, expenseTile, forecastFinalTile, forecastEncoursTile;
+    private PeriodLayout periodLayout;
+    private List<AccountTile> accountsTilesList;
+    private LinearLayout dashboardAccountsContainer, dashboardTilesContainer, dashboardPeriodContainer;
+    private View root;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -71,20 +67,19 @@ public class DashboardFragment extends Fragment
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         root = binding.getRoot();
 
-        functions = new Functions(requireContext());
         dashboardAccountsContainer = binding.dashboardAccountsContainer;
         dashboardTilesContainer = binding.dashboardTilesContainer;
         dashboardPeriodContainer = binding.dashboardPeriodContainer;
 
-        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity())).get(BudgetViewModel.class);
-        listOfAccounts = functions.getAllAccounts();
-        periodSelected = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value));
-        popupHelper = new PopupHelper(requireActivity(), this, this, this);
+        budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity().getApplication())).get(BudgetViewModel.class);
+        popupHelper = new PopupHelper(requireActivity(), this, this, this, this);
 
         accountsViewModel = new ViewModelProvider(requireActivity(), new AccountsViewModelFactory(requireActivity().getApplication())).get(AccountsViewModel.class);
+        periodsViewModel = new ViewModelProvider(requireActivity(), new PeriodsViewModelFactory(requireActivity().getApplication())).get(PeriodsViewModel.class);
 
         setDashboardAccountsObserver();
-        setPeriodObserver();
+        setPeriodsObserver();
+        setPeriodLayout();
         setDashboardTilesLayout();
 
         return root;
@@ -92,6 +87,7 @@ public class DashboardFragment extends Fragment
 
     // ACCOUNTS
     private void setDashboardAccountsObserver() {
+        accountsViewModel.setSettingsAccount();
         accountsViewModel.getListOfAccountsTable().observe(getViewLifecycleOwner(), this::setAccountsLayout);
         accountsViewModel.updateListAccounts();
     }
@@ -99,7 +95,7 @@ public class DashboardFragment extends Fragment
     private void setAccountsLayout(List<AccountsTable> listOfAccounts) {
         dashboardAccountsContainer.removeAllViews();
 
-        SettingsTable settingsActiveAccount = functions.getSettingByLabel(Variables.settingAccount);
+        SettingsTable settingsActiveAccount = accountsViewModel.getSettingsAccount().getValue();
 
         accountsTilesList = new ArrayList<>();
 
@@ -119,6 +115,7 @@ public class DashboardFragment extends Fragment
             dashboardAccountsContainer.addView(accountTile.getLayout());
 
             accountTile.getLayout().setOnClickListener(v -> setActiveAccount(accountTile));
+
         }
 
         AddAccountTile addAccountTile = new AddAccountTile(requireContext());
@@ -132,6 +129,7 @@ public class DashboardFragment extends Fragment
             else {
                 tile.setActive();
                 accountsViewModel.updateSettingsAccount(String.valueOf(tile.getAccount().account_id));
+                budgetViewModel.updateLiveDataTransactionsTable();
             }
         }
         accountsViewModel.accountActiveChanged();
@@ -153,14 +151,11 @@ public class DashboardFragment extends Fragment
     //
 
     // PERIOD
-    private void setPeriodObserver(){
-        budgetViewModel.getPeriodSelected().observe(getViewLifecycleOwner(), (PeriodsTable period) -> {
-            periodSelected = period;
+    public void setPeriodsObserver(){
+        periodsViewModel.getListOfPeriodsTable().observe(getViewLifecycleOwner(), (List<PeriodsTable> listOfPeriods) -> {
             setPeriodLayout();
-            // TODO - Update dashboard tiles layouts
         });
     }
-
     private void setPeriodLayout(){
         periodLayout = new PeriodLayout(requireContext(), dashboardPeriodContainer, this);
         dashboardPeriodContainer.removeAllViews();
@@ -168,16 +163,20 @@ public class DashboardFragment extends Fragment
 
         setPeriodEvents();
     }
-
     private void setPeriodEvents() {
         periodLayout.getPeriodLayoutBtnAddPeriod().setOnClickListener(v -> {
             popupHelper.popupCreatePeriod();
         });
     }
-
     @Override
     public void periodChanged(String newDate){
-        budgetViewModel.updateSettingsPeriod(Functions.convertLocaleDateToStd(newDate));
+        periodsViewModel.updateSettingsPeriod(Functions.convertLocaleDateToStd(newDate));
+        budgetViewModel.updateLiveDataTransactionsTable();
+    }
+    @Override
+    public void popupHelperPeriodAdded(PeriodsTable newPeriod, boolean hasModelInvoice, boolean hasModelIncome){
+        periodsViewModel.insertPeriod(newPeriod);
+        budgetViewModel.updateLiveDataTransactionsTable();
     }
     //
 
@@ -190,17 +189,20 @@ public class DashboardFragment extends Fragment
         incomeTile.setTypeTile(Enums.TransactionType.INCOME);
         incomeTile.setProgressBarVisible(false);
         incomeTile.setLastElementVisible(false);
+        setupTileEvent(incomeTile, Variables.strTypeIncome, Enums.TransactionType.INCOME);
 
         invoiceTile = new DashboardTile(requireContext(), root, this);
         invoiceTile.setIcon(R.drawable.invoice);
         invoiceTile.setTypeTile(Enums.TransactionType.INVOICE);
         invoiceTile.setTileTitle("Prélèvements");
         invoiceTile.setLastElementVisible(false);
+        setupTileEvent(invoiceTile, Variables.strTypeInvoice, Enums.TransactionType.INVOICE);
 
         expenseTile = new DashboardTile(requireContext(), root, this);
         expenseTile.setIcon(R.drawable.expense);
         expenseTile.setTypeTile(Enums.TransactionType.EXPENSE);
         expenseTile.setTileTitle("Dépenses");
+        setupTileEvent(expenseTile, Variables.strTypeExpense, Enums.TransactionType.EXPENSE);
 
         forecastFinalTile = new DashboardTile(requireContext(), root, this);
         forecastFinalTile.setIcon(R.drawable.forecast);
@@ -222,63 +224,43 @@ public class DashboardFragment extends Fragment
         dashboardTilesContainer.addView(forecastFinalTile.getLayout());
         dashboardTilesContainer.addView(forecastEncoursTile.getLayout());
 
-        setDashboardTilesEvents();
-
-        setDashboardTilesbserver();
+        setDashboardTileOsbserver();
     }
 
-    private void setDashboardTilesEvents(){
-        setInvoiceTileEvents();
-        setIncomeTileEvents();
-        setExpenseTileEvents();
-    }
-
-    private void setInvoiceTileEvents(){
-        invoiceTile.getLayout().setOnClickListener(v -> {
-            popupHelper.displayListOfTransaction(budgetViewModel.getInvoices(), Enums.TransactionType.INVOICE);
+    private void setupTileEvent(DashboardTile tile, String type, Enums.TransactionType eType){
+        tile.getLayout().setOnClickListener(v -> {
+            switch(type){
+                case Variables.strTypeInvoice:
+                    popupHelper.displayListOfTransactionsTable(budgetViewModel.getInvoicesTransactionsTable().getValue(), Variables.strTypeInvoice);
+                    break;
+                case Variables.strTypeIncome:
+                    popupHelper.displayListOfTransactionsTable(budgetViewModel.getIncomesTransactionsTable().getValue(), Variables.strTypeIncome);
+                    break;
+                case Variables.strTypeExpense:
+                    popupHelper.displayListOfTransactionsTable(budgetViewModel.getExpensesTransactionsTable().getValue(), Variables.strTypeExpense);
+                    break;
+            }
         });
 
-        invoiceTile.getLayout().setOnLongClickListener(v -> {
-            tileAddElementClicked(Enums.TransactionType.INVOICE);
+        tile.getLayout().setOnLongClickListener(v -> {
+            tileAddElementClicked(eType);
             return true;
         });
     }
 
-    private void setIncomeTileEvents(){
-        incomeTile.getLayout().setOnClickListener(v -> {
-            popupHelper.displayListOfTransaction(budgetViewModel.getIncomes(), Enums.TransactionType.INCOME);
-        });
+    private void setDashboardTileOsbserver(){
+        budgetViewModel.getInvoicesTransactionsTable().observe(getViewLifecycleOwner(), (List<TransactionsTable> listOfInvoices) -> {
+            if (isNull(listOfInvoices)) listOfInvoices = Collections.emptyList();
 
-        incomeTile.getLayout().setOnLongClickListener(v -> {
-            tileAddElementClicked(Enums.TransactionType.INCOME);
-            return true;
-        });
-    }
-
-    private void setExpenseTileEvents(){
-        expenseTile.getLayout().setOnClickListener(v -> {
-            popupHelper.displayListOfTransaction(budgetViewModel.getExpenses(), Enums.TransactionType.EXPENSE);
-        });
-
-        expenseTile.getLayout().setOnLongClickListener(v -> {
-            tileAddElementClicked(Enums.TransactionType.EXPENSE);
-            return true;
-        });
-    }
-
-    private void setDashboardTilesbserver(){
-        budgetViewModel.getInvoices().observe(getViewLifecycleOwner(), (List<Transaction> listOfInvoices) -> {
-            if (isNull(listOfInvoices) || listOfInvoices.isEmpty()) listOfInvoices = Collections.emptyList();
             double amountInvoices = 0;
             double amountPaid = 0;
-            for(Transaction t : listOfInvoices){
-                amountInvoices += parseDouble(t.getAmount());
-                if (t.getPaid().equalsIgnoreCase("1")){
-                    amountPaid += parseDouble(t.getAmount());
-                }
+
+            for(TransactionsTable t : listOfInvoices){
+                amountInvoices += t.amount;
+                if (t.paid.equalsIgnoreCase("1")) amountPaid += t.amount;
             }
 
-            if (!isNull(invoiceTile)) {
+            if (!isNull(invoiceTile)){
                 invoiceTile.setTileAmount(Variables.decimalFormat.format(amountInvoices) + " €");
                 invoiceTile.setProgressBarText(Variables.decimalFormat.format(amountPaid) + " € / " + Variables.decimalFormat.format(amountInvoices) + " €");
                 invoiceTile.setDashboardTileProgressbarProgress((int) Math.ceil(100 * (amountPaid / (amountInvoices))));
@@ -287,11 +269,13 @@ public class DashboardFragment extends Fragment
             }
         });
 
-        budgetViewModel.getIncomes().observe(getViewLifecycleOwner(), (List<Transaction> listOfIncomes) -> {
+        budgetViewModel.getIncomesTransactionsTable().observe(getViewLifecycleOwner(), (List<TransactionsTable> listOfIncomes) -> {
             if (isNull(listOfIncomes) || listOfIncomes.isEmpty()) listOfIncomes = Collections.emptyList();
             double amountIncomes = 0;
-            for(Transaction t : listOfIncomes)
-                amountIncomes += parseDouble(t.getAmount());
+
+            for(TransactionsTable t : listOfIncomes)
+                amountIncomes += t.amount;
+
             if( !isNull(incomeTile) ) {
                 incomeTile.setTileAmount(Variables.decimalFormat.format(amountIncomes) + " €");
                 if (!isNull(incomeTile.getDashboardTileLoading()) && incomeTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
@@ -299,7 +283,22 @@ public class DashboardFragment extends Fragment
             }
         });
 
-        budgetViewModel.getForecastFinal().observe(getViewLifecycleOwner(), (Double forecastFinal) -> {
+        budgetViewModel.getExpensesTransactionsTable().observe(getViewLifecycleOwner(), (List<TransactionsTable> listOfExpenses) -> {
+            double amountExpenses = 0;
+
+            if (isNull(listOfExpenses)) listOfExpenses = Collections.emptyList();
+
+            for(TransactionsTable t : listOfExpenses){
+                amountExpenses += t.amount;
+            }
+
+            if (!isNull(expenseTile)) {
+                expenseTile.setTileAmount(Variables.decimalFormat.format(amountExpenses) + " €");
+                updateExpenseTileProgressbar();
+            }
+        });
+
+        budgetViewModel.getForecastFinalTransactionsTable().observe(getViewLifecycleOwner(), (Double forecastFinal) -> {
             if (!isNull(forecastFinalTile)){
                 forecastFinalTile.setTileAmount(Variables.decimalFormat.format(forecastFinal) + " €");
                 updateExpenseTileProgressbar();
@@ -308,10 +307,10 @@ public class DashboardFragment extends Fragment
             }
         });
 
-        budgetViewModel.getForecastEncours().observe(getViewLifecycleOwner(), (Double forecastEncours) ->  {
+        budgetViewModel.getForecastEncoursTransactionsTable().observe(getViewLifecycleOwner(), (Double forecastEncours) ->  {
             if (!isNull(forecastEncoursTile)) {
                 forecastEncoursTile.setTileAmount(Variables.decimalFormat.format(forecastEncours) + " €");
-                double forecastFinal = isNull(budgetViewModel.getForecastFinal().getValue()) ? 0 : budgetViewModel.getForecastFinal().getValue();
+                double forecastFinal = isNull(budgetViewModel.getForecastFinalTransactionsTable().getValue()) ? 0 : budgetViewModel.getForecastFinalTransactionsTable().getValue();
                 if (forecastEncours < 0 || (forecastEncours / forecastFinal) < 0.2 ) forecastEncoursTile.setTileAmountColor(Color.parseColor("#B22222"));
                 else if ((forecastEncours / forecastFinal) < 0.4) forecastEncoursTile.setTileAmountColor(Color.parseColor("#FFA500"));
                 else forecastEncoursTile.setTileAmountColor(Color.parseColor("#06a77d"));
@@ -321,40 +320,24 @@ public class DashboardFragment extends Fragment
                     forecastEncoursTile.getDashboardTileLoading().setVisibility(View.GONE);
             }
         });
-
-        budgetViewModel.getExpenses().observe(getViewLifecycleOwner(), (List<Transaction> listOfExpenses) -> {
-            double amountExpenses = 0;
-
-            if (isNull(listOfExpenses) || listOfExpenses.isEmpty()) listOfExpenses = Collections.emptyList();
-
-            for(Transaction t : listOfExpenses)
-                amountExpenses += parseDouble(t.getAmount());
-
-            if (!isNull(expenseTile)) {
-                expenseTile.setTileAmount(Variables.decimalFormat.format(amountExpenses) + " €");
-                updateExpenseTileProgressbar();
-            }
-        });
     }
 
     private void updateExpenseTileProgressbar() {
-        Double amountForecastFinal = isNull(budgetViewModel.getForecastFinal().getValue()) ? 0 : budgetViewModel.getForecastFinal().getValue();
-        List<Transaction> listOfExpenses = isNull(budgetViewModel.getExpenses().getValue()) ? Collections.emptyList() : budgetViewModel.getExpenses().getValue();
+        Double amountForecastFinal = isNull(budgetViewModel.getForecastFinalTransactionsTable().getValue()) ? 0 : budgetViewModel.getForecastFinalTransactionsTable().getValue();
+        List<TransactionsTable> listOfExpenses = isNull(budgetViewModel.getExpensesTransactionsTable().getValue()) ? Collections.emptyList() : budgetViewModel.getExpensesTransactionsTable().getValue();
         int progress;
         double amountExpenses = 0;
 
-        assert listOfExpenses != null;
-        for (Transaction t : listOfExpenses)
-            amountExpenses += parseDouble(t.getAmount());
+        for (TransactionsTable t : listOfExpenses)
+            amountExpenses += t.amount;
 
         if (amountExpenses > amountForecastFinal){
             progress = 100;
-            Log.d(TAG, "updateExpenseTileProgressbar: amount > forecastfinal");
         }
         else progress = (int) Math.ceil(100 * (amountExpenses / amountForecastFinal));
         expenseTile.setDashboardTileProgressbarProgress(progress);
         expenseTile.setProgressBarText(Variables.decimalFormat.format(amountExpenses) + " € / " + Variables.decimalFormat.format(amountForecastFinal) + " €");
-        if (!listOfExpenses.isEmpty()) expenseTile.setLastElementLabel(listOfExpenses.get(listOfExpenses.size()-1).getLabel() + " - " + listOfExpenses.get(listOfExpenses.size()-1).getAmount() + "€");
+        if (!listOfExpenses.isEmpty()) expenseTile.setLastElementLabel(listOfExpenses.get(listOfExpenses.size()-1).label + " - " + listOfExpenses.get(listOfExpenses.size()-1).amount + "€");
         else expenseTile.setLastElementVisible(false);
 
         if (!isNull(expenseTile.getDashboardTileLoading()) && expenseTile.getDashboardTileLoading().getVisibility() == View.VISIBLE)
@@ -365,12 +348,21 @@ public class DashboardFragment extends Fragment
     public void tileAddElementClicked(@NonNull Enums.TransactionType type){
         popupHelper.popupAddElement(type);
     }
-    //
+
+    @Override
+    public void popupAddElementBtnSaveClicked(TransactionsTable t) {
+        budgetViewModel.addTransactionsTable(t);
+    }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
         //
+    }
+
+    @Override
+    public void popupDeleteElementClicked(TransactionsTable t) {
+        budgetViewModel.deleteTransactionsTable(t);
     }
 }

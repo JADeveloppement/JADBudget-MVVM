@@ -1,268 +1,137 @@
 package fr.jadeveloppement.budgetsjad.models;
 
-import static java.lang.Double.parseDouble;
-import static java.lang.Long.parseLong;
-import static java.util.Objects.isNull;
 
-import android.content.Context;
+import android.app.Application;
 import android.util.Log;
 
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
-import java.util.Collections;
 import java.util.List;
 
-import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
-import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.models.classes.BudgetData;
-import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
-import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
-import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
-import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 
-public class BudgetViewModel extends ViewModel {
+public class BudgetViewModel extends AndroidViewModel {
 
-    private final String TAG = "BudgetJAD";
-
+    private final String TAG = "JADBudget";
+    private final MutableLiveData<Double> forecastFinalTransactionsTable, forecastEncoursTransactionsTable,
+            amountInvoiceTransactionsTablePaid, amountInvoiceTransactionsTableUnpaid;
+    private final MutableLiveData<Integer> nbInvoiceTransactionsTablePaid;
+    private final MutableLiveData<List<TransactionsTable>>
+            invoicesTransactionsTableLiveData,
+            incomesTransactionsTableLiveData,
+            expensesTransactionsTableLiveData,
+            modelIncomeTransactionsTableLiveData,
+            modelInvoiceTransactionsTableLiveData;
     private final BudgetData budgetData;
-    private final MutableLiveData<List<Transaction>> invoicesLiveData;
-    private final MutableLiveData<List<Transaction>> incomesLiveData;
-    private final MutableLiveData<List<Transaction>> expensesLiveData;
-    private final MutableLiveData<List<Transaction>> modelIncomeLiveData;
-    private final MutableLiveData<List<Transaction>> modelInvoiceLiveData;
-    private final MutableLiveData<List<AccountsTable>> accountsLiveData;
-    private final MutableLiveData<Double> forecastFinal;
-    private final MutableLiveData<Double> forecastEncours;
-    private final MutableLiveData<Integer> nbInvoicePaid;
-    private final MutableLiveData<Double> amountInvoicePaid;
-    private final MutableLiveData<Double> amountInvoiceUnpaid;
-    private final MutableLiveData<PeriodsTable> periodSelected;
     private Functions functions;
-    private final MutableLiveData<SettingsTable> settingsAccount;
 
-    public BudgetViewModel(Context c) {
-        Context context = c.getApplicationContext();
-        this.budgetData = new BudgetData(context.getApplicationContext());
-        this.functions = new Functions(context.getApplicationContext());
-        this.invoicesLiveData = new MutableLiveData<>();
-        this.incomesLiveData = new MutableLiveData<>();
-        this.expensesLiveData = new MutableLiveData<>();
-        this.forecastFinal = new MutableLiveData<>();
-        this.forecastEncours = new MutableLiveData<>();
-        this.nbInvoicePaid = new MutableLiveData<>();
-        this.amountInvoicePaid = new MutableLiveData<>();
-        this.amountInvoiceUnpaid = new MutableLiveData<>();
-        this.accountsLiveData = new MutableLiveData<>();
-        this.periodSelected = new MutableLiveData<>();
-        this.settingsAccount = new MutableLiveData<>();
-        this.modelInvoiceLiveData = new MutableLiveData<>();
-        this.modelIncomeLiveData = new MutableLiveData<>();
 
-        this.functions = new Functions(context);
+    public BudgetViewModel(Application application) {
+        super(application);
+        this.budgetData = new BudgetData(application);
+        this.functions = new Functions(application);
 
-        updateLiveData();
+
+        this.nbInvoiceTransactionsTablePaid = new MutableLiveData<>();
+        this.amountInvoiceTransactionsTablePaid = new MutableLiveData<>();
+        this.amountInvoiceTransactionsTableUnpaid = new MutableLiveData<>();
+        this.invoicesTransactionsTableLiveData = new MutableLiveData<>();
+        this.incomesTransactionsTableLiveData = new MutableLiveData<>();
+        this.expensesTransactionsTableLiveData = new MutableLiveData<>();
+        this.modelIncomeTransactionsTableLiveData = new MutableLiveData<>();
+        this.modelInvoiceTransactionsTableLiveData = new MutableLiveData<>();
+        this.forecastFinalTransactionsTable = new MutableLiveData<>();
+        this.forecastEncoursTransactionsTable = new MutableLiveData<>();
+
+        updateLiveDataTransactionsTable();
     }
 
-    public LiveData<Double> getForecastFinal(){
-        return forecastFinal;
+    public LiveData<List<TransactionsTable>> getInvoicesTransactionsTable() {
+        return invoicesTransactionsTableLiveData;
     }
-
-    public LiveData<Double> getForecastEncours(){
-        return forecastEncours;
+    public LiveData<List<TransactionsTable>> getIncomesTransactionsTable() {
+        return incomesTransactionsTableLiveData;
     }
-
-    public LiveData<List<AccountsTable>> getListOfAccounts(){
-        return accountsLiveData;
+    public LiveData<List<TransactionsTable>> getExpensesTransactionsTable() {
+        return expensesTransactionsTableLiveData;
     }
-
-    public LiveData<PeriodsTable> getPeriodSelected(){
-        return periodSelected;
+    public LiveData<List<TransactionsTable>> getModelIncomeTransactionsTable() {
+        return modelIncomeTransactionsTableLiveData;
     }
-
-    public LiveData<SettingsTable> getSettingsAccount(){
-        return settingsAccount;
+    public LiveData<List<TransactionsTable>> getModelInvoiceTransactionsTable() {
+        return modelInvoiceTransactionsTableLiveData;
     }
-
-    private void updateForecastFinal(){
-        double amountInvoice = 0;
-        double amountIncome = 0;
-        for (Transaction invoice : budgetData.getInvoicesTransaction())
-            amountInvoice += parseDouble(invoice.getAmount());
-        for(Transaction income : budgetData.getIncomesTransaction())
-            amountIncome += parseDouble(income.getAmount());
-
-        forecastFinal.postValue(amountIncome - amountInvoice);
-
+    public LiveData<Double> getForecastFinalTransactionsTable() {
+        return forecastFinalTransactionsTable;
     }
-
-    private void updateForecastEnCours(){
-        double amountInvoice = 0;
-        double amountIncome = 0;
-        double amountExpense = 0;
-        for (Transaction invoice : budgetData.getInvoicesTransaction())
-            if (invoice.getPaid().equalsIgnoreCase("1") ) amountInvoice += parseDouble(invoice.getAmount());
-        for(Transaction income : budgetData.getIncomesTransaction())
-            amountIncome += parseDouble(income.getAmount());
-        for(Transaction expense : budgetData.getExpensesTransaction())
-            amountExpense += parseDouble(expense.getAmount());
-
-        forecastEncours.postValue(amountIncome - amountInvoice - amountExpense);
-        settingsAccount.postValue(functions.getSettingByLabel(Variables.settingAccount));
+    public LiveData<Double> getForecastEncoursTransactionsTable() {
+        return forecastEncoursTransactionsTable;
     }
-
-    public LiveData<List<Transaction>> getInvoices() {
-        return invoicesLiveData;
+    public void addTransactionsTable(TransactionsTable t) {
+        budgetData.addTransactionsTable(t);
+        updateLiveDataTransactionsTable();
     }
-
-    public LiveData<List<Transaction>> getIncomes() {
-        return incomesLiveData;
+    public void updateTransactionsTable(TransactionsTable transaction) {
+        budgetData.updateTransactionsTable(transaction);
+        updateLiveDataTransactionsTable();
     }
+    public void deleteTransactionsTable(TransactionsTable t) {
+        budgetData.deleteTransactionsTable(t);
 
-    public LiveData<List<Transaction>> getExpenses() {
-        return expensesLiveData;
+        updateLiveDataTransactionsTable();
     }
-
-    public LiveData<List<Transaction>> getModelIncome() {
-        return modelIncomeLiveData;
-    }
-
-    public LiveData<List<Transaction>> getModelInvoice() {
-        return modelInvoiceLiveData;
-    }
-
-    public void deleteTransaction(Transaction t){
-        budgetData.deleteTransaction(t);
-
-        updateLiveData();
-    }
-
-    public void addTransaction(Transaction t) {
-        budgetData.addTransaction(t);
-
-        updateLiveData();
-    }
-
-    public void updateLiveData() {
-        invoicesLiveData.postValue(budgetData.getInvoicesTransaction());
-        incomesLiveData.postValue(budgetData.getIncomesTransaction());
-        expensesLiveData.postValue(budgetData.getExpensesTransaction());
-        modelInvoiceLiveData.postValue(budgetData.getModelInvoiceTransaction());
-        modelIncomeLiveData.postValue(budgetData.getModelIncomeTransaction());
-        updateForecastFinal();
-        updateForecastEnCours();
+    public void updateLiveDataTransactionsTable() {
+        invoicesTransactionsTableLiveData.postValue(budgetData.getInvoicesTransactionsTable());
+        incomesTransactionsTableLiveData.postValue(budgetData.getIncomesTransactionsTable());
+        expensesTransactionsTableLiveData.postValue(budgetData.getExpensesTransactionsTable());
+        modelInvoiceTransactionsTableLiveData.postValue(budgetData.getModelInvoiceTransactionsTable());
+        modelIncomeTransactionsTableLiveData.postValue(budgetData.getModelIncomeTransactionsTable());
+        updateForecastFinalTransactionsTable();
+        updateForecastEnCoursTransactionsTable();
 
         int nbPaid = 0;
         double amountPaid = 0;
         double amountUnpaid = 0;
 
-        for (Transaction t : budgetData.getInvoicesTransaction()){
-            if (t.getPaid().equalsIgnoreCase("1")) {
+        for (TransactionsTable t : budgetData.getInvoicesTransactionsTable()) {
+            if (t.paid.equalsIgnoreCase("1")) {
                 nbPaid++;
-                amountPaid += parseDouble(t.getAmount());
+                amountPaid += t.amount;
             } else {
-                amountUnpaid += parseDouble(t.getAmount());
+                amountUnpaid += t.amount;
             }
         }
 
-        nbInvoicePaid.postValue(nbPaid);
-        amountInvoiceUnpaid.postValue(amountUnpaid);
-        amountInvoicePaid.postValue(amountPaid);
-
-        List<AccountsTable> updatedListAccounts = functions.getAllAccounts();
-        if (isNull(updatedListAccounts) || updatedListAccounts.isEmpty()) updatedListAccounts = Collections.emptyList();
-        accountsLiveData.postValue(updatedListAccounts);
-
-        periodSelected.postValue(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)));
-        settingsAccount.postValue(functions.getSettingByLabel(Variables.settingAccount));
+        nbInvoiceTransactionsTablePaid.postValue(nbPaid);
+        amountInvoiceTransactionsTableUnpaid.postValue(amountUnpaid);
+        amountInvoiceTransactionsTablePaid.postValue(amountPaid);
     }
+    private void updateForecastFinalTransactionsTable() {
+        double amountInvoice = 0;
+        double amountIncome = 0;
+        for (TransactionsTable invoice : budgetData.getInvoicesTransactionsTable())
+            amountInvoice += invoice.amount;
+        for (TransactionsTable income : budgetData.getIncomesTransactionsTable())
+            amountIncome += income.amount;
 
-    public void accountChanged() {
-        updateLiveData();
+        forecastFinalTransactionsTable.postValue(amountIncome - amountInvoice);
+
     }
+    private void updateForecastEnCoursTransactionsTable() {
+        double amountInvoice = 0;
+        double amountIncome = 0;
+        double amountExpense = 0;
+        for (TransactionsTable invoice : budgetData.getInvoicesTransactionsTable())
+            if (invoice.paid.equalsIgnoreCase("1")) amountInvoice += invoice.amount;
+        for (TransactionsTable income : budgetData.getIncomesTransactionsTable())
+            amountIncome += income.amount;
+        for (TransactionsTable expense : budgetData.getExpensesTransactionsTable())
+            amountExpense += expense.amount;
 
-    public void updateTransaction(Transaction transaction) {
-        Log.d(TAG, "updateTransaction: label : " + transaction.getLabel() + "amount : " + transaction.getAmount() + " type : " + transaction.getType());
-        budgetData.updateTransaction(transaction);
-        updateLiveData();
-    }
-
-    // ACCOUNTS
-    public void insertAccount(AccountsTable newAccount) {
-        functions.insertAccount(newAccount);
-        updateLiveData();
-    }
-
-    public void updateAccount(AccountsTable accountsTable){
-        functions.updateAccount(accountsTable);
-        updateLiveData();
-    }
-
-    public void deleteAccount(AccountsTable accountsTable){
-        functions.deleteAccount(accountsTable);
-        updateLiveData();
-    }
-
-    public void updateSettingsAccount(String newAccount) {
-        if (!functions.getSettingByLabel(Variables.settingAccount).value.equalsIgnoreCase(newAccount)) {
-            SettingsTable settingsAccount = functions.getSettingByLabel(Variables.settingAccount);
-            settingsAccount.value = newAccount;
-            functions.updateSettings(settingsAccount);
-            updateLiveData();
-        }
-    }
-    //
-
-    // PERIOD
-    public void insertPeriod(PeriodsTable newPeriod){
-        functions.insertPeriod(newPeriod);
-        updatePeriod(newPeriod.label);
-    }
-
-    public void deletePeriod(PeriodsTable periodsTable){
-        functions.deletePeriod(periodsTable);
-    }
-
-    public void updatePeriod(String newPeriod){
-        updateSettingsPeriod(newPeriod);
-        updateLiveData();
-    }
-
-    public void updateSettingsPeriod(String newPeriod) {
-        if (!functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label.equalsIgnoreCase(newPeriod)) {
-            SettingsTable settingsPeriod = functions.getSettingByLabel(Variables.settingPeriod);
-            PeriodsTable periodsTable = functions.getPeriodByLabel(newPeriod);
-            settingsPeriod.value = String.valueOf(periodsTable.period_id);
-            functions.updateSettings(settingsPeriod);
-            updateLiveData();
-        }
-    }
-
-    public void insertModelInvoice(PeriodsTable periodsTable) {
-        String date = periodsTable.label;
-        List<Transaction> listOfModelInvoice = isNull(getModelInvoice().getValue()) ? Collections.emptyList() : getModelInvoice().getValue() ;
-        String account = isNull(settingsAccount.getValue()) ? String.valueOf(functions.getAccountById(parseLong(functions.getSettingByLabel(Variables.settingAccount).value)).account_id) : settingsAccount.getValue().value;
-
-        for (Transaction t : listOfModelInvoice){
-            t.setType(Enums.TransactionType.INVOICE);
-            t.setDate(date);
-            t.setAccount(account);
-            addTransaction(t);
-        }
-    }
-
-    public void insertModelIncome(PeriodsTable periodsTable) {
-        String date = periodsTable.label;
-        List<Transaction> listOfModelIncome = isNull(getModelIncome().getValue()) ? Collections.emptyList() : getModelIncome().getValue() ;
-        String account = isNull(settingsAccount.getValue()) ? String.valueOf(functions.getAccountById(parseLong(functions.getSettingByLabel(Variables.settingAccount).value)).account_id) : settingsAccount.getValue().value;
-
-        for (Transaction t : listOfModelIncome){
-            t.setType(Enums.TransactionType.INCOME);
-            t.setDate(date);
-            t.setAccount(account);
-            addTransaction(t);
-        }
+        forecastEncoursTransactionsTable.postValue(amountIncome - amountInvoice - amountExpense);
     }
 }

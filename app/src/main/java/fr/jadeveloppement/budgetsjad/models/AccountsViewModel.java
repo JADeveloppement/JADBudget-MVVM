@@ -9,8 +9,6 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,26 +43,30 @@ public class AccountsViewModel extends AndroidViewModel {
     public LiveData<SettingsTable> getSettingsAccount() {
         return settingsAccount;
     }
+    public void setSettingsAccount(){
+        settingsAccount.postValue(sqLiteFunctions.getSettingByLabel(Variables.settingAccount));
+    }
     public void insertAccount(AccountsTable newAccount) {
-        sqLiteFunctions.insertAccount(newAccount);
+        accountsData.insertAccountsTable(newAccount);
         updateListAccounts();
     }
 
     public void updateAccount(AccountsTable accountsTable) {
-        sqLiteFunctions.updateAccount(accountsTable);
+        accountsData.updateAccountsTable(accountsTable);
         updateListAccounts();
     }
 
     public void deleteAccount(AccountsTable accountsTable) {
-        sqLiteFunctions.deleteAccount(accountsTable);
+        accountsData.deleteAccountsTable(accountsTable);
         updateListAccounts();
     }
 
     public void updateSettingsAccount(String newAccount) {
         if (!sqLiteFunctions.getSettingByLabel(Variables.settingAccount).value.equalsIgnoreCase(newAccount)) {
-            SettingsTable settingsAccount = sqLiteFunctions.getSettingByLabel(Variables.settingAccount);
-            settingsAccount.value = newAccount;
-            sqLiteFunctions.updateSettings(settingsAccount);
+            SettingsTable newSettingsAccount = sqLiteFunctions.getSettingByLabel(Variables.settingAccount);
+            newSettingsAccount.value = newAccount;
+            sqLiteFunctions.updateSettings(newSettingsAccount);
+            settingsAccount.postValue(newSettingsAccount);
             updateListAccounts();
         }
     }

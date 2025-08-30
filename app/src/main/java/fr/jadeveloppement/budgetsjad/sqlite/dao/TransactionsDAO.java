@@ -13,17 +13,20 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 @Dao
 public interface TransactionsDAO {
     @Insert
-    long insertTransaction(TransactionsTable t);
+    long insertTransactionsTable(TransactionsTable t);
 
     @Update
-    void updateTransaction(TransactionsTable t);
+    void updateTransactionsTable(TransactionsTable t);
 
     @Delete
-    void deleteTransactionsTables(List<TransactionsTable> listOfTransactionToDelete);
+    void deleteTransactionsTable(List<TransactionsTable> listOfTransactionToDelete);
 
     @Query("SELECT * FROM transactions WHERE type = :type AND period_id = (SELECT period_id FROM periods WHERE period_id = (SELECT value FROM settings WHERE label = 'period_id')) AND account_id = ( SELECT value FROM settings WHERE label = 'account_id' )")
-    List<TransactionsTable> getTransactionsByType(String type);
+    List<TransactionsTable> getTransactionsTableByType(String type);
 
     @Query("SELECT * FROM transactions")
-    List<TransactionsTable> getAllTransactions();
+    List<TransactionsTable> getAllTransactionsTable();
+
+    @Delete
+    void deleteTransactionsTable(TransactionsTable t);
 }
