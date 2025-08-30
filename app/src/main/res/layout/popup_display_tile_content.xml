@@ -69,7 +69,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_weight="9">
+            android:layout_weight="7">
 
             <ImageView
                 android:layout_width="@dimen/iconM"
@@ -101,10 +101,47 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/popupDisplayTileContentViewtypeContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/paddingM"
+            android:orientation="horizontal"
+            android:gravity="end|center_vertical"
+            android:layout_weight="3">
+
+            <LinearLayout
+                android:layout_width="@dimen/iconL"
+                android:layout_height="@dimen/iconL"
+                android:gravity="center"
+                android:layout_marginEnd="@dimen/paddingM">
+
+                <ImageButton
+                    android:layout_width="@dimen/iconM"
+                    android:layout_height="@dimen/iconM"
+                    android:background="@drawable/overview"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/iconL"
+                android:layout_height="@dimen/iconL"
+                android:gravity="center">
+
+                <ImageButton
+                    android:layout_width="@dimen/iconM"
+                    android:layout_height="@dimen/iconM"
+                    android:background="@drawable/chart"/>
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/popupDisplayTileContentBtnChart"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="3"
             android:gravity="center"
             android:visibility="gone">
 
@@ -147,6 +184,13 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/popupDisplayTileContentNoDatasTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="italic"
+        android:text="@string/empty_transactions" />
 
     <ScrollView
         android:layout_width="match_parent"

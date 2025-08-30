@@ -50,5 +50,6 @@
     <string name="categorize">Catégoriser</string>
     <string name="expenses_chart">Graphique des dépenses</string>
     <string name="undefined">Non défini</string>
+    <string name="empty_transactions">Aucune transaction à afficher.</string>
 
 </resources>
