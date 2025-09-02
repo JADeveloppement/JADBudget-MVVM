@@ -24,6 +24,9 @@ import fr.jadeveloppement.budgetsjad.components.AccountTile;
 import fr.jadeveloppement.budgetsjad.components.AddAccountTile;
 import fr.jadeveloppement.budgetsjad.components.DashboardTile;
 import fr.jadeveloppement.budgetsjad.components.PeriodLayout;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.AccountsInterface;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.PeriodsInterface;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.TransactionInterface;
 import fr.jadeveloppement.budgetsjad.databinding.FragmentDashboardBinding;
 import fr.jadeveloppement.budgetsjad.functions.Enums;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
@@ -43,10 +46,9 @@ import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 public class DashboardFragment extends Fragment
         implements DashboardTile.DashboardTileAddElementClickedInterface,
         PeriodLayout.PeriodLayoutSelectionChanged,
-        PopupHelper.PopupHelperAddElementBtnClicked,
-        PopupHelper.PopupHelperDeleteElementBtnClicked,
-        PopupHelper.PopupHelperAccountsTableInterface,
-        PopupHelper.PopupHelperPeriodsTableAdded {
+        TransactionInterface,
+        AccountsInterface,
+        PeriodsInterface {
 
     private final String TAG = "JADBudget > DashboardFragment";
 
@@ -72,7 +74,7 @@ public class DashboardFragment extends Fragment
         dashboardPeriodContainer = binding.dashboardPeriodContainer;
 
         budgetViewModel = new ViewModelProvider(requireActivity(), new BudgetViewModelFactory(requireActivity().getApplication())).get(BudgetViewModel.class);
-        popupHelper = new PopupHelper(requireActivity(), this, this, this, this);
+        popupHelper = new PopupHelper(requireActivity(), this, this, this, null);
 
         accountsViewModel = new ViewModelProvider(requireActivity(), new AccountsViewModelFactory(requireActivity().getApplication())).get(AccountsViewModel.class);
         periodsViewModel = new ViewModelProvider(requireActivity(), new PeriodsViewModelFactory(requireActivity().getApplication())).get(PeriodsViewModel.class);
@@ -134,20 +136,20 @@ public class DashboardFragment extends Fragment
         }
         accountsViewModel.accountActiveChanged();
     }
-
     @Override
-    public void popupHelperAccountsTableAdded(AccountsTable a){
+    public void accountAdded(AccountsTable a) {
         accountsViewModel.insertAccount(a);
     }
+
     @Override
-    public void popupHelperAccountsTableEdited(AccountsTable a){
+    public void accountEdited(AccountsTable a) {
         accountsViewModel.updateAccount(a);
     }
+
     @Override
-    public void popupHelperAccountsTableDeleted(AccountsTable a){
+    public void accountDeleted(AccountsTable a) {
         accountsViewModel.deleteAccount(a);
     }
-
     //
 
     // PERIOD
@@ -174,8 +176,13 @@ public class DashboardFragment extends Fragment
         budgetViewModel.updateLiveDataTransactionsTable();
     }
     @Override
-    public void popupHelperPeriodAdded(PeriodsTable newPeriod, boolean hasModelInvoice, boolean hasModelIncome){
-        periodsViewModel.insertPeriod(newPeriod);
+    public void periodAdded(PeriodsTable p, boolean hasModelInvoice, boolean hasModelIncome) {
+        periodsViewModel.insertPeriod(p);
+        budgetViewModel.updateLiveDataTransactionsTable();
+    }
+    @Override
+    public void periodDeleted(PeriodsTable p) {
+        periodsViewModel.deletePeriod(p);
         budgetViewModel.updateLiveDataTransactionsTable();
     }
     //
@@ -350,19 +357,25 @@ public class DashboardFragment extends Fragment
     }
 
     @Override
-    public void popupAddElementBtnSaveClicked(TransactionsTable t) {
+    public void popupTransactionAdded(TransactionsTable t){
         budgetViewModel.addTransactionsTable(t);
     }
+
+    @Override
+    public void popupTransactionEdited(TransactionsTable t){
+        budgetViewModel.updateTransactionsTable(t);
+    }
+
+    @Override
+    public void popupTransactionDeleted(TransactionsTable t){
+        budgetViewModel.deleteTransactionsTable(t);
+    }
+    //
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
         //
-    }
-
-    @Override
-    public void popupDeleteElementClicked(TransactionsTable t) {
-        budgetViewModel.deleteTransactionsTable(t);
     }
 }

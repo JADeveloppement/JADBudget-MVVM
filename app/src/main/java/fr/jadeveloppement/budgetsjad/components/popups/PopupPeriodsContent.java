@@ -1,5 +1,7 @@
 package fr.jadeveloppement.budgetsjad.components.popups;
 
+import static java.util.Objects.isNull;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.PeriodElement;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.PeriodsInterface;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 
@@ -22,6 +25,8 @@ public class PopupPeriodsContent extends LinearLayout {
     private Functions functions;
     private List<PeriodsTable> listOfPeriods;
 
+    private PeriodsInterface periodsInterface;
+
     private LinearLayout popupContentPeriodsBtnClose, popupContentPeriodsListContainer;
 
     public PopupPeriodsContent(@NonNull Context c){
@@ -29,13 +34,14 @@ public class PopupPeriodsContent extends LinearLayout {
         this.context = c.getApplicationContext();
     }
 
-    public PopupPeriodsContent(@NonNull Context c, @NonNull View viewP){
+    public PopupPeriodsContent(@NonNull Context c, @NonNull View viewP, PeriodsInterface periodListener){
         super(c.getApplicationContext());
         this.context = c.getApplicationContext();
         this.functions = new Functions(context);
         this.listOfPeriods = functions.getAllPeriods();
         this.viewParent = viewP;
         this.popupContent = LayoutInflater.from(context).inflate(R.layout.popup_periods_content, (ViewGroup) viewParent, false);
+        this.periodsInterface = periodListener;
 
         initViews();
         initContent();
@@ -58,7 +64,7 @@ public class PopupPeriodsContent extends LinearLayout {
                 popupContainer.addContent(popupConfirmDeletePeriod.getLayout());
 
                 popupConfirmDeletePeriod.getPopupContentConfirmDeleteBtnConfirm().setOnClickListener(v1 -> {
-                    functions.deletePeriod(p);
+                    if (!isNull(periodsInterface)) periodsInterface.periodDeleted(p);
                     listOfPeriods = functions.getAllPeriods();
                     popupContainer.closePopup();
                     initContent();

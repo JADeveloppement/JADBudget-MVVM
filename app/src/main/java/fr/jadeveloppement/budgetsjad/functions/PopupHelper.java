@@ -1,5 +1,6 @@
 package fr.jadeveloppement.budgetsjad.functions;
 
+import static java.lang.Double.parseDouble;
 import static java.lang.Long.parseLong;
 import static java.util.Objects.isNull;
 
@@ -10,15 +11,13 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
-import fr.jadeveloppement.budgetsjad.components.CategoryLayout;
+import fr.jadeveloppement.budgetsjad.components.adapters.ElementAdapter;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupAccountsContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupContainer;
@@ -28,50 +27,43 @@ import fr.jadeveloppement.budgetsjad.components.popups.PopupDisplayChart;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupDisplayTileContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupElementContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupManageCategories;
-import fr.jadeveloppement.budgetsjad.components.popups.PopupModelContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodContent;
 import fr.jadeveloppement.budgetsjad.components.popups.PopupPeriodsContent;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.AccountsInterface;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.CategoriesInterface;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.PeriodsInterface;
+import fr.jadeveloppement.budgetsjad.components.popups.interfaces.TransactionInterface;
 import fr.jadeveloppement.budgetsjad.functions.interfaces.BudgetRequestsInterface;
-import fr.jadeveloppement.budgetsjad.models.BudgetViewModel;
-import fr.jadeveloppement.budgetsjad.models.classes.Transaction;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.CategoryTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.PeriodsTable;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.SettingsTable;
+import fr.jadeveloppement.budgetsjad.sqlite.tables.TransactionsTable;
 
-public class PopupHelper {
-
+public class PopupHelper implements ElementAdapter.ElementAdapterActionClicked, PeriodsInterface {
     private final String TAG = "JADBudget";
 
     private final Context context;
-    private PopupHelperAddElementBtnClicked callback;
+    private CategoriesInterface categoriesInterface;
+    private TransactionInterface transactionInterface;
+    private AccountsInterface accountsInterface;
+    private PeriodsInterface periodInterface;
     private PeriodsTable periodSelected;
     private Functions functions;
-    private BudgetViewModel budgetViewModel;
-
     private PopupContainer popupLogin = null;
     private LinearLayout popupLoadingScreen = null;
 
-    public interface PopupHelperAddElementBtnClicked{
-        void popupAddElementBtnSaveClicked(String label, String amount, Enums.TransactionType type);
-    }
-
-    public interface PopupHelperCategoryAdded{
-        void categoryAdded();
-    }
-
-    public PopupHelper(@NonNull Context c, @Nullable PopupHelperAddElementBtnClicked call){
+    public PopupHelper(@NonNull Context c,
+                       TransactionInterface transactionCall,
+                       AccountsInterface accountListener,
+                       PeriodsInterface periodListener,
+                       CategoriesInterface categoriesListener){
         this.context = c.getApplicationContext();
-        this.budgetViewModel = null;
         this.functions = new Functions(context);
-        this.callback = call;
-    }
-
-    public PopupHelper(@NonNull Context c, @Nullable BudgetViewModel bModel){
-        this.context = c.getApplicationContext();
-        this.budgetViewModel = bModel;
-        this.functions = new Functions(context);
-        this.callback = null;
+        this.transactionInterface = transactionCall;
+        this.accountsInterface = accountListener;
+        this.periodInterface = periodListener;
+        this.categoriesInterface = categoriesListener;
     }
 
     public void popupManageCategories(){
@@ -106,7 +98,9 @@ public class PopupHelper {
     public void popupAddElement(Enums.TransactionType type, boolean... isEx){
         boolean isExternal = isEx.length > 0 && isEx[0];
 
-        periodSelected = functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value));
+        long period_id = parseLong(functions.getSettingByLabel(Variables.settingPeriod).value);
+
+        periodSelected = functions.getPeriodById(period_id);
         SettingsTable settingsAccount = functions.getSettingByLabel(Variables.settingAccount);
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
         PopupElementContent popupElementContent = new PopupElementContent(context, MainActivity.getViewRoot(), null);
@@ -139,21 +133,29 @@ public class PopupHelper {
             }
             if (label.isBlank() || amount.isBlank()) functions.makeToast("Veuillez renseigner tous les champs");
             else {
-                Transaction transaction = new Transaction(
+                String transactionType = "";
+                if (type == Enums.TransactionType.EXPENSE) transactionType = Variables.strTypeExpense;
+                else if (type == Enums.TransactionType.INVOICE) transactionType = Variables.strTypeInvoice;
+                else if (type == Enums.TransactionType.INCOME) transactionType = Variables.strTypeIncome;
+                else if (type == Enums.TransactionType.MODELINVOICE) transactionType = Variables.strTypeModelInvoice;
+                else if (type == Enums.TransactionType.MODELINCOME) transactionType = Variables.strTypeModelIncome;
+
+                TransactionsTable transactionsTable = new TransactionsTable(
                         label,
-                        amount,
-                        Functions.convertLocaleDateToStd(popupElementContent.getPopupContentElementPeriodTv().getText().toString()),
-                        settingsAccount.value,
-                        type == Enums.TransactionType.INVOICE ? (popupElementContent.getPopupContentElementIsPaid().isChecked() ? "1" : "0") : "0",
-                        category,
-                        type
+                        parseDouble(amount),
+                        "0",
+                        transactionType,
+                        parseLong(settingsAccount.value),
+                        period_id,
+                        category.isBlank() ? null : parseLong(category)
                 );
 
                 if (!isExternal){
-                    budgetViewModel.addTransaction(transaction);
+                    if (!isNull(transactionInterface)) transactionInterface.popupTransactionAdded(transactionsTable);
+//                    budgetViewModel.addTransactionsTable(transactionsTable);
                     functions.makeToast("Elément rajouté avec succès");
                 } else {
-                    if (!isNull(callback)) callback.popupAddElementBtnSaveClicked(label, amount, type);
+                    if (!isNull(transactionInterface)) transactionInterface.popupTransactionAdded(transactionsTable);
                 }
                 popupContainer.closePopup();
             }
@@ -171,11 +173,54 @@ public class PopupHelper {
 
     public void popupManagePeriods(){
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
-        PopupPeriodsContent popupPeriodContent = new PopupPeriodsContent(context, MainActivity.getViewRoot());
+        PopupPeriodsContent popupPeriodContent = new PopupPeriodsContent(context, MainActivity.getViewRoot(), this);
 
         popupContainer.addContent(popupPeriodContent.getLayout());
 
         popupPeriodContent.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
+    }
+
+    public void popupCreatePeriod() {
+        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+        PopupPeriodContent popupPeriodContent = new PopupPeriodContent(context, MainActivity.getViewRoot());
+        popupContainer.addContent(popupPeriodContent.getLayout());
+
+        popupPeriodContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
+
+//        popupPeriodContent.getPopupContentPeriodPreviewModelIncome().setOnClickListener(v1 -> {
+//            PopupContainer popupContainer1 = new PopupContainer(context, MainActivity.getViewRoot());
+//            PopupModelContent popupModelContent = new PopupModelContent(context, MainActivity.getViewRoot(), Enums.TransactionType.MODELINCOME, budgetViewModel);
+//
+//            popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
+//
+//            popupContainer1.addContent(popupModelContent.getLayout());
+//        });
+
+//        popupPeriodContent.getPopupContentPeriodPreviewModelInvoice().setOnClickListener(v1 -> {
+//            PopupContainer popupContainer1 = new PopupContainer(context, MainActivity.getViewRoot());
+//            PopupModelContent popupModelContent = new PopupModelContent(context, MainActivity.getViewRoot(), Enums.TransactionType.MODELINVOICE, budgetViewModel);
+//
+//            popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
+//            popupContainer1.addContent(popupModelContent.getLayout());
+//        });
+
+        popupPeriodContent.getPopupContentPeriodSaveBtn().setOnClickListener(v1 -> {
+            try {
+                String selectedDate = Functions.convertLocaleDateToStd(popupPeriodContent.getPopupContentPeriodPeriodPreview().getText().toString());
+                PeriodsTable periodsTable = new PeriodsTable();
+                periodsTable.label = selectedDate;
+//                budgetViewModel.insertPeriod(periodsTable);
+//                if (popupPeriodContent.getPopupContentPeriodUseModelInvoice().isChecked())
+//                    budgetViewModel.insertModelInvoice(periodsTable);
+//                if (popupPeriodContent.getPopupContentPeriodUseModelIncome().isChecked())
+//                    budgetViewModel.insertModelIncome(periodsTable);
+                if (!isNull(periodInterface)) periodInterface.periodAdded(periodsTable, false, false);
+                popupContainer.closePopup();
+            } catch (Exception e){
+                functions.makeToast("Une erreur est survenue");
+                Log.d(TAG, "popupPeriodContent.getPopupContentPeriodSaveBtn() > setPeriodEvents: "+e.getMessage());
+            }
+        });
     }
 
     public void popupImportDatas(BudgetRequestsInterface callback){
@@ -250,76 +295,76 @@ public class PopupHelper {
     }
 
     public void popupExportDatas(BudgetRequestsInterface callback) {
-        SettingsTable settingTableToken = functions.getSettingByLabel(Variables.settingsToken);
-        if (isNull(settingTableToken)){
-            callback.tokenNonOk();
-            return;
-        }
-        String login = functions.getSettingByLabel(Variables.settingUsername).value;
-        String password = functions.getSettingByLabel(Variables.settingPassword).value;
-
-        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
-        PopupContentSynchronize popupContentSynchronize = new PopupContentSynchronize(context);
-        popupContentSynchronize.setTitle("Envoyer les données");
-        popupContentSynchronize.setBtnSaveLabel("Envoyer");
-        popupContainer.addContent(popupContentSynchronize.getLayout());
-
-        popupContentSynchronize.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
-        popupContentSynchronize.getBtnSave().setOnClickListener(v1 -> {
-            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
-            List<Enums.DataToRequest> datasToSend = new ArrayList<>();
-            if (popupContentSynchronize.getPopupContentSynchronizeInvoiceCb().isChecked()) datasToSend.add(Enums.DataToRequest.INVOICE);
-            if (popupContentSynchronize.getPopupContentSynchronizeIncomeCb().isChecked()) datasToSend.add(Enums.DataToRequest.INCOME);
-            if (popupContentSynchronize.getPopupContentSynchronizeExpenseCb().isChecked()) datasToSend.add(Enums.DataToRequest.EXPENSE);
-            if (popupContentSynchronize.getPopupContentSynchronizeModelInvoiceCb().isChecked()) datasToSend.add(Enums.DataToRequest.MODELINVOICE);
-            if (popupContentSynchronize.getPopupContentSynchronizeModelIncomeCb().isChecked()) datasToSend.add(Enums.DataToRequest.MODELINCOME);
-
-            if (datasToSend.isEmpty()) {
-                functions.makeToast("Veuillez cocher au moins une case SVP.");
-                return;
-            }
-
-            StringBuilder datas = new StringBuilder();
-
-            if (datasToSend.contains(Enums.DataToRequest.INVOICE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getInvoices().getValue()));
-            if (datasToSend.contains(Enums.DataToRequest.INCOME)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getIncomes().getValue()));
-            if (datasToSend.contains(Enums.DataToRequest.EXPENSE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getExpenses().getValue()));
-            if (datasToSend.contains(Enums.DataToRequest.MODELINCOME)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getModelIncome().getValue()));
-            if (datasToSend.contains(Enums.DataToRequest.MODELINVOICE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getModelInvoice().getValue()));
-
-            BudgetRequests budgetRequests = new BudgetRequests(context, login, password, callback);
-            budgetRequests.makeExportDatas(settingTableToken.value, datas.toString());
-        });
-
-        popupContentSynchronize.getPopupContentSynchronizePreviewInvoice().setOnClickListener(v -> {
-            List<Transaction> listOfInvoices = functions.getAllInvoicesTransaction();
-            if (listOfInvoices.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
-            else displayListOfTransaction(new MutableLiveData<>(listOfInvoices), Enums.TransactionType.INVOICE);
-        });
-
-        popupContentSynchronize.getPopupContentSynchronizePreviewIncome().setOnClickListener(v -> {
-            List<Transaction> listOfIncomes = functions.getAllIncomesTransaction();
-            if (listOfIncomes.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
-            else displayListOfTransaction(new MutableLiveData<>(listOfIncomes), Enums.TransactionType.INCOME);
-        });
-
-        popupContentSynchronize.getPopupContentSynchronizePreviewExpense().setOnClickListener(v -> {
-            List<Transaction> listOfExpenses = functions.getAllExpensesTransaction();
-            if (listOfExpenses.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
-            else displayListOfTransaction(new MutableLiveData<>(listOfExpenses), Enums.TransactionType.EXPENSE);
-        });
-
-        popupContentSynchronize.getPopupContentSynchronizePreviewModelInvoice().setOnClickListener(v -> {
-            List<Transaction> listOfModelInvoices = functions.getModelInvoiceTransaction();
-            if (listOfModelInvoices.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
-            else displayListOfTransaction(new MutableLiveData<>(listOfModelInvoices), Enums.TransactionType.MODELINVOICE);
-        });
-
-        popupContentSynchronize.getPopupContentSynchronizePreviewModelIncome().setOnClickListener(v -> {
-            List<Transaction> listOfModelIncomes = functions.getModelIncomeTransaction();
-            if (listOfModelIncomes.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
-            else displayListOfTransaction(new MutableLiveData<>(listOfModelIncomes), Enums.TransactionType.MODELINCOME);
-        });
+//        SettingsTable settingTableToken = functions.getSettingByLabel(Variables.settingsToken);
+//        if (isNull(settingTableToken)){
+//            callback.tokenNonOk();
+//            return;
+//        }
+//        String login = functions.getSettingByLabel(Variables.settingUsername).value;
+//        String password = functions.getSettingByLabel(Variables.settingPassword).value;
+//
+//        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
+//        PopupContentSynchronize popupContentSynchronize = new PopupContentSynchronize(context);
+//        popupContentSynchronize.setTitle("Envoyer les données");
+//        popupContentSynchronize.setBtnSaveLabel("Envoyer");
+//        popupContainer.addContent(popupContentSynchronize.getLayout());
+//
+//        popupContentSynchronize.getBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
+//        popupContentSynchronize.getBtnSave().setOnClickListener(v1 -> {
+//            popupLoadingScreen = popupContentSynchronize.getLoadingScreen();
+//            List<Enums.DataToRequest> datasToSend = new ArrayList<>();
+//            if (popupContentSynchronize.getPopupContentSynchronizeInvoiceCb().isChecked()) datasToSend.add(Enums.DataToRequest.INVOICE);
+//            if (popupContentSynchronize.getPopupContentSynchronizeIncomeCb().isChecked()) datasToSend.add(Enums.DataToRequest.INCOME);
+//            if (popupContentSynchronize.getPopupContentSynchronizeExpenseCb().isChecked()) datasToSend.add(Enums.DataToRequest.EXPENSE);
+//            if (popupContentSynchronize.getPopupContentSynchronizeModelInvoiceCb().isChecked()) datasToSend.add(Enums.DataToRequest.MODELINVOICE);
+//            if (popupContentSynchronize.getPopupContentSynchronizeModelIncomeCb().isChecked()) datasToSend.add(Enums.DataToRequest.MODELINCOME);
+//
+//            if (datasToSend.isEmpty()) {
+//                functions.makeToast("Veuillez cocher au moins une case SVP.");
+//                return;
+//            }
+//
+//            StringBuilder datas = new StringBuilder();
+//
+//            if (datasToSend.contains(Enums.DataToRequest.INVOICE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getInvoices().getValue()));
+//            if (datasToSend.contains(Enums.DataToRequest.INCOME)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getIncomes().getValue()));
+//            if (datasToSend.contains(Enums.DataToRequest.EXPENSE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getExpenses().getValue()));
+//            if (datasToSend.contains(Enums.DataToRequest.MODELINCOME)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getModelIncome().getValue()));
+//            if (datasToSend.contains(Enums.DataToRequest.MODELINVOICE)) datas.append("<n>").append(functions.convertListToDatas(budgetViewModel.getModelInvoice().getValue()));
+//
+//            BudgetRequests budgetRequests = new BudgetRequests(context, login, password, callback);
+//            budgetRequests.makeExportDatas(settingTableToken.value, datas.toString());
+//        });
+//
+//        popupContentSynchronize.getPopupContentSynchronizePreviewInvoice().setOnClickListener(v -> {
+//            List<Transaction> listOfInvoices = functions.getAllInvoicesTransaction();
+//            if (listOfInvoices.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+//            else displayListOfTransaction(new MutableLiveData<>(listOfInvoices), Enums.TransactionType.INVOICE);
+//        });
+//
+//        popupContentSynchronize.getPopupContentSynchronizePreviewIncome().setOnClickListener(v -> {
+//            List<Transaction> listOfIncomes = functions.getAllIncomesTransaction();
+//            if (listOfIncomes.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+//            else displayListOfTransaction(new MutableLiveData<>(listOfIncomes), Enums.TransactionType.INCOME);
+//        });
+//
+//        popupContentSynchronize.getPopupContentSynchronizePreviewExpense().setOnClickListener(v -> {
+//            List<Transaction> listOfExpenses = functions.getAllExpensesTransaction();
+//            if (listOfExpenses.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+//            else displayListOfTransaction(new MutableLiveData<>(listOfExpenses), Enums.TransactionType.EXPENSE);
+//        });
+//
+//        popupContentSynchronize.getPopupContentSynchronizePreviewModelInvoice().setOnClickListener(v -> {
+//            List<Transaction> listOfModelInvoices = functions.getModelInvoiceTransaction();
+//            if (listOfModelInvoices.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+//            else displayListOfTransaction(new MutableLiveData<>(listOfModelInvoices), Enums.TransactionType.MODELINVOICE);
+//        });
+//
+//        popupContentSynchronize.getPopupContentSynchronizePreviewModelIncome().setOnClickListener(v -> {
+//            List<Transaction> listOfModelIncomes = functions.getModelIncomeTransaction();
+//            if (listOfModelIncomes.isEmpty()) Functions.makeSnakebar("Aucune données à afficher");
+//            else displayListOfTransaction(new MutableLiveData<>(listOfModelIncomes), Enums.TransactionType.MODELINCOME);
+//        });
     }
 
     public void makeLoginPopup(BudgetRequestsInterface callback) {
@@ -362,87 +407,39 @@ public class PopupHelper {
         }
     }
 
-    public void displayListOfTransaction(LiveData<List<Transaction>> listOfTransaction, Enums.TransactionType type, boolean... isEx) {
-        boolean isExternal = isEx.length > 0 && isEx[0];
-
-        if (isNull(budgetViewModel) && !isExternal) {
-            functions.makeToast("BudgetViewModel not defined but required.");
-            return;
-        }
-
+    public void displayListOfTransactionsTable(List<TransactionsTable> listOfElements, String type){
         int icon = R.drawable.undefined;
         String title = "";
-        if (type == Enums.TransactionType.INVOICE || type == Enums.TransactionType.MODELINVOICE) {
-            icon = type == Enums.TransactionType.INVOICE ? R.drawable.invoice : R.drawable.model;
+        if (type == Variables.strTypeInvoice || type == Variables.strTypeModelInvoice) {
+            icon = type == Variables.strTypeInvoice ? R.drawable.invoice : R.drawable.model;
             title = "Liste des prélèvements";
-        } else if (type == Enums.TransactionType.INCOME || type == Enums.TransactionType.MODELINCOME){
-            icon = type == Enums.TransactionType.INCOME ? R.drawable.income : R.drawable.model;
+        } else if (type == Variables.strTypeIncome || type == Variables.strTypeModelIncome){
+            icon = type == Variables.strTypeIncome ? R.drawable.income : R.drawable.model;
             title = "Liste des revenus";
-        } else if (type == Enums.TransactionType.EXPENSE){
+        } else if (type == Variables.strTypeExpense){
             icon = R.drawable.expense;
             title = "Liste des dépenses";
         }
 
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
-        PopupDisplayTileContent popupDisplayTileContent = new PopupDisplayTileContent(context, MainActivity.getViewRoot(), listOfTransaction, budgetViewModel, isExternal);
+        PopupDisplayTileContent popupDisplayTileContent = new PopupDisplayTileContent(context, MainActivity.getViewRoot(), listOfElements, this);
         popupContainer.addContent(popupDisplayTileContent.getLayout());
         popupDisplayTileContent.setPopupDisplayContentTitle(title);
         popupDisplayTileContent.setPopupDisplayContentTitleIcon(icon);
         popupDisplayTileContent.setPopupDisplayTileContentPeriodTv(Functions.convertStdDateToLocale(functions.getPeriodById(parseLong(functions.getSettingByLabel(Variables.settingPeriod).value)).label));
 
         popupDisplayTileContent.getPopupDisplayTileContentBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
-        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setVisibility(functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") ? View.VISIBLE : View.GONE);
-        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setOnClickListener(v2 -> {
-            PopupContainer popupChartContainer = new PopupContainer(context, MainActivity.getViewRoot());
-            PopupDisplayChart popupDisplayChart = new PopupDisplayChart(context, type);
-            popupChartContainer.addContent(popupDisplayChart.getLayout());
-
-            popupDisplayChart.btnClose().setOnClickListener(v3 -> {
-                popupChartContainer.closePopup();
-            });
-        });
-    }
-
-    public void popupCreatePeriod() {
-        PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
-        PopupPeriodContent popupPeriodContent = new PopupPeriodContent(context, MainActivity.getViewRoot());
-        popupContainer.addContent(popupPeriodContent.getLayout());
-
-        popupPeriodContent.getPopupContentElementBtnClose().setOnClickListener(v1 -> popupContainer.closePopup());
-
-        popupPeriodContent.getPopupContentPeriodPreviewModelIncome().setOnClickListener(v1 -> {
-            PopupContainer popupContainer1 = new PopupContainer(context, MainActivity.getViewRoot());
-            PopupModelContent popupModelContent = new PopupModelContent(context, MainActivity.getViewRoot(), Enums.TransactionType.MODELINCOME, budgetViewModel);
-
-            popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
-
-            popupContainer1.addContent(popupModelContent.getLayout());
-        });
-
-        popupPeriodContent.getPopupContentPeriodPreviewModelInvoice().setOnClickListener(v1 -> {
-            PopupContainer popupContainer1 = new PopupContainer(context, MainActivity.getViewRoot());
-            PopupModelContent popupModelContent = new PopupModelContent(context, MainActivity.getViewRoot(), Enums.TransactionType.MODELINVOICE, budgetViewModel);
-
-            popupModelContent.getPopupContentModelBtnAdd().setVisibility(View.GONE);
-            popupContainer1.addContent(popupModelContent.getLayout());
-        });
-
-        popupPeriodContent.getPopupContentPeriodSaveBtn().setOnClickListener(v1 -> {
-            try {
-                String selectedDate = Functions.convertLocaleDateToStd(popupPeriodContent.getPopupContentPeriodPeriodPreview().getText().toString());
-                PeriodsTable periodsTable = new PeriodsTable();
-                periodsTable.label = selectedDate;
-                budgetViewModel.insertPeriod(periodsTable);
-                if (popupPeriodContent.getPopupContentPeriodUseModelInvoice().isChecked())
-                    budgetViewModel.insertModelInvoice(periodsTable);
-                if (popupPeriodContent.getPopupContentPeriodUseModelIncome().isChecked())
-                    budgetViewModel.insertModelIncome(periodsTable);
-                popupContainer.closePopup();
-            } catch (Exception e){
-                functions.makeToast("Une erreur est survenue");
-                Log.d(TAG, "popupPeriodContent.getPopupContentPeriodSaveBtn() > setPeriodEvents: "+e.getMessage());
-            }
-        });
+//        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setVisibility(functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") ? View.VISIBLE : View.GONE);
+        popupDisplayTileContent.getPopupDisplayTileContentViewtypeContainer().setVisibility(functions.getSettingByLabel(Variables.settingCategory).value.equalsIgnoreCase("1") ? View.VISIBLE : View.GONE);
+//        popupDisplayTileContent.getPopupDisplayTileContentBtnChart().setOnClickListener(v2 -> {
+//            PopupContainer popupChartContainer = new PopupContainer(context, MainActivity.getViewRoot());
+//            PopupDisplayChart popupDisplayChart = new PopupDisplayChart(context, listOfElements);
+//            popupChartContainer.addContent(popupDisplayChart.getLayout());
+//
+//            popupDisplayChart.btnClose().setOnClickListener(v3 -> {
+//                popupChartContainer.closePopup();
+//            });
+//        });
     }
 
     public void popupAddAccount(){
@@ -459,7 +456,8 @@ public class PopupHelper {
                 newAccount.label = label;
                 newAccount.amount = amount;
 
-                budgetViewModel.insertAccount(newAccount);
+                if(!isNull(accountsInterface)) accountsInterface.accountAdded(newAccount);
+
                 popupContainer.closePopup();
             }
         });
@@ -480,18 +478,37 @@ public class PopupHelper {
             else {
                 a.label = label;
                 a.amount = amount;
-
-                budgetViewModel.updateAccount(a);
+                if (!isNull(accountsInterface)) accountsInterface.accountEdited(a);
                 popupContainer.closePopup();
             }
         });
 
         popupAccountContent.getBtnDelete().setVisibility(functions.getAllAccounts().size() == 1 ? View.GONE : View.VISIBLE);
         popupAccountContent.getBtnDelete().setOnClickListener(v2 -> {
-            budgetViewModel.deleteAccount(a);
+            if(!isNull(accountsInterface)) accountsInterface.accountDeleted(a);
             popupContainer.closePopup();
         });
 
         popupAccountContent.getBtnClose().setOnClickListener(v2 -> popupContainer.closePopup());
+    }
+
+    @Override
+    public void elementAdapterDeleteClicked(TransactionsTable t) {
+        if (!isNull(transactionInterface)) transactionInterface.popupTransactionDeleted(t);
+    }
+
+    @Override
+    public void elementAdapterEditClicked(TransactionsTable t) {
+        // TODO - Edit TransactionsTable
+    }
+
+    @Override
+    public void periodAdded(PeriodsTable p, boolean hasModelInvoice, boolean hasModelIncome) {
+        if (!isNull(periodInterface)) periodInterface.periodAdded(p, hasModelInvoice, hasModelIncome);
+    }
+
+    @Override
+    public void periodDeleted(PeriodsTable p) {
+        if (!isNull(periodInterface)) periodInterface.periodDeleted(p);
     }
 }
