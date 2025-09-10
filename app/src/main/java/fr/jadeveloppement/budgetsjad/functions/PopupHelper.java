@@ -114,6 +114,8 @@ public class PopupHelper {
         popupElementContent.getPopupContentElementBtnDelete().setVisibility(View.GONE);
         popupContainer.addContent(popupElementContent.getLayout());
 
+        popupElementContent.getPopupContentElementLabel().addTextChangedListener(new TextWatcherFunction(popupElementContent.getPopupContentElementLabel()));
+
         String titlePopup = "Ajouter un élément";
         if (type == Enums.TransactionType.EXPENSE) titlePopup = "Ajouter une dépense";
         else if (type == Enums.TransactionType.INCOME) titlePopup = "Ajouter un revenu";
@@ -449,6 +451,8 @@ public class PopupHelper {
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
         PopupAccountContent popupAccountContent = new PopupAccountContent(context, MainActivity.getViewRoot(), null);
         popupContainer.addContent(popupAccountContent.getLayout());
+        popupAccountContent.getPopupContentAccountLabel().addTextChangedListener(new TextWatcherFunction(popupAccountContent.getPopupContentAccountLabel()));
+
         popupAccountContent.getBtnSave().setOnClickListener(v1 -> {
             String label = popupAccountContent.getPopupContentAccountLabel().getText().toString();
             String amount = popupAccountContent.getPopupContentAccountAmount().getText().toString();
@@ -471,6 +475,7 @@ public class PopupHelper {
         PopupContainer popupContainer = new PopupContainer(context, MainActivity.getViewRoot());
         PopupAccountContent popupAccountContent = new PopupAccountContent(context, MainActivity.getViewRoot(), a);
         popupContainer.addContent(popupAccountContent.getLayout());
+        popupAccountContent.getPopupContentAccountLabel().addTextChangedListener(new TextWatcherFunction(popupAccountContent.getPopupContentAccountLabel()));
 
         popupAccountContent.getBtnSave().setOnClickListener(v1 -> {
             String label = popupAccountContent.getPopupContentAccountLabel().getText().toString();

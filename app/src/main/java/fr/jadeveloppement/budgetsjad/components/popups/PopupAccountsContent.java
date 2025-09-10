@@ -18,6 +18,7 @@ import fr.jadeveloppement.budgetsjad.MainActivity;
 import fr.jadeveloppement.budgetsjad.R;
 import fr.jadeveloppement.budgetsjad.components.AccountTile;
 import fr.jadeveloppement.budgetsjad.functions.Functions;
+import fr.jadeveloppement.budgetsjad.functions.TextWatcherFunction;
 import fr.jadeveloppement.budgetsjad.functions.Variables;
 import fr.jadeveloppement.budgetsjad.sqlite.tables.AccountsTable;
 
@@ -80,6 +81,7 @@ public class PopupAccountsContent extends LinearLayout {
                 popupContainerEditAccount.addContent(popupAccountContent.getLayout());
                 popupAccountContent.setPopupTitle("Gérer un compte");
                 popupAccountContent.setPopupIcon(R.drawable.account_card);
+                popupAccountContent.getPopupContentAccountLabel().addTextChangedListener(new TextWatcherFunction(popupAccountContent.getPopupContentAccountLabel()));
 
                 if (a.account_id == activeAccount.account_id || listOfAccounts.size() == 1)
                     popupAccountContent.getBtnDelete().setVisibility(View.GONE);
